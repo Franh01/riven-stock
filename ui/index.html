@@ -24,16 +24,13 @@
     font: 14px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
     display: flex; flex-direction: column;
   }
-  header {
-    display: flex; align-items: center; gap: 14px;
-    padding: 18px 28px; border-bottom: 1px solid var(--line);
-  }
-  header h1 { margin: 0; font: 600 20px "Segoe UI Variable Display", "Segoe UI", sans-serif; letter-spacing: .3px; }
-  header p { margin: 0; color: var(--muted); font-size: 13px; }
-  main { flex: 1; overflow: auto; padding: 24px 28px 32px; display: grid; gap: 20px; align-content: start; }
+  header { display: flex; align-items: center; gap: 12px; padding: 16px 28px; border-bottom: 1px solid var(--line); }
+  header h1 { margin: 0; font: 600 19px "Segoe UI Variable Display", "Segoe UI", sans-serif; letter-spacing: .3px; }
+  header p { margin: 0; color: var(--muted); font-size: 12px; }
+  main { flex: 1; overflow: auto; padding: 24px 28px 110px; display: grid; gap: 20px; align-content: start; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
-  .card h2 { margin: 0 0 14px; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-  .form { display: grid; grid-template-columns: 2fr repeat(3, 1.4fr) 1.4fr auto; gap: 12px; align-items: end; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
   label { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
   input, select, button { font: inherit; color: var(--text); }
   input, select {
@@ -41,7 +38,7 @@
     padding: 9px 11px; outline: none; width: 100%;
   }
   input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #a066f633; }
-  select:disabled, input:disabled { opacity: .5; }
+  input:disabled, select:disabled { opacity: .5; }
   button {
     background: linear-gradient(180deg, #b47cff, #7b3fe4); border: 0; border-radius: 9px;
     padding: 10px 20px; font-weight: 600; cursor: pointer; white-space: nowrap;
@@ -49,30 +46,106 @@
   }
   button:hover { filter: brightness(1.08); }
   button:disabled { filter: grayscale(.6); opacity: .6; cursor: default; }
-  .hint { margin-top: 12px; color: var(--muted); font-size: 12px; }
-  .summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-  .chip { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px; min-width: 120px; }
-  .chip b { display: block; font-size: 22px; font-weight: 600; color: var(--accent-2); }
-  .chip span { color: var(--muted); font-size: 12px; }
+  button.ghost { background: var(--panel-2); border: 1px solid var(--line); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
+  button.ghost:hover { border-color: var(--accent); }
+  button.danger { background: none; border: 1px solid #e5546b66; color: var(--neg); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
+  button.danger:hover { background: #e5546b1a; }
+  button.solid-danger { background: linear-gradient(180deg, #f06a80, #c43a52); box-shadow: 0 4px 16px #c43a5255; }
+  button.icon { background: none; box-shadow: none; padding: 4px 10px; color: var(--muted); font-size: 20px; line-height: 1; }
+  button.icon:hover { color: var(--text); }
+
   table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
-  td { padding: 10px; border-bottom: 1px solid #241540; vertical-align: top; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 10px; border-bottom: 1px solid #241540; vertical-align: middle; }
   tr:last-child td { border-bottom: 0; }
+  tr.hidden-row td:not(.actions) { opacity: .62; }
   td.price { font-weight: 700; color: var(--accent-2); font-size: 16px; white-space: nowrap; }
-  .riven-name { text-transform: capitalize; }
+  .price-edit { display: inline-flex; align-items: center; cursor: text; border-radius: 6px; padding: 2px 6px; margin: -2px -6px; }
+  .price-edit:hover { background: var(--panel-2); }
+  .price-input { width: 84px; padding: 4px 8px; font-weight: 700; color: var(--accent-2); }
+  .riven-weapon { font-weight: 600; }
+  .riven-name { text-transform: capitalize; color: var(--muted); font-size: 12px; }
   .stats { display: flex; flex-wrap: wrap; gap: 6px; }
-  .stat { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: #7ee2a81a; color: var(--pos); }
+  .stat { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: #7ee2a81a; color: var(--pos); white-space: nowrap; }
   .stat.neg { background: #ff8a9a1a; color: var(--neg); }
+  .badge { font-size: 12px; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+  .badge.on { background: #7ee2a81f; color: var(--pos); }
+  .badge.off { background: #9a8cba22; color: var(--muted); }
+  td.actions { white-space: nowrap; text-align: right; }
+  td.actions button + button { margin-left: 6px; }
   .muted { color: var(--muted); }
   a { color: var(--accent-2); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .state { color: var(--muted); padding: 24px 0; text-align: center; }
   .error { color: var(--neg); }
+
+  /* Botón flotante */
+  .fab {
+    position: fixed; right: 28px; bottom: 28px; z-index: 5;
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 22px 14px 18px; border-radius: 99px; font-size: 15px;
+    box-shadow: 0 10px 34px #7b3fe488, 0 0 0 1px #c99bff44 inset;
+  }
+  .fab span { font-size: 22px; line-height: 1; font-weight: 400; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 20;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 18px; opacity: 0; transition: .2s; pointer-events: none; box-shadow: 0 8px 30px #0008;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+  .toast.error { border-color: #e5546b88; }
+
+  dialog {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 16px;
+    padding: 0; box-shadow: 0 20px 60px #000a;
+  }
+  dialog::backdrop { background: #05020bcc; }
+  .dlg-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--line); }
+  .dlg-head h3 { margin: 0; font-size: 17px; }
+  .dlg-body { padding: 20px 24px 24px; display: grid; gap: 22px; }
+  dialog p { margin: 0 0 16px; color: var(--muted); }
+
+  #close-dialog { width: min(460px, 90vw); }
+  .sold { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .sold input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+  .sold input[type=number] { width: 110px; }
+  .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+  #riven-dialog { width: min(1040px, 94vw); max-height: 92vh; }
+  #riven-dialog .dlg-body { overflow: auto; max-height: calc(92vh - 64px); }
+  .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .step { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #a066f633; color: var(--accent-2); }
+  .grid-riven { display: grid; grid-template-columns: 2fr 1.4fr 1.1fr .7fr .7fr .7fr; gap: 12px; }
+  .grid-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+  .stat-slot { display: grid; gap: 6px; }
+  .stat-slot .row { display: grid; grid-template-columns: 1fr 88px; gap: 6px; }
+  .stat-slot .tag { font-size: 12px; color: var(--muted); }
+  .stat-slot .tag.neg { color: var(--neg); }
+  .unit { position: relative; }
+  .unit input { padding-right: 24px; }
+  .unit::after { content: attr(data-unit); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; pointer-events: none; }
+  .row-actions { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+  .hint { color: var(--muted); font-size: 12px; }
+  .summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .chip { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; min-width: 110px; text-align: left; box-shadow: none; font-weight: 400; }
+  .chip b { display: block; font-size: 20px; font-weight: 600; color: var(--accent-2); }
+  .chip span { color: var(--muted); font-size: 12px; }
+  button.chip:hover { border-color: var(--accent); filter: none; }
+  .ref-table td { padding: 7px 10px; font-size: 13px; }
+  .ref-table td.price { font-size: 14px; }
+  .ref-table td:nth-child(2), .ref-table td:nth-child(4), .ref-table td:nth-child(5) { white-space: nowrap; }
+  .publish { display: grid; grid-template-columns: 140px auto 1fr auto; gap: 14px; align-items: end; }
+  .check { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 14px; padding-bottom: 10px; }
+  .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .confirm { background: #a066f614; border: 1px solid #a066f655; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px; }
+  .confirm[hidden] { display: none; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <header>
-  <svg width="38" height="38" viewBox="0 0 100 100" aria-hidden="true">
+  <svg width="36" height="36" viewBox="0 0 100 100" aria-hidden="true">
     <defs>
       <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#eed6ff"/><stop offset=".45" stop-color="#a05cf6"/><stop offset="1" stop-color="#421696"/>
@@ -84,87 +157,362 @@
   </svg>
   <div>
     <h1>Riven Stock</h1>
-    <p>Ventas directas en warframe.market · vendedores en juego</p>
+    <p>Ventas directas en warframe.market</p>
   </div>
 </header>
 
 <main>
   <section class="card">
-    <h2>Precio de referencia</h2>
-    <form class="form" id="search-form">
-      <label>Arma
-        <input id="weapon" list="weapons" placeholder="Cargando catálogo…" autocomplete="off" disabled>
-        <datalist id="weapons"></datalist>
-      </label>
-      <label>Positivo 1 <select class="pos" disabled></select></label>
-      <label>Positivo 2 <select class="pos" disabled></select></label>
-      <label>Positivo 3 <select class="pos" disabled></select></label>
-      <label>Negativo <select id="neg" disabled></select></label>
-      <button id="go" disabled>Buscar</button>
-    </form>
-    <div class="hint" id="weapon-info">Las 7 ventas directas más baratas de vendedores que están en el juego ahora, con los mismos stats positivos.</div>
+    <div class="card-head">
+      <h2 id="mine-title">Mis ventas directas</h2>
+      <button class="ghost" id="reload">Actualizar</button>
+    </div>
+    <div id="mine"><div class="state">Cargando…</div></div>
   </section>
-
-  <section class="card" id="results-card" hidden>
-    <h2 id="results-title">Resultados</h2>
-    <div class="summary" id="summary"></div>
-    <div id="results"></div>
+  <section class="card" id="closed-card" hidden>
+    <div class="card-head"><h2>Cerrados desde la app</h2></div>
+    <div id="closed"></div>
   </section>
 </main>
 
+<button class="fab" id="fab" title="Precio de referencia y nuevo contrato"><span>+</span> Nuevo riven</button>
+
+<!-- Modal: riven → referencia → publicar / actualizar precio -->
+<dialog id="riven-dialog">
+  <div class="dlg-head">
+    <h3 id="rd-title">Nuevo riven</h3>
+    <button class="icon" id="rd-x" title="Cerrar">×</button>
+  </div>
+  <div class="dlg-body">
+    <section>
+      <div class="section-title"><span class="step">1</span><h2>Riven</h2></div>
+      <div class="grid-riven">
+        <label>Arma <input id="f-weapon" list="weapons" placeholder="Ej. Rubico" autocomplete="off"></label>
+        <label>Nombre <input id="f-name" placeholder="Ej. Crita-acritis"></label>
+        <label>Polaridad
+          <select id="f-polarity"><option value="madurai">Madurai</option><option value="naramon">Naramon</option><option value="vazarin">Vazarin</option></select>
+        </label>
+        <label>MR <input id="f-mr" type="number" min="8" max="16" value="8"></label>
+        <label>Rango <input id="f-rank" type="number" min="0" max="8" value="0"></label>
+        <label>Rolls <input id="f-rolls" type="number" min="0" value="0"></label>
+      </div>
+      <datalist id="weapons"></datalist>
+      <div class="grid-stats" id="stat-slots"></div>
+      <div class="row-actions">
+        <button id="ref-go">Ver precio de referencia</button>
+        <span class="hint" id="rd-info">Valores tal como aparecen en el juego. Para la referencia solo cuentan el arma y los positivos.</span>
+      </div>
+    </section>
+
+    <section id="ref-section" hidden>
+      <div class="section-title"><span class="step">2</span><h2 id="ref-title">Referencia</h2></div>
+      <div class="summary" id="summary"></div>
+      <div id="results"></div>
+    </section>
+
+    <section id="publish-section">
+      <div class="section-title"><span class="step" id="publish-step">2</span><h2 id="publish-title">Publicar venta directa</h2></div>
+      <div class="publish">
+        <label>Precio <div class="unit" data-unit="p"><input id="f-price" type="number" min="1"></div></label>
+        <label class="check" id="f-visible-wrap"><input type="checkbox" id="f-visible" checked> Visible</label>
+        <label id="f-note-wrap">Nota (opcional) <input id="f-note" placeholder="Ej. Open to offers, PM me"></label>
+        <button id="publish-go">Publicar</button>
+      </div>
+      <div class="confirm" id="confirm" hidden>
+        <span id="confirm-text"></span>
+        <div style="display:flex; gap:10px">
+          <button class="ghost" id="confirm-back">Volver</button>
+          <button id="confirm-ok">Confirmar</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="close-dialog">
+  <form method="dialog" style="padding: 24px">
+    <h3 style="margin: 0 0 10px; font-size: 17px">Cerrar contrato</h3>
+    <p id="close-text"></p>
+    <div class="sold">
+      <input type="checkbox" id="sold-check">
+      <label for="sold-check" style="display:inline; color: var(--text); font-size: 14px;">Se vendió por</label>
+      <input type="number" id="sold-price" min="1" disabled>
+      <span class="muted">p</span>
+    </div>
+    <div class="dialog-actions">
+      <button class="ghost" value="cancel">Cancelar</button>
+      <button class="solid-danger" value="ok">Cerrar contrato</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
 <script>
   let catalog = { weapons: [], stats: [] };
-  const statBySlug = {};
+  const statBySlug = {}, weaponBySlug = {};
+  let mine = [];
+  let editing = null;   // contrato existente abierto en el modal, o null si es un riven nuevo
   const $ = (sel) => document.querySelector(sel);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const api = () => window.pywebview.api;
+  const UNIT = { percent: "%", multiply: "x", seconds: "s" };
+
+  function toast(msg, isError = false) {
+    const t = $("#toast");
+    t.textContent = msg; t.classList.toggle("error", isError); t.classList.add("show");
+    clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), isError ? 6000 : 2500);
+  }
+
+  const weaponName = (slug) => weaponBySlug[slug]?.name ?? slug.replace(/_/g, " ");
+
+  function formatStat(st) {
+    const meta = statBySlug[st.slug];
+    const v = st.value, sign = v > 0 ? "+" : "";
+    const val = meta?.unit === "multiply" ? `x${v}` : `${sign}${v}${UNIT[meta?.unit] ?? ""}`;
+    return `<span class="stat ${st.positive ? "" : "neg"}">${esc(val)} ${esc(meta?.name ?? st.slug)}</span>`;
+  }
+
+  const rivenLabel = (a) => `${esc(weaponName(a.weapon))} <span style="text-transform:capitalize">${esc(a.name)}</span>`;
+
+  // ---- Mis contratos ---------------------------------------------------
+
+  async function loadMine() {
+    $("#reload").disabled = true;
+    try {
+      const data = await api().my_auctions();
+      if (data.error) { $("#mine").innerHTML = `<div class="state error">${esc(data.error)}</div>`; return; }
+      mine = data.auctions;
+      renderMine();
+      renderClosed(data.closed);
+    } finally {
+      $("#reload").disabled = false;
+    }
+  }
+
+  function renderMine() {
+    const visibles = mine.filter((a) => a.visible).length;
+    $("#mine-title").textContent = `Mis ventas directas · ${visibles} visibles · ${mine.length - visibles} ocultas`;
+    if (!mine.length) { $("#mine").innerHTML = `<div class="state">No tenés ventas directas publicadas.</div>`; return; }
+    $("#mine").innerHTML = `<table>
+      <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+      <tbody>${mine.map((a) => `<tr data-id="${esc(a.id)}" class="${a.visible ? "" : "hidden-row"}">
+        <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
+        <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
+        <td>${esc(a.rolls)}</td>
+        <td>${esc(a.mr)}</td>
+        <td class="price"><span class="price-edit" data-act="edit-price" title="Click para editar">${a.price}p</span></td>
+        <td><span class="badge ${a.visible ? "on" : "off"}">${a.visible ? "Visible" : "Oculto"}</span></td>
+        <td class="actions">
+          <button class="ghost" data-act="ref" title="Precio de referencia con estos stats">Referencia</button>
+          <button class="ghost" data-act="toggle">${a.visible ? "Ocultar" : "Mostrar"}</button>
+          <button class="danger" data-act="close">Cerrar</button>
+        </td>
+      </tr>`).join("")}</tbody></table>`;
+  }
+
+  function renderClosed(closed) {
+    $("#closed-card").hidden = !closed.length;
+    $("#closed").innerHTML = `<table>
+      <thead><tr><th>Riven</th><th>Stats</th><th>Último precio</th><th>Vendido</th><th>Cerrado</th></tr></thead>
+      <tbody>${closed.map((a) => `<tr>
+        <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
+        <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
+        <td>${a.price}p</td>
+        <td>${a.sold_price ? `<b style="color: var(--pos)">${a.sold_price}p</b>` : `<span class="muted">No</span>`}</td>
+        <td class="muted">${esc(new Date(a.closed_at).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }))}</td>
+      </tr>`).join("")}</tbody></table>`;
+  }
+
+  async function runUpdate(id, changes, okMsg) {
+    const res = await api().update(id, changes.price ?? null, changes.visible ?? null);
+    if (res.error) { toast(res.error, true); renderMine(); return null; }
+    mine = mine.map((a) => (a.id === id ? res.auction : a));
+    renderMine();
+    toast(okMsg);
+    return res.auction;
+  }
+
+  function editPrice(span, a) {
+    span.outerHTML = `<input type="number" min="1" value="${a.price}" class="price-input">`;
+    const input = document.querySelector(`tr[data-id="${a.id}"] .price-input`);
+    input.focus(); input.select();
+    let done = false;
+    const finish = async (save) => {
+      if (done) return; done = true;
+      const price = parseInt(input.value, 10);
+      if (!save || !price || price === a.price) { renderMine(); return; }
+      input.disabled = true;
+      await runUpdate(a.id, { price }, `Precio actualizado: ${a.price}p → ${price}p`);
+    };
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
+    input.addEventListener("blur", () => finish(false));
+  }
+
+  function askClose(a) {
+    const dlg = $("#close-dialog");
+    $("#close-text").innerHTML = `${rivenLabel(a)} · ${a.price}p.<br>` +
+      `El contrato desaparece de warframe.market y no se puede deshacer. La app guarda una copia.`;
+    $("#sold-check").checked = false;
+    $("#sold-price").disabled = true;
+    $("#sold-price").value = a.price;
+    dlg.returnValue = "";
+    dlg.showModal();
+    dlg.onclose = async () => {
+      if (dlg.returnValue !== "ok") return;
+      const sold = $("#sold-check").checked ? parseInt($("#sold-price").value, 10) || null : null;
+      const res = await api().close(a.id, sold);
+      if (res.error) { toast(res.error, true); return; }
+      toast(sold ? `Cerrado como vendido por ${sold}p` : "Contrato cerrado");
+      loadMine();
+    };
+  }
+
+  $("#sold-check").addEventListener("change", (e) => { $("#sold-price").disabled = !e.target.checked; if (e.target.checked) $("#sold-price").focus(); });
+
+  $("#mine").addEventListener("click", (e) => {
+    const el = e.target.closest("[data-act]");
+    if (!el) return;
+    const a = mine.find((x) => x.id === el.closest("tr").dataset.id);
+    const act = el.dataset.act;
+    if (act === "edit-price") editPrice(el, a);
+    if (act === "toggle") {
+      el.disabled = true;
+      runUpdate(a.id, { visible: !a.visible }, a.visible ? "Contrato oculto" : "Contrato visible");
+    }
+    if (act === "close") askClose(a);
+    if (act === "ref") openRiven(a);
+  });
+  $("#reload").addEventListener("click", loadMine);
+
+  // ---- Modal: riven → referencia → publicar ------------------------------
+
+  const SLOTS = [
+    { label: "Positivo 1", positive: true }, { label: "Positivo 2", positive: true },
+    { label: "Positivo 3 (opcional)", positive: true }, { label: "Negativo (opcional)", positive: false },
+  ];
+  $("#stat-slots").innerHTML = SLOTS.map((s, i) => `
+    <div class="stat-slot" data-i="${i}">
+      <span class="tag ${s.positive ? "" : "neg"}">${s.label}</span>
+      <div class="row">
+        <select class="slot-stat"></select>
+        <div class="unit" data-unit=""><input class="slot-value" type="number" step="0.1" placeholder="valor"></div>
+      </div>
+    </div>`).join("");
+  const slotEls = [...document.querySelectorAll(".stat-slot")];
 
   function findWeapon(text) {
     const t = text.trim().toLowerCase();
     return catalog.weapons.find((w) => w.name.toLowerCase() === t || w.slug === t);
   }
 
-  function statOptions(type, { negative = false } = {}) {
-    return catalog.stats.filter((s) =>
-      (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type)) && !(negative && s.positiveOnly));
-  }
-
-  function fillSelect(select, stats, emptyLabel) {
-    const prev = select.value;
-    select.innerHTML = `<option value="">${emptyLabel}</option>` +
-      stats.map((s) => `<option value="${esc(s.slug)}">${esc(s.name)}</option>`).join("");
-    if (stats.some((s) => s.slug === prev)) select.value = prev;
-  }
-
-  function refreshStats() {
-    const weapon = findWeapon($("#weapon").value);
+  function refreshSlots() {
+    const weapon = findWeapon($("#f-weapon").value);
     const type = weapon?.type;
-    document.querySelectorAll(".pos").forEach((sel) => fillSelect(sel, statOptions(type), "—"));
-    fillSelect($("#neg"), statOptions(type, { negative: true }), "Cualquiera");
-    $("#weapon-info").textContent = weapon
+    slotEls.forEach((el, i) => {
+      const sel = el.querySelector(".slot-stat");
+      const prev = sel.value;
+      const options = catalog.stats.filter((s) =>
+        (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type)) && (SLOTS[i].positive || !s.positiveOnly));
+      sel.innerHTML = `<option value="">—</option>` + options.map((s) => `<option value="${esc(s.slug)}">${esc(s.name)}</option>`).join("");
+      if (options.some((s) => s.slug === prev)) sel.value = prev;
+      refreshUnit(el);
+    });
+    $("#rd-info").textContent = weapon
       ? `${weapon.name} · ${weapon.type} · disposición ${weapon.disposition}`
-      : "Las 7 ventas directas más baratas de vendedores que están en el juego ahora, con los mismos stats positivos.";
+      : "Valores tal como aparecen en el juego. Para la referencia solo cuentan el arma y los positivos.";
   }
 
-  function formatStat(st) {
-    const meta = statBySlug[st.slug];
-    const name = meta?.name ?? st.slug;
-    const v = st.value;
-    let val;
-    if (meta?.unit === "multiply") val = `x${v}`;
-    else if (meta?.unit === "seconds") val = `${v > 0 ? "+" : ""}${v}s`;
-    else if (meta?.unit === "percent") val = `${v > 0 ? "+" : ""}${v}%`;
-    else val = `${v > 0 ? "+" : ""}${v}`;
-    return `<span class="stat ${st.positive ? "" : "neg"}">${esc(val)} ${esc(name)}</span>`;
+  function refreshUnit(el) {
+    const meta = statBySlug[el.querySelector(".slot-stat").value];
+    el.querySelector(".unit").dataset.unit = UNIT[meta?.unit] ?? "";
+  }
+  slotEls.forEach((el) => el.querySelector(".slot-stat").addEventListener("change", () => refreshUnit(el)));
+  $("#f-weapon").addEventListener("input", refreshSlots);
+
+  function readForm() {
+    const weapon = findWeapon($("#f-weapon").value);
+    const attributes = slotEls.map((el, i) => {
+      const slug = el.querySelector(".slot-stat").value;
+      if (!slug) return null;
+      let value = parseFloat(el.querySelector(".slot-value").value);
+      // Un negativo en % o segundos va con signo menos aunque lo escriban sin él.
+      if (!SLOTS[i].positive && value > 0 && statBySlug[slug]?.unit !== "multiply") value = -value;
+      return { url_name: slug, positive: SLOTS[i].positive, value };
+    }).filter(Boolean);
+    return {
+      weapon, attributes,
+      item: weapon && {
+        weapon_url_name: weapon.slug, name: $("#f-name").value.trim(), attributes,
+        mastery_level: $("#f-mr").value, mod_rank: $("#f-rank").value, re_rolls: $("#f-rolls").value,
+        polarity: $("#f-polarity").value,
+      },
+    };
   }
 
-  function render(weapon, data) {
-    $("#results-card").hidden = false;
-    $("#results-title").textContent = `Resultados · ${weapon.name}`;
-    if (data.error) {
-      $("#summary").innerHTML = "";
-      $("#results").innerHTML = `<div class="state error">${esc(data.error)}</div>`;
-      return;
+  function setMode(existing) {
+    editing = existing;
+    $("#rd-title").innerHTML = existing ? `Referencia · ${rivenLabel(existing)}` : "Nuevo riven";
+    $("#publish-title").textContent = existing ? "Actualizar precio del contrato" : "Publicar venta directa";
+    $("#publish-go").textContent = existing ? "Actualizar precio" : "Publicar";
+    $("#f-visible-wrap").hidden = !!existing;
+    $("#f-note-wrap").hidden = !!existing;
+    document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value")
+      .forEach((el) => (el.disabled = !!existing));
+  }
+
+  function openRiven(existing = null) {
+    const wasEditing = editing !== null;
+    setMode(existing);
+    $("#confirm").hidden = true;
+    $("#ref-section").hidden = true;
+    $("#publish-step").textContent = "2";
+    if (existing) {
+      $("#f-weapon").value = weaponName(existing.weapon);
+      $("#f-name").value = existing.name;
+      $("#f-polarity").value = existing.polarity;
+      $("#f-mr").value = existing.mr; $("#f-rank").value = existing.rank; $("#f-rolls").value = existing.rolls;
+      refreshSlots();
+      const pos = existing.stats.filter((s) => s.positive), neg = existing.stats.filter((s) => !s.positive);
+      [pos[0], pos[1], pos[2], neg[0]].forEach((s, i) => {
+        slotEls[i].querySelector(".slot-stat").value = s?.slug ?? "";
+        slotEls[i].querySelector(".slot-value").value = s?.value ?? "";
+        refreshUnit(slotEls[i]);
+      });
+      $("#f-price").value = existing.price;
+    } else if (wasEditing) {
+      // Venía de mirar un contrato existente: empezar de cero.
+      ["#f-weapon", "#f-name", "#f-note"].forEach((s) => ($(s).value = ""));
+      $("#f-polarity").value = "madurai"; $("#f-mr").value = 8; $("#f-rank").value = 0; $("#f-rolls").value = 0;
+      slotEls.forEach((el) => { el.querySelector(".slot-stat").value = ""; el.querySelector(".slot-value").value = ""; });
+      $("#f-visible").checked = true;
+      $("#f-price").value = "";
+      refreshSlots();
+    } else {
+      refreshSlots();
     }
+    $("#riven-dialog").showModal();
+    if (existing) runReference(); else $("#f-weapon").focus();
+  }
+
+  async function runReference() {
+    const { weapon, attributes } = readForm();
+    if (!weapon) { toast("Elegí un arma de la lista", true); $("#f-weapon").focus(); return; }
+    const positives = [...new Set(attributes.filter((a) => a.positive).map((a) => a.url_name))];
+    if (!positives.length) { toast("Elegí al menos un stat positivo", true); return; }
+    $("#ref-go").disabled = true; $("#ref-go").textContent = "Buscando…";
+    try {
+      renderReference(weapon, await api().search(weapon.slug, positives, []));
+    } finally {
+      $("#ref-go").disabled = false; $("#ref-go").textContent = "Ver precio de referencia";
+    }
+  }
+
+  function renderReference(weapon, data) {
+    $("#ref-section").hidden = false;
+    $("#publish-step").textContent = "3";
+    $("#ref-title").textContent = `Referencia · ${weapon.name} · vendedores en juego`;
+    if (data.error) { $("#summary").innerHTML = ""; $("#results").innerHTML = `<div class="state error">${esc(data.error)}</div>`; return; }
     const rows = data.results;
     if (!rows.length) {
       $("#summary").innerHTML = "";
@@ -174,53 +522,86 @@
     const prices = rows.map((r) => r.price).sort((a, b) => a - b);
     const median = prices[Math.floor(prices.length / 2)];
     const avg = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
-    $("#summary").innerHTML = [
-      ["Mínimo", prices[0]], ["Mediana", median], ["Promedio", avg], ["Comparables", rows.length],
-    ].map(([k, v]) => `<div class="chip"><b>${v}${k === "Comparables" ? "" : "p"}</b><span>${k}</span></div>`).join("");
-    $("#results").innerHTML = `<table>
-      <thead><tr><th>Precio</th><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Vendedor</th></tr></thead>
+    $("#summary").innerHTML = [["Mínimo", prices[0]], ["Mediana", median], ["Promedio", avg]]
+      .map(([k, v]) => `<button class="chip" data-price="${v}" title="Usar como precio"><b>${v}p</b><span>${k} · usar</span></button>`).join("") +
+      `<div class="chip"><b>${rows.length}</b><span>Comparables</span></div>`;
+    $("#results").innerHTML = `<table class="ref-table">
       <tbody>${rows.map((r) => `<tr>
         <td class="price">${r.price}p</td>
-        <td><a class="riven-name" href="https://warframe.market/auction/${esc(r.id)}" target="_blank">${esc(r.name)}</a></td>
+        <td><a class="riven-name" style="font-size:13px" href="https://warframe.market/auction/${esc(r.id)}" target="_blank">${esc(r.name)}</a></td>
         <td><div class="stats">${r.stats.map(formatStat).join("")}</div></td>
-        <td>${esc(r.rolls)}</td>
-        <td>${esc(r.mr)}</td>
+        <td class="muted">${esc(r.rolls)} rolls · MR${esc(r.mr)}</td>
         <td>${esc(r.seller)} <span class="muted">· rep ${esc(r.reputation)}</span></td>
       </tr>`).join("")}</tbody></table>`;
   }
 
-  async function search(ev) {
-    ev.preventDefault();
-    const weapon = findWeapon($("#weapon").value);
-    if (!weapon) { $("#weapon").focus(); $("#weapon-info").textContent = "Elegí un arma de la lista."; return; }
-    const positives = [...new Set([...document.querySelectorAll(".pos")].map((s) => s.value).filter(Boolean))];
-    if (!positives.length) { $("#weapon-info").textContent = "Elegí al menos un stat positivo."; return; }
-    const neg = $("#neg").value;
-    $("#go").disabled = true; $("#go").textContent = "Buscando…";
-    try {
-      render(weapon, await window.pywebview.api.search(weapon.slug, positives, neg ? [neg] : []));
-    } finally {
-      $("#go").disabled = false; $("#go").textContent = "Buscar";
+  $("#summary").addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-price]");
+    if (!chip) return;
+    $("#f-price").value = chip.dataset.price;
+    $("#confirm").hidden = true;
+  });
+  $("#ref-go").addEventListener("click", runReference);
+
+  // Publicar / actualizar: primer click muestra el resumen, el segundo confirma.
+  $("#publish-go").addEventListener("click", () => {
+    const price = parseInt($("#f-price").value, 10);
+    if (!price || price < 1) { toast("Poné un precio", true); $("#f-price").focus(); return; }
+    if (editing) {
+      if (price === editing.price) { toast("Es el mismo precio que ya tiene"); return; }
+      $("#confirm-text").innerHTML = `Cambiar el precio de ${rivenLabel(editing)}: <b>${editing.price}p → ${price}p</b>`;
+    } else {
+      const { weapon, item, attributes } = readForm();
+      const pos = attributes.filter((a) => a.positive).length, neg = attributes.length - pos;
+      if (!weapon) { toast("Elegí un arma de la lista", true); return; }
+      if (pos < 2 || neg > 1) { toast("Un riven tiene 2 o 3 positivos y como mucho 1 negativo", true); return; }
+      if (attributes.some((a) => Number.isNaN(a.value))) { toast("Falta el valor de algún stat", true); return; }
+      if (!item.name) { toast("Falta el nombre del riven", true); $("#f-name").focus(); return; }
+      $("#confirm-text").innerHTML = `Se publica en tu cuenta: ${esc(weapon.name)} <span style="text-transform:capitalize">${esc(item.name)}</span> · <b>${price}p</b> · ${$("#f-visible").checked ? "visible" : "oculto"}`;
     }
-  }
+    $("#confirm").hidden = false;
+    $("#confirm-ok").focus();
+  });
+  $("#confirm-back").addEventListener("click", () => ($("#confirm").hidden = true));
+  $("#f-price").addEventListener("input", () => ($("#confirm").hidden = true));
+
+  $("#confirm-ok").addEventListener("click", async () => {
+    const price = parseInt($("#f-price").value, 10);
+    $("#confirm-ok").disabled = true;
+    try {
+      if (editing) {
+        const updated = await runUpdate(editing.id, { price }, `Precio actualizado: ${editing.price}p → ${price}p`);
+        if (updated) $("#riven-dialog").close();
+      } else {
+        const { item } = readForm();
+        const res = await api().create(item, price, $("#f-visible").checked, $("#f-note").value);
+        if (res.error) { toast(res.error, true); return; }
+        toast(`Publicado: ${weaponName(res.auction.weapon)} ${res.auction.name} · ${price}p`);
+        $("#riven-dialog").close();
+        loadMine();
+      }
+    } finally {
+      $("#confirm-ok").disabled = false;
+      $("#confirm").hidden = true;
+    }
+  });
+
+  $("#fab").addEventListener("click", () => openRiven(null));
+  $("#rd-x").addEventListener("click", () => $("#riven-dialog").close());
+
+  // ---- Arranque ---------------------------------------------------------
 
   window.addEventListener("pywebviewready", async () => {
     try {
-      catalog = await window.pywebview.api.catalog();
+      catalog = await api().catalog();
     } catch (e) {
-      $("#weapon").placeholder = "No se pudo cargar el catálogo";
-      $("#weapon-info").innerHTML = `<span class="error">${esc(e.message || e)}</span>`;
-      return;
+      toast(`No se pudo cargar el catálogo: ${e.message || e}`, true);
     }
     catalog.stats.forEach((s) => (statBySlug[s.slug] = s));
+    catalog.weapons.forEach((w) => (weaponBySlug[w.slug] = w));
     $("#weapons").innerHTML = catalog.weapons.map((w) => `<option value="${esc(w.name)}">`).join("");
-    document.querySelectorAll("input, select, button").forEach((el) => (el.disabled = false));
-    $("#weapon").placeholder = "Ej. Rubico";
-    refreshStats();
-    $("#weapon").focus();
+    loadMine();
   });
-  $("#weapon").addEventListener("input", refreshStats);
-  $("#search-form").addEventListener("submit", search);
 </script>
 </body>
 </html>

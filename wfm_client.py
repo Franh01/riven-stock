@@ -144,8 +144,42 @@ class WFMClient:
         return self.get("/v2/me", auth=True)["data"]
 
     def my_auctions(self):
-        """Contratos propios (v1, con auth)."""
+        """Contratos propios (v1, con auth), incluidos los ocultos. Los cerrados no aparecen."""
         return self.get("/v1/profile/auctions", auth=True)["payload"]["auctions"]
+
+    # ---- Escritura (endpoints sacados de los HAR de la web) -----------
+    # Son acciones públicas en la cuenta del usuario: la app pide confirmación antes.
+
+    def update_auction(self, auction_id, *, price, visible, note="", minimal_reputation=0):
+        """Edita precio / visibilidad / nota. La web manda siempre todos los campos.
+        `note` es texto plano (usar `note_raw` del contrato, no `note`, que viene en HTML)."""
+        body = {
+            "starting_price": price,
+            "buyout_price": price,
+            "minimal_reputation": minimal_reputation,
+            "visible": visible,
+            "note": note,
+        }
+        return self._request("PUT", f"/v1/auctions/entry/{auction_id}", auth=True, json=body)[
+            "payload"]["auction"]
+
+    def create_direct_sale(self, item, *, price, visible=True, note="", minimal_reputation=0):
+        """Publica una venta directa. `item`: type, weapon_url_name, name, attributes
+        [{url_name, positive, value}], mastery_level, mod_rank, re_rolls, polarity."""
+        body = {
+            "starting_price": price,
+            "buyout_price": price,
+            "minimal_reputation": minimal_reputation,
+            "visible": visible,
+            "note": note,
+            "item": {"type": "riven", **item},
+        }
+        return self._request("POST", "/v1/auctions/create", auth=True, json=body)["payload"]["auction"]
+
+    def close_auction(self, auction_id):
+        """Cierra el contrato. Después de esto desaparece de la API: guardarlo antes localmente."""
+        return self._request("PUT", f"/v1/auctions/entry/{auction_id}/close", auth=True)[
+            "payload"]["auction_id"]
 
     def profile_auctions(self, slug):
         """Contratos públicos de un perfil (v1, no necesita auth)."""

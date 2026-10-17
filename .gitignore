@@ -5,3 +5,5 @@ __pycache__/
 *.log
 cache/
 open-here-with-context
+HARs/
+*.har
