@@ -51,6 +51,12 @@ CREATE TABLE IF NOT EXISTS riven_costs (
     lot_id      INTEGER REFERENCES stock_lots (id),
     at          TEXT NOT NULL
 );
+
+-- Preferencias de la interfaz (pywebview corre en modo privado: localStorage no persiste).
+CREATE TABLE IF NOT EXISTS settings (
+    key         TEXT PRIMARY KEY,
+    value       TEXT NOT NULL       -- JSON
+);
 """
 
 
@@ -161,3 +167,15 @@ def invested(conn):
     lots_total = conn.execute("SELECT COALESCE(SUM(total_cost), 0) FROM stock_lots").fetchone()[0]
     loose = conn.execute("SELECT COALESCE(SUM(cost), 0) FROM riven_costs WHERE lot_id IS NULL").fetchone()[0]
     return lots_total + loose
+
+
+# ---- Preferencias ------------------------------------------------------------
+
+def settings(conn):
+    return {r["key"]: json.loads(r["value"]) for r in conn.execute("SELECT key, value FROM settings")}
+
+
+def set_setting(conn, key, value):
+    conn.execute("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value",
+                 (key, json.dumps(value)))
+    conn.commit()

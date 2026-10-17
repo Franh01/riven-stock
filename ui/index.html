@@ -128,6 +128,8 @@
   .status-row button:hover { border-color: var(--accent); filter: none; }
   .status-row.current { background: #a066f614; }
   .status-menu .hint { padding: 4px 6px 0; }
+  .auto-row { display: flex; align-items: center; gap: 8px; padding: 8px 6px 2px; margin-top: 4px; border-top: 1px solid var(--line); color: var(--text); font-size: 13px; cursor: pointer; }
+  .auto-row input { width: 15px; height: 15px; accent-color: var(--accent); }
   .totals { margin-left: 0; }
 
   /* Buscador (filtro local) */
@@ -485,6 +487,8 @@
   const STATUS_LABEL = { ingame: "En juego", online: "Online", invisible: "Invisible" };
   const DURATIONS = [[30, "30 min"], [60, "1 h"], [120, "2 h"], [240, "4 h"]];
   let myStatus = null;          // {status, statusUntil, statusSetAt}
+  let settings = {};            // preferencias locales (auto_ingame, mine_sort)
+  const autoIngame = () => settings.auto_ingame !== false;   // por defecto, activado
   let statusBusy = false;
 
   const hhmm = (iso) => new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
@@ -537,7 +541,8 @@
         <span class="name"><span class="dot"></span>${STATUS_LABEL[s]}</span>
         ${DURATIONS.map(([m, label]) => `<button data-status="${s}" data-min="${m}" title="${STATUS_LABEL[s]} por ${label}">${label}</button>`).join("")}
       </div>`).join("") +
-      `<div class="hint">warframe.market no deja más de 4 h. Al vencer, vuelve a tu estado por defecto.</div>`;
+      `<label class="auto-row"><input type="checkbox" id="auto-ingame" ${autoIngame() ? "checked" : ""}> Al abrir la app, ponerme <b>En juego</b> por 4 h</label>` +
+      `<div class="hint">warframe.market no deja más de 4 h. Al vencer, vuelve a tu estado por defecto, aunque la app esté cerrada.</div>`;
     statusMenu.hidden = false;
   });
   statusMenu.addEventListener("click", (e) => {
@@ -545,6 +550,12 @@
     if (!b || statusBusy) return;
     statusMenu.hidden = true;
     changeStatus(b.dataset.status, Number(b.dataset.min));
+  });
+  statusMenu.addEventListener("change", (e) => {
+    if (e.target.id !== "auto-ingame") return;
+    settings.auto_ingame = e.target.checked;
+    api().set_setting("auto_ingame", e.target.checked);
+    toast(e.target.checked ? "Al abrir la app te va a poner En juego por 4 h" : "Al abrir la app ya no cambia tu estado");
   });
   document.addEventListener("mousedown", (e) => {
     if (!statusMenu.hidden && !e.target.closest(".status-wrap")) statusMenu.hidden = true;
@@ -577,7 +588,7 @@
   // (spinner, acciones bloqueadas) hasta que responde la API. Si falla, se revierte.
 
   let sort = { key: null, dir: 1 };
-  try { sort = JSON.parse(localStorage.getItem("mine-sort")) ?? sort; } catch { /* sin storage */ }
+  // El orden se guarda en la base local (pywebview corre en modo privado: localStorage no persiste).
 
   async function loadMine() {
     $("#reload").disabled = true;
@@ -806,7 +817,7 @@
       // Cada click: ascendente → descendente → orden original
       const key = th.dataset.sort;
       sort = sort.key !== key ? { key, dir: 1 } : sort.dir > 0 ? { key, dir: -1 } : { key: null, dir: 1 };
-      try { localStorage.setItem("mine-sort", JSON.stringify(sort)); } catch { /* sin storage */ }
+      api().set_setting("mine_sort", sort);
       renderMine();
       return;
     }
@@ -1373,8 +1384,11 @@
     refreshWeapons();
     refreshSlots();
     renderTotals();
+    settings = await api().get_settings();
+    if (settings.mine_sort) sort = settings.mine_sort;
     loadMine();
-    loadStatus();
+    // Al abrir: En juego por 4 h (se desactiva desde el menú del estado).
+    if (autoIngame()) changeStatus("ingame", 240).then(() => { if (!myStatus) loadStatus(); }); else loadStatus();
   });
 </script>
 </body>

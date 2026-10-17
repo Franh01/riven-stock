@@ -44,6 +44,21 @@ class Api:
             "bases": json.loads(BASES.read_text(encoding="utf-8")) if BASES.exists() else {},
         }
 
+    # ---- Preferencias (locales) -------------------------------------------
+
+    SETTING_KEYS = {"auto_ingame", "mine_sort"}
+
+    def get_settings(self):
+        with store.connect() as conn:
+            return store.settings(conn)
+
+    def set_setting(self, key, value):
+        if key not in self.SETTING_KEYS:
+            return {"error": f"Preferencia desconocida: {key}"}
+        with store.connect() as conn:
+            store.set_setting(conn, key, value)
+        return {"ok": True}
+
     # ---- Estado del usuario (Invisible / Online / En juego) ----------------
 
     def status(self):
