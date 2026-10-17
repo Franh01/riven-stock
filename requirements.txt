@@ -1,5 +1,6 @@
 requests
 python-dotenv
 pywebview
+websocket-client
 # solo para tools/make_icon.py (y el OCR más adelante)
 pillow

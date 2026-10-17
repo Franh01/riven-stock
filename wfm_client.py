@@ -12,12 +12,17 @@ import time
 from pathlib import Path
 
 import requests
+import websocket
 from dotenv import load_dotenv
 
 BASE_URL = "https://api.warframe.market"
 CACHE_DIR = Path(__file__).parent / "cache"
 CATALOG_MAX_AGE_HOURS = 24
 MIN_INTERVAL_S = 0.35  # ~3 req/s
+WS_URL = "wss://ws.warframe.market/socket"
+# Estado del usuario (Invisible / Online / Online in game): va por WebSocket, no por REST.
+STATUSES = ("invisible", "online", "ingame")
+STATUS_MAX_SECONDS = 4 * 3600  # la web no deja más de 4 horas
 SEARCH_CAP = 500  # la búsqueda de contratos corta en ~500 resultados (los más baratos con price_asc)
 
 HEADERS = {
@@ -133,6 +138,74 @@ class WFMClient:
         return cheapest_ingame(self.search_direct(weapon, positive_stats, negative_stats), n)
 
     # ---- Cuenta propia (requiere JWT) ---------------------------------
+
+    # ---- Estado del usuario (WebSocket v2) ------------------------------
+    # Verificado el 2026-10-17: se autentica con el mensaje @wfm|cmd/auth/signIn {"token"} (no
+    # sirven ni el header ni la cookie). Después del signIn el servidor manda solo el estado actual
+    # (@wfm|event/status/set con status, statusUntil, statusSetAt).
+
+    def _ws_session(self, command=None, timeout=10):
+        """Abre el socket, se autentica y (opcional) manda `command` = (route, payload).
+        Devuelve {"status": <último @wfm|event/status/set>, "reply": <respuesta al comando>}."""
+        if not self.jwt:
+            raise AuthError("Falta WFM_JWT en .env")
+        self._throttle()
+        ws = websocket.create_connection(WS_URL, timeout=timeout, origin="https://warframe.market",
+                                         header=[f"User-Agent: {HEADERS['User-Agent']}"])
+        try:
+            ws.send(json.dumps({"route": "@wfm|cmd/auth/signIn", "payload": {"token": self.jwt}, "id": "auth"}))
+            status = reply = None
+            sent = False
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                ws.settimeout(max(0.1, deadline - time.monotonic()))
+                try:
+                    msg = json.loads(ws.recv())
+                except websocket.WebSocketTimeoutException:
+                    break
+                route = msg.get("route", "")
+                if msg.get("id") == "auth":
+                    if not route.endswith(":ok"):
+                        raise AuthError(f"warframe.market rechazó el token en el WebSocket ({msg.get('payload')})")
+                    if command and not sent:
+                        ws.send(json.dumps({"route": command[0], "payload": command[1], "id": "cmd"}))
+                        sent = True
+                elif route == "@wfm|event/status/set":
+                    status = msg.get("payload")
+                elif msg.get("id") == "cmd":
+                    reply = msg
+                    deadline = min(deadline, time.monotonic() + 1.5)  # el evento con statusUntil llega enseguida
+                elif route == "@wfm|protect/error":
+                    raise WFMError(f"WebSocket: {msg.get('payload')}")
+                # Listo cuando hay estado y, si había comando, su respuesta + el evento posterior.
+                if status and (not command or (reply and status.get("statusSetAt", "") >= reply.get("payload", {}).get("statusSetAt", ""))):
+                    break
+            return {"status": status, "reply": reply}
+        finally:
+            ws.close()
+
+    def get_status(self):
+        """{"status", "statusUntil", "statusSetAt"} del usuario dueño del JWT."""
+        st = self._ws_session(timeout=8)["status"]
+        if not st:
+            raise WFMError("warframe.market no mandó el estado")
+        return st
+
+    def set_status(self, status, duration_s=STATUS_MAX_SECONDS):
+        """Cambia el estado por `duration_s` segundos (máximo 4 h). Acción visible para todos."""
+        if status not in STATUSES:
+            raise ValueError(f"Estado inválido: {status}")
+        duration_s = max(60, min(int(duration_s), STATUS_MAX_SECONDS))
+        res = self._ws_session(("@wfm|cmd/status/set", {"status": status, "duration": duration_s}))
+        reply = res["reply"]
+        if not reply:
+            raise WFMError("warframe.market no respondió al cambio de estado")
+        if not reply.get("route", "").endswith(":ok"):
+            raise WFMError(f"No se pudo cambiar el estado: {reply.get('payload')}")
+        st = res["status"] or {}
+        if st.get("status") != status:   # el evento llegó antes que el ok: armar con la respuesta
+            st = {**reply.get("payload", {}), "statusUntil": st.get("statusUntil")}
+        return st
 
     def me(self):
         """Datos del usuario dueño del JWT (v2)."""

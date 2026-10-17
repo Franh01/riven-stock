@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 import requests
+import websocket
 import webview
 
 import store
@@ -42,6 +43,20 @@ class Api:
             # Valor base de cada stat por tipo de riven, para sugerir el orden del nombre.
             "bases": json.loads(BASES.read_text(encoding="utf-8")) if BASES.exists() else {},
         }
+
+    # ---- Estado del usuario (Invisible / Online / En juego) ----------------
+
+    def status(self):
+        try:
+            return {"status": self.client.get_status()}
+        except (WFMError, OSError, websocket.WebSocketException) as e:
+            return {"error": str(e)}
+
+    def set_status(self, status, minutes):
+        try:
+            return {"status": self.client.set_status(status, int(minutes) * 60)}
+        except (WFMError, ValueError, OSError, websocket.WebSocketException) as e:
+            return {"error": str(e)}
 
     def search(self, weapon, n=7):
         """Precio de referencia: las `n` ventas directas más baratas del arma (cualquier stat)

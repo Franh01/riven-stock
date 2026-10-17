@@ -104,6 +104,32 @@
   .hint { color: var(--muted); font-size: 12px; }
   [hidden] { display: none !important; }
 
+  /* Estado del usuario en warframe.market */
+  .status-wrap { position: relative; margin-left: auto; }
+  .status-pill {
+    display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 99px;
+    background: var(--panel); border: 1px solid var(--line); box-shadow: none; font-weight: 600; font-size: 13px;
+  }
+  .status-pill:hover { border-color: var(--accent); filter: none; }
+  .status-pill svg { color: var(--muted); }
+  .status-until { color: var(--muted); font-weight: 400; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+  .st-ingame .dot { background: #5fd497; box-shadow: 0 0 8px #5fd497aa; }
+  .st-online .dot { background: #6fb7ff; box-shadow: 0 0 8px #6fb7ffaa; }
+  .st-invisible .dot { background: #8c80a8; }
+  .status-menu {
+    position: absolute; z-index: 40; top: calc(100% + 6px); left: 0; padding: 8px; min-width: 330px;
+    background: #1b0e33; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 40px #000c;
+    display: grid; gap: 4px;
+  }
+  .status-row { display: grid; grid-template-columns: 110px repeat(4, 1fr); gap: 6px; align-items: center; padding: 4px; border-radius: 8px; }
+  .status-row .name { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+  .status-row button { background: var(--panel-2); border: 1px solid var(--line); box-shadow: none; padding: 5px 0; font-size: 12px; font-weight: 500; border-radius: 7px; }
+  .status-row button:hover { border-color: var(--accent); filter: none; }
+  .status-row.current { background: #a066f614; }
+  .status-menu .hint { padding: 4px 6px 0; }
+  .totals { margin-left: 0; }
+
   /* Buscador (filtro local) */
   .head-tools { display: flex; align-items: center; gap: 10px; }
   .search { position: relative; width: 300px; }
@@ -255,6 +281,13 @@
   <div>
     <h1>Riven Stock</h1>
     <p>Ventas directas en warframe.market</p>
+  </div>
+  <div class="status-wrap">
+    <button class="status-pill" id="status-pill" title="Tu estado en warframe.market">
+      <span class="dot"></span><span id="status-label">Estado…</span><span class="status-until" id="status-until"></span>
+      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="status-menu" id="status-menu" hidden></div>
   </div>
   <div class="totals" id="totals"></div>
 </header>
@@ -446,6 +479,82 @@
   }
 
   function renderAll() { renderTotals(); renderMine(); renderLots(); renderClosed(); }
+
+  // ---- Estado del usuario (Invisible / Online / En juego) -------------------
+  // Va por el WebSocket de warframe.market; el servidor lo mantiene hasta `statusUntil` (máx. 4 h).
+  const STATUS_LABEL = { ingame: "En juego", online: "Online", invisible: "Invisible" };
+  const DURATIONS = [[30, "30 min"], [60, "1 h"], [120, "2 h"], [240, "4 h"]];
+  let myStatus = null;          // {status, statusUntil, statusSetAt}
+  let statusBusy = false;
+
+  const hhmm = (iso) => new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  function remaining(iso) {
+    const min = Math.round((new Date(iso) - Date.now()) / 60000);
+    if (min <= 0) return "vencido";
+    return min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min`;
+  }
+
+  function renderStatus() {
+    const pill = $("#status-pill");
+    const st = myStatus?.status;
+    pill.className = `status-pill ${st ? `st-${st}` : ""}`;
+    $("#status-label").textContent = st ? STATUS_LABEL[st] ?? st : "Estado…";
+    const until = myStatus?.statusUntil;
+    $("#status-until").innerHTML = statusBusy ? spinner : until ? `· hasta ${esc(hhmm(until))}` : "";
+    pill.title = until ? `Tu estado en warframe.market · vence a las ${hhmm(until)} (en ${remaining(until)})` : "Tu estado en warframe.market";
+  }
+
+  async function loadStatus() {
+    const res = await api().status();
+    if (res.error) { toast(`No se pudo leer tu estado: ${res.error}`, true); return; }
+    myStatus = res.status;
+    renderStatus();
+  }
+
+  async function changeStatus(status, minutes) {
+    const before = myStatus;
+    myStatus = { status, statusUntil: new Date(Date.now() + minutes * 60000).toISOString(), statusSetAt: new Date().toISOString() };
+    statusBusy = true;
+    renderStatus();
+    const res = await api().set_status(status, minutes);
+    statusBusy = false;
+    if (res.error) {
+      myStatus = before;
+      renderStatus();
+      toast(`No se pudo cambiar el estado: ${res.error}`, true);
+      return;
+    }
+    myStatus = { ...myStatus, ...res.status };
+    renderStatus();
+    toast(`Estado: ${STATUS_LABEL[status]} hasta las ${hhmm(myStatus.statusUntil)}`);
+  }
+
+  const statusMenu = $("#status-menu");
+  $("#status-pill").addEventListener("click", () => {
+    if (!statusMenu.hidden) { statusMenu.hidden = true; return; }
+    statusMenu.innerHTML = ["ingame", "online", "invisible"].map((s) => `
+      <div class="status-row st-${s} ${myStatus?.status === s ? "current" : ""}">
+        <span class="name"><span class="dot"></span>${STATUS_LABEL[s]}</span>
+        ${DURATIONS.map(([m, label]) => `<button data-status="${s}" data-min="${m}" title="${STATUS_LABEL[s]} por ${label}">${label}</button>`).join("")}
+      </div>`).join("") +
+      `<div class="hint">warframe.market no deja más de 4 h. Al vencer, vuelve a tu estado por defecto.</div>`;
+    statusMenu.hidden = false;
+  });
+  statusMenu.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-status]");
+    if (!b || statusBusy) return;
+    statusMenu.hidden = true;
+    changeStatus(b.dataset.status, Number(b.dataset.min));
+  });
+  document.addEventListener("mousedown", (e) => {
+    if (!statusMenu.hidden && !e.target.closest(".status-wrap")) statusMenu.hidden = true;
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") statusMenu.hidden = true; });
+  // Refresca la hora que queda; cuando vence, vuelve a preguntar el estado real.
+  setInterval(() => {
+    if (!myStatus?.statusUntil || statusBusy) return;
+    if (new Date(myStatus.statusUntil) <= Date.now()) loadStatus(); else renderStatus();
+  }, 60000);
 
   // ---- Resumen (header) ---------------------------------------------------
 
@@ -717,7 +826,7 @@
       if (await saveCost(a.id, v === "" ? null : v)) toast(v === "" ? "Costo borrado" : `Costo guardado: ${fmtP(v)}`);
     });
   });
-  $("#reload").addEventListener("click", loadMine);
+  $("#reload").addEventListener("click", () => { loadMine(); loadStatus(); });
 
   // ---- Stock unveiled -------------------------------------------------------
 
@@ -1265,6 +1374,7 @@
     refreshSlots();
     renderTotals();
     loadMine();
+    loadStatus();
   });
 </script>
 </body>
