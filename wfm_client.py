@@ -60,7 +60,9 @@ class WFMClient:
         if auth:
             if not self.jwt:
                 raise AuthError("Falta WFM_JWT en .env")
-            headers["Authorization"] = f"Bearer {self.jwt}"
+            # Verificado: v1 acepta "JWT <token>" (con "Bearer" da 401); v2 acepta "Bearer <token>".
+            scheme = "JWT" if path.startswith("/v1/") else "Bearer"
+            headers["Authorization"] = f"{scheme} {self.jwt}"
         for attempt in range(3):
             self._throttle()
             res = self.session.request(method, BASE_URL + path, headers=headers, timeout=20, **kwargs)
@@ -136,6 +138,10 @@ class WFMClient:
     def me(self):
         """Datos del usuario dueño del JWT (v2)."""
         return self.get("/v2/me", auth=True)["data"]
+
+    def my_auctions(self):
+        """Contratos propios (v1, con auth)."""
+        return self.get("/v1/profile/auctions", auth=True)["payload"]["auctions"]
 
     def profile_auctions(self, slug):
         """Contratos públicos de un perfil (v1, no necesita auth)."""

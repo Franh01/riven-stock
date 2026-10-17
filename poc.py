@@ -6,9 +6,7 @@
 
 import sys
 
-import requests
-
-from wfm_client import BASE_URL, HEADERS, AuthError, WFMClient, summarize
+from wfm_client import AuthError, WFMClient, summarize
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -27,37 +25,19 @@ def cmd_search(weapon, positives, negatives=None):
         print(f"min {min(prices)}p  mediana {sorted(prices)[len(prices) // 2]}p")
 
 
-def probe_auth(jwt):
-    """Prueba formatos de auth contra /v2/me. Imprime solo códigos de estado."""
-    variants = {
-        "Authorization: Bearer <jwt>": {"headers": {"Authorization": f"Bearer {jwt}"}},
-        "Authorization: JWT <jwt>": {"headers": {"Authorization": f"JWT {jwt}"}},
-        "Authorization: <jwt>": {"headers": {"Authorization": jwt}},
-        "Cookie JWT=<jwt>": {"cookies": {"JWT": jwt}},
-    }
-    for name, extra in variants.items():
-        res = requests.get(f"{BASE_URL}/v2/me", headers={**HEADERS, **extra.get("headers", {})},
-                           cookies=extra.get("cookies"), timeout=20)
-        print(f"  {name:32} -> {res.status_code}")
-
-
 def cmd_me():
     c = WFMClient()
-    if not c.jwt:
-        sys.exit("Falta WFM_JWT en .env")
     try:
         me = c.me()
+        auctions = c.my_auctions()
     except AuthError as e:
-        print(f"Bearer falló ({e}). Probando otros formatos:")
-        probe_auth(c.jwt)
-        return
-    slug = me.get("slug")
-    print(f"Logueado como {me.get('ingameName')} (slug {slug}, status {me.get('status')})")
-    auctions = c.profile_auctions(slug)
+        sys.exit(f"{e}. Copiá un JWT nuevo desde el navegador a .env.")
+    print(f"Logueado como {me['ingameName']} (slug {me['slug']}, MR {me.get('masteryRank')})")
     direct = [a for a in auctions if a["is_direct_sell"]]
-    print(f"{len(auctions)} contratos, {len(direct)} ventas directas:")
-    for a in direct:
-        print(f"  {a['id']}  {summarize(a)}  visible={a['visible']} closed={a['closed']}")
+    print(f"{len(auctions)} contratos, {len(direct)} ventas directas "
+          f"({sum(a['visible'] for a in direct)} visibles):")
+    for a in sorted(direct, key=lambda a: not a["visible"]):
+        print(f"  {a['id']}  {'   ' if a['visible'] else 'OCU'}  {summarize(a)}")
 
 
 if __name__ == "__main__":
