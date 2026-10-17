@@ -16,7 +16,7 @@
     --pos: #7ee2a8;
     --neg: #ff8a9a;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #3d2669 transparent; }
   html, body { margin: 0; height: 100%; }
   body {
     background: radial-gradient(1200px 600px at 20% -10%, #2a1450 0%, var(--bg) 60%);
@@ -24,9 +24,25 @@
     font: 14px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
     display: flex; flex-direction: column;
   }
-  header { display: flex; align-items: center; gap: 12px; padding: 16px 28px; border-bottom: 1px solid var(--line); }
+
+  /* Barras de scroll con la estética de la app (WebView2 es Chromium) */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #3d2669; border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #5b3a99; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-corner { background: transparent; }
+
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 28px; border-bottom: 1px solid var(--line); }
   header h1 { margin: 0; font: 600 19px "Segoe UI Variable Display", "Segoe UI", sans-serif; letter-spacing: .3px; }
   header p { margin: 0; color: var(--muted); font-size: 12px; }
+  .totals { margin-left: auto; display: flex; gap: 8px; }
+  .total { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px 14px; min-width: 104px; }
+  .total b { display: block; font-size: 17px; font-weight: 600; }
+  .total span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
+  .total.good b { color: var(--pos); }
+  .total.bad b { color: var(--neg); }
+  .total.accent b { color: var(--accent-2); }
+
   main { flex: 1; overflow: auto; padding: 24px 28px 110px; display: grid; gap: 20px; align-content: start; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
   .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
@@ -46,23 +62,28 @@
   }
   button:hover { filter: brightness(1.08); }
   button:disabled { filter: grayscale(.6); opacity: .6; cursor: default; }
+  button.small { padding: 6px 12px; font-size: 13px; box-shadow: none; }
   button.ghost { background: var(--panel-2); border: 1px solid var(--line); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
   button.ghost:hover { border-color: var(--accent); }
-  button.danger { background: none; border: 1px solid #e5546b66; color: var(--neg); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
-  button.danger:hover { background: #e5546b1a; }
   button.solid-danger { background: linear-gradient(180deg, #f06a80, #c43a52); box-shadow: 0 4px 16px #c43a5255; }
+  button.solid-sold { background: linear-gradient(180deg, #5fd497, #2f9e66); box-shadow: 0 4px 16px #2f9e6655; }
   button.icon { background: none; box-shadow: none; padding: 4px 10px; color: var(--muted); font-size: 20px; line-height: 1; }
   button.icon:hover { color: var(--text); }
 
   table { width: 100%; border-collapse: collapse; }
   th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover { color: var(--text); }
+  th.sorted { color: var(--accent-2); }
+  th .arrow { display: inline-block; width: 10px; margin-left: 4px; }
   td { padding: 10px; border-bottom: 1px solid #241540; vertical-align: middle; }
   tr:last-child td { border-bottom: 0; }
   tr.hidden-row td:not(.actions) { opacity: .62; }
   td.price { font-weight: 700; color: var(--accent-2); font-size: 16px; white-space: nowrap; }
-  .price-edit { display: inline-flex; align-items: center; cursor: text; border-radius: 6px; padding: 2px 6px; margin: -2px -6px; }
-  .price-edit:hover { background: var(--panel-2); }
-  .price-input { width: 84px; padding: 4px 8px; font-weight: 700; color: var(--accent-2); }
+  td.nowrap, td:has(> .badge) { white-space: nowrap; }
+  .editable { display: inline-flex; align-items: center; cursor: text; border-radius: 6px; padding: 2px 6px; margin: -2px -6px; }
+  .editable:hover { background: var(--panel-2); }
+  .inline-input { width: 84px; padding: 4px 8px; font-weight: 700; color: var(--accent-2); }
   .riven-weapon { font-weight: 600; }
   .riven-name { text-transform: capitalize; color: var(--muted); font-size: 12px; }
   .stats { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -71,13 +92,39 @@
   .badge { font-size: 12px; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
   .badge.on { background: #7ee2a81f; color: var(--pos); }
   .badge.off { background: #9a8cba22; color: var(--muted); }
-  td.actions { white-space: nowrap; text-align: right; }
+  td.actions { white-space: nowrap; text-align: right; width: 1%; }
   td.actions button + button { margin-left: 6px; }
   .muted { color: var(--muted); }
+  .pos-txt { color: var(--pos); }
+  .neg-txt { color: var(--neg); }
   a { color: var(--accent-2); text-decoration: none; }
   a:hover { text-decoration: underline; }
   .state { color: var(--muted); padding: 24px 0; text-align: center; }
   .error { color: var(--neg); }
+  .hint { color: var(--muted); font-size: 12px; }
+  [hidden] { display: none !important; }
+
+  /* Menú de acciones de cada fila */
+  button.more { background: none; border: 1px solid transparent; box-shadow: none; padding: 4px 8px; border-radius: 8px; color: var(--muted); }
+  button.more:hover, button.more.open { border-color: var(--line); background: var(--panel-2); color: var(--text); filter: none; }
+  button.more svg { display: block; }
+  .menu {
+    position: fixed; z-index: 40; min-width: 170px; padding: 5px;
+    background: #1b0e33; border: 1px solid var(--line); border-radius: 11px; box-shadow: 0 14px 40px #000c;
+  }
+  .menu button {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    background: none; box-shadow: none; border-radius: 7px; padding: 8px 10px; font-weight: 500; font-size: 13px;
+  }
+  .menu button:hover { background: #a066f62b; filter: none; }
+  .menu button.sold { color: var(--pos); }
+  .menu button.danger { color: var(--neg); }
+  .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+
+  /* Stock unveiled */
+  .lot-form { display: grid; grid-template-columns: 140px 100px 120px 120px 1fr auto; gap: 10px; align-items: end; margin-bottom: 16px; }
+  .lot-type { text-transform: capitalize; font-weight: 600; }
+  .remaining { font-weight: 700; color: var(--accent-2); }
 
   /* Botón flotante */
   .fab {
@@ -86,10 +133,10 @@
     padding: 14px 22px 14px 18px; border-radius: 99px; font-size: 15px;
     box-shadow: 0 10px 34px #7b3fe488, 0 0 0 1px #c99bff44 inset;
   }
-  .fab span { font-size: 22px; line-height: 1; font-weight: 400; }
+  .fab svg { display: block; flex: none; }
 
   .toast {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 20;
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 50;
     background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
     padding: 10px 18px; opacity: 0; transition: .2s; pointer-events: none; box-shadow: 0 8px 30px #0008;
   }
@@ -107,26 +154,39 @@
   dialog p { margin: 0 0 16px; color: var(--muted); }
 
   #close-dialog { width: min(460px, 90vw); }
-  .sold { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-  .sold input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
-  .sold input[type=number] { width: 110px; }
+  .sold-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .sold-row input { width: 110px; }
   .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
   #riven-dialog { width: min(1040px, 94vw); max-height: 92vh; }
   #riven-dialog .dlg-body { overflow: auto; max-height: calc(92vh - 64px); }
   .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .step { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #a066f633; color: var(--accent-2); }
-  .grid-riven { display: grid; grid-template-columns: 2fr 1.4fr 1.1fr .7fr .7fr .7fr; gap: 12px; }
-  .grid-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
-  .stat-slot { display: grid; gap: 6px; }
-  .stat-slot .row { display: grid; grid-template-columns: 1fr 88px; gap: 6px; }
+  .origin-row { display: grid; grid-template-columns: 150px minmax(0, 420px); gap: 10px; align-items: center; margin-bottom: 14px; }
+  .origin-row .tag, .name-row .tag { font-size: 12px; color: var(--muted); }
+  .grid-riven { display: grid; grid-template-columns: 2fr 1.1fr .7fr .7fr .7fr; gap: 12px; }
+  /* Stats en columna: una fila por stat (etiqueta | stat | valor) */
+  .grid-stats { display: grid; gap: 8px; margin-top: 16px; max-width: 640px; }
+  .stat-slot { display: grid; grid-template-columns: 150px 1fr 120px; gap: 10px; align-items: center; }
+  .stat-slot .row { display: contents; }
   .stat-slot .tag { font-size: 12px; color: var(--muted); }
   .stat-slot .tag.neg { color: var(--neg); }
+  .name-row { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: start; margin-top: 14px; max-width: 900px; }
+  .name-row .tag { padding-top: 8px; }
+  .name-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .name-chip {
+    background: var(--panel-2); border: 1px solid var(--line); box-shadow: none; border-radius: 99px;
+    padding: 6px 14px; font-weight: 500; font-size: 13px; color: var(--text);
+  }
+  .name-chip:hover { border-color: var(--accent); filter: none; }
+  .name-chip.selected { background: #a066f633; border-color: var(--accent); color: var(--accent-2); font-weight: 600; }
+  .name-chip small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .name-chips .hint { padding: 6px 0; }
+  #f-name { max-width: 260px; }
   .unit { position: relative; }
   .unit input { padding-right: 24px; }
   .unit::after { content: attr(data-unit); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; pointer-events: none; }
-  .row-actions { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
-  .hint { color: var(--muted); font-size: 12px; }
+  .row-actions { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
   .summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
   .chip { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; min-width: 110px; text-align: left; box-shadow: none; font-weight: 400; }
   .chip b { display: block; font-size: 20px; font-weight: 600; color: var(--accent-2); }
@@ -135,12 +195,11 @@
   .ref-table td { padding: 7px 10px; font-size: 13px; }
   .ref-table td.price { font-size: 14px; }
   .ref-table td:nth-child(2), .ref-table td:nth-child(4), .ref-table td:nth-child(5) { white-space: nowrap; }
-  .publish { display: grid; grid-template-columns: 140px auto 1fr auto; gap: 14px; align-items: end; }
+  .ref-note { margin-top: 10px; color: var(--muted); font-size: 12px; }
+  .publish { display: grid; grid-template-columns: 130px 130px auto 1fr auto; gap: 14px; align-items: end; }
   .check { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 14px; padding-bottom: 10px; }
   .check input { width: 16px; height: 16px; accent-color: var(--accent); }
   .confirm { background: #a066f614; border: 1px solid #a066f655; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px; }
-  .confirm[hidden] { display: none; }
-  [hidden] { display: none !important; }
 
   /* Selector con autocompletado */
   .combo { position: relative; }
@@ -156,9 +215,6 @@
   .combo-item.selected { color: var(--accent-2); }
   .combo-empty { padding: 8px 10px; color: var(--muted); font-size: 13px; }
 
-  button.sold-btn { background: none; border: 1px solid #7ee2a866; color: var(--pos); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
-  button.sold-btn:hover { background: #7ee2a81a; }
-  button.solid-sold { background: linear-gradient(180deg, #5fd497, #2f9e66); box-shadow: 0 4px 16px #2f9e6655; }
   .spinner {
     display: inline-block; width: 13px; height: 13px; margin-left: 8px; vertical-align: -2px;
     border: 2px solid #c99bff44; border-top-color: var(--accent-2); border-radius: 50%;
@@ -166,10 +222,8 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
   tr.busy td:not(.actions) { opacity: .7; }
-  td:has(> .badge) { white-space: nowrap; }
-  tr.busy .price-edit { cursor: default; }
-  tr.busy .price-edit:hover { background: none; }
-  .ref-note { margin-top: 10px; color: var(--muted); font-size: 12px; }
+  tr.busy .editable { cursor: default; }
+  tr.busy .editable:hover { background: none; }
 </style>
 </head>
 <body>
@@ -188,6 +242,7 @@
     <h1>Riven Stock</h1>
     <p>Ventas directas en warframe.market</p>
   </div>
+  <div class="totals" id="totals"></div>
 </header>
 
 <main>
@@ -198,15 +253,39 @@
     </div>
     <div id="mine"><div class="state">Cargando…</div></div>
   </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 id="stock-title">Stock unveiled</h2>
+      <span class="hint">Solo en esta app: no se publica en warframe.market.</span>
+    </div>
+    <form class="lot-form" id="lot-form">
+      <label>Tipo <select id="lot-type"></select></label>
+      <label>Cantidad <input id="lot-qty" type="number" min="1" value="1"></label>
+      <label>Costo <div class="unit" data-unit="p"><input id="lot-cost" type="number" min="0" step="any" placeholder="0"></div></label>
+      <label>El costo es
+        <select id="lot-cost-mode"><option value="total">Total del lote</option><option value="unit">Por unidad</option></select>
+      </label>
+      <label>Nota (opcional) <input id="lot-note" placeholder="Ej. bulk de un vendedor"></label>
+      <button class="small" id="lot-add">Agregar al stock</button>
+    </form>
+    <div id="lots"></div>
+  </section>
+
   <section class="card" id="closed-card" hidden>
     <div class="card-head"><h2>Cerrados desde la app</h2></div>
     <div id="closed"></div>
   </section>
 </main>
 
-<button class="fab" id="fab" title="Precio de referencia y nuevo contrato"><span>+</span> Nuevo riven</button>
+<button class="fab" id="fab" title="Precio de referencia y nuevo contrato">
+  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+  Nuevo riven
+</button>
 
-<!-- Modal: riven → referencia → publicar / actualizar precio -->
+<div class="menu" id="row-menu" hidden></div>
+
+<!-- Modal: riven → referencia → publicar (nuevo) o guardar cambios (editar) -->
 <dialog id="riven-dialog">
   <div class="dlg-head">
     <h3 id="rd-title">Nuevo riven</h3>
@@ -215,9 +294,12 @@
   <div class="dlg-body">
     <section>
       <div class="section-title"><span class="step">1</span><h2>Riven</h2></div>
+      <div class="origin-row" id="origin-row">
+        <span class="tag">Origen</span>
+        <select id="f-origin"></select>
+      </div>
       <div class="grid-riven">
         <label>Arma <input id="f-weapon" placeholder="Escribí el arma…"></label>
-        <label>Nombre <input id="f-name" placeholder="Ej. Crita-acritis"></label>
         <label>Polaridad
           <select id="f-polarity"><option value="madurai">Madurai</option><option value="naramon">Naramon</option><option value="vazarin">Vazarin</option></select>
         </label>
@@ -226,6 +308,13 @@
         <label>Rolls <input id="f-rolls" type="number" min="0" value="0"></label>
       </div>
       <div class="grid-stats" id="stat-slots"></div>
+      <div class="name-row">
+        <span class="tag">Nombre</span>
+        <div>
+          <div class="name-chips" id="name-chips"></div>
+          <input id="f-name" placeholder="Escribí el nombre tal como figura en el juego" hidden style="margin-top: 8px">
+        </div>
+      </div>
       <div class="row-actions">
         <button id="ref-go">Ver precio de referencia</button>
         <span class="hint" id="rd-info">Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.</span>
@@ -243,8 +332,9 @@
       <div class="section-title"><span class="step" id="publish-step">2</span><h2 id="publish-title">Publicar venta directa</h2></div>
       <div class="publish">
         <label>Precio <div class="unit" data-unit="p"><input id="f-price" type="number" min="1"></div></label>
-        <label class="check" id="f-visible-wrap"><input type="checkbox" id="f-visible" checked> Visible</label>
-        <label id="f-note-wrap">Nota (opcional) <input id="f-note" placeholder="Ej. Open to offers, PM me"></label>
+        <label title="Lo que te costó el riven. Solo se guarda en la app.">Costo (opcional) <div class="unit" data-unit="p"><input id="f-cost" type="number" min="0" step="any"></div></label>
+        <label class="check"><input type="checkbox" id="f-visible" checked> Visible</label>
+        <label>Nota (opcional) <input id="f-note" placeholder="Ej. Open to offers, PM me"></label>
         <button id="publish-go">Publicar</button>
       </div>
       <div class="confirm" id="confirm" hidden>
@@ -262,7 +352,7 @@
   <form method="dialog" style="padding: 24px">
     <h3 style="margin: 0 0 10px; font-size: 17px" id="cd-title">Cerrar contrato</h3>
     <p id="close-text"></p>
-    <div class="sold" id="sold-row">
+    <div class="sold-row" id="sold-row">
       <label for="sold-price" style="display:inline; color: var(--text); font-size: 14px;">Vendido por</label>
       <input type="number" id="sold-price" min="1">
       <span class="muted">p</span>
@@ -277,14 +367,23 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let catalog = { weapons: [], stats: [] };
+  let catalog = { weapons: [], stats: [], bases: {} };
   const statBySlug = {}, weaponBySlug = {};
-  let mine = [];
-  let editing = null;   // contrato existente abierto en el modal, o null si es un riven nuevo
+  let mine = [];        // contratos abiertos (API)
+  let closed = [];      // cerrados desde la app (local)
+  let costs = {};       // auction_id -> {cost, lot_id} (local)
+  let lots = [];        // stock unveiled (local)
+  let invested = 0;
+  let editing = null;   // contrato abierto en el modal para editar, o null si es un riven nuevo
+  const pending = new Set();   // ids de contratos con un pedido en curso
+
   const $ = (sel) => document.querySelector(sel);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const api = () => window.pywebview.api;
   const UNIT = { percent: "%", multiply: "x", seconds: "s" };
+  const fmtP = (n) => `${Number(n).toLocaleString("es-AR", { maximumFractionDigits: 1 })}p`;
+  const spinner = `<span class="spinner" title="Esperando a warframe.market…"></span>`;
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
   function toast(msg, isError = false) {
     const t = $("#toast");
@@ -293,6 +392,7 @@
   }
 
   const weaponName = (slug) => weaponBySlug[slug]?.name ?? slug.replace(/_/g, " ");
+  const rivenLabel = (a) => `${esc(weaponName(a.weapon))} <span style="text-transform:capitalize">${esc(a.name)}</span>`;
 
   function formatStat(st) {
     const meta = statBySlug[st.slug];
@@ -301,14 +401,48 @@
     return `<span class="stat ${st.positive ? "" : "neg"}">${esc(val)} ${esc(meta?.name ?? st.slug)}</span>`;
   }
 
-  const rivenLabel = (a) => `${esc(weaponName(a.weapon))} <span style="text-transform:capitalize">${esc(a.name)}</span>`;
+  function ago(iso) {
+    if (!iso) return "";
+    const min = (Date.now() - new Date(iso)) / 60000;
+    if (min < 1) return "recién";
+    if (min < 60) return `hace ${Math.floor(min)} min`;
+    if (min < 60 * 24) return `hace ${Math.floor(min / 60)} h`;
+    if (min < 60 * 24 * 30) return `hace ${Math.floor(min / 60 / 24)} d`;
+    return new Date(iso).toLocaleDateString("es-AR");
+  }
+  const fullDate = (iso) => (iso ? new Date(iso).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "");
 
-  // ---- Mis contratos ---------------------------------------------------
+  function applyLocal(data) {
+    if (data.closed) closed = [...closed.filter((c) => c.pending), ...data.closed];
+    if (data.costs) costs = data.costs;
+    if (data.lots) lots = data.lots;
+    if (data.invested !== undefined) invested = data.invested;
+  }
 
+  function renderAll() { renderTotals(); renderMine(); renderLots(); renderClosed(); }
+
+  // ---- Resumen (header) ---------------------------------------------------
+
+  function renderTotals() {
+    const sold = closed.reduce((s, c) => s + (c.sold_price || 0), 0);
+    const balance = sold - invested;
+    const onSale = mine.filter((a) => a.visible).reduce((s, a) => s + a.price, 0);
+    const stock = lots.reduce((s, l) => s + l.remaining, 0);
+    $("#totals").innerHTML = [
+      ["Vendido", fmtP(sold), "good", "Suma de lo vendido desde la app"],
+      ["Invertido", fmtP(invested), "", "Lotes de stock + costos de rivens sueltos"],
+      ["Balance", (balance > 0 ? "+" : "") + fmtP(balance), balance >= 0 ? "good" : "bad", "Vendido − invertido"],
+      ["En venta", fmtP(onSale), "accent", "Suma de los precios de tus contratos visibles"],
+      ["Stock", `${stock} sin abrir`, "", "Rivens unveiled sin abrir"],
+    ].map(([k, v, cls, title]) => `<div class="total ${cls}" title="${title}"><b>${v}</b><span>${k}</span></div>`).join("");
+  }
+
+  // ---- Mis contratos ------------------------------------------------------
   // La interfaz es optimista: cada acción se ve al instante y la fila queda "pendiente"
-  // (spinner, botones bloqueados) hasta que responde la API. Si falla, se revierte.
-  let closed = [];
-  const pending = new Set();   // ids de contratos con un pedido en curso
+  // (spinner, acciones bloqueadas) hasta que responde la API. Si falla, se revierte.
+
+  let sort = { key: null, dir: 1 };
+  try { sort = JSON.parse(localStorage.getItem("mine-sort")) ?? sort; } catch { /* sin storage */ }
 
   async function loadMine() {
     $("#reload").disabled = true;
@@ -316,68 +450,70 @@
       const data = await api().my_auctions();
       if (data.error) { $("#mine").innerHTML = `<div class="state error">${esc(data.error)}</div>`; return; }
       mine = data.auctions;
-      closed = data.closed;
-      renderMine();
-      renderClosed();
+      closed = [];
+      applyLocal(data);
+      renderAll();
     } finally {
       $("#reload").disabled = false;
     }
   }
 
-  const spinner = `<span class="spinner" title="Esperando a warframe.market…"></span>`;
+  function sortedMine() {
+    if (!sort.key) return mine;
+    const val = (a) => (sort.key === "price" ? a.price : new Date(a.updated || 0).getTime());
+    return [...mine].sort((a, b) => (val(a) - val(b)) * sort.dir);
+  }
+
+  function sortHeader(key, label) {
+    const on = sort.key === key;
+    return `<th class="sortable ${on ? "sorted" : ""}" data-sort="${key}" title="Ordenar por ${label.toLowerCase()}">${label}<span class="arrow">${on ? (sort.dir > 0 ? "↑" : "↓") : ""}</span></th>`;
+  }
+
+  const DOTS = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="13" cy="8" r="1.6" fill="currentColor"/></svg>`;
 
   function renderMine() {
     const visibles = mine.filter((a) => a.visible).length;
     $("#mine-title").textContent = `Mis ventas directas · ${visibles} visibles · ${mine.length - visibles} ocultas`;
     if (!mine.length) { $("#mine").innerHTML = `<div class="state">No tenés ventas directas publicadas.</div>`; return; }
     $("#mine").innerHTML = `<table>
-      <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
-      <tbody>${mine.map((a) => {
-        const busy = pending.has(a.id), off = busy ? "disabled" : "";
+      <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Costo</th>${sortHeader("price", "Precio")}${sortHeader("updated", "Actualizado")}<th>Estado</th><th></th></tr></thead>
+      <tbody>${sortedMine().map((a) => {
+        const busy = pending.has(a.id);
+        const cost = costs[a.id]?.cost;
         return `<tr data-id="${esc(a.id)}" class="${a.visible ? "" : "hidden-row"} ${busy ? "busy" : ""}">
         <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
         <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
         <td>${esc(a.rolls)}</td>
         <td>${esc(a.mr)}</td>
-        <td class="price"><span class="price-edit" ${busy ? "" : `data-act="edit-price"`} title="Click para editar">${a.price}p</span></td>
+        <td class="nowrap"><span class="editable ${cost === undefined ? "muted" : ""}" data-act="edit-cost" title="Click para cargar lo que te costó">${cost === undefined ? "—" : fmtP(cost)}</span></td>
+        <td class="price"><span class="editable" ${busy ? "" : `data-act="edit-price"`} title="Click para editar">${a.price}p</span></td>
+        <td class="nowrap muted" title="${esc(fullDate(a.updated))}">${esc(ago(a.updated))}</td>
         <td><span class="badge ${a.visible ? "on" : "off"}">${a.visible ? "Visible" : "Oculto"}</span>${busy ? spinner : ""}</td>
-        <td class="actions">
-          <button class="ghost" data-act="ref" title="Precio de referencia del arma">Referencia</button>
-          <button class="ghost" data-act="toggle" ${off}>${a.visible ? "Ocultar" : "Mostrar"}</button>
-          <button class="sold-btn" data-act="sold" ${off} title="Cerrar el contrato y registrar la venta">Vendido</button>
-          <button class="danger" data-act="close" ${off} title="Cerrar sin venta">Cerrar</button>
-        </td>
+        <td class="actions"><button class="more" data-act="menu" title="Acciones" ${busy ? "disabled" : ""}>${DOTS}</button></td>
       </tr>`;
       }).join("")}</tbody></table>`;
   }
 
-  function renderClosed() {
-    $("#closed-card").hidden = !closed.length;
-    $("#closed").innerHTML = `<table>
-      <thead><tr><th>Riven</th><th>Stats</th><th>Último precio</th><th>Vendido</th><th>Cerrado</th></tr></thead>
-      <tbody>${closed.map((a) => `<tr class="${a.pending ? "busy" : ""}">
-        <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
-        <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
-        <td>${a.price}p</td>
-        <td>${a.sold_price ? `<b style="color: var(--pos)">${a.sold_price}p</b>` : `<span class="muted">No</span>`}</td>
-        <td class="muted">${a.pending
-          ? `${spinner} Cerrando…`
-          : esc(new Date(a.closed_at).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }))}</td>
-      </tr>`).join("")}</tbody></table>`;
-  }
-
-  // Cambio de precio y/o visibilidad: se aplica en pantalla ya, y se confirma (o revierte) después.
+  // Precio / visibilidad / nota: se aplica en pantalla ya, y se confirma (o revierte) después.
   async function runUpdate(a, changes, okMsg) {
     const before = a;
     mine = mine.map((x) => (x.id === a.id ? { ...x, ...changes } : x));
     pending.add(a.id);
-    renderMine();
-    const res = await api().update(a.id, changes.price ?? null, changes.visible ?? null);
+    renderMine(); renderTotals();
+    const res = await api().update(a.id, changes.price ?? null, changes.visible ?? null, changes.note ?? null);
     pending.delete(a.id);
     mine = mine.map((x) => (x.id === a.id ? (res.error ? before : res.auction) : x));
-    renderMine();
+    renderMine(); renderTotals();
     if (res.error) toast(`No se pudo guardar: ${res.error}`, true);
-    else toast(okMsg);
+    else if (okMsg) toast(okMsg);
+  }
+
+  async function saveCost(id, cost) {
+    const res = await api().set_cost(id, cost);
+    if (res.error) { toast(`No se pudo guardar el costo: ${res.error}`, true); return false; }
+    applyLocal(res);
+    renderTotals(); renderMine(); renderClosed();
+    return true;
   }
 
   // Cerrar (con o sin venta): la fila pasa a "Cerrados" ya, con "Cerrando…" hasta que confirma.
@@ -386,31 +522,30 @@
     const entry = { ...a, sold_price: soldPrice, closed_at: new Date().toISOString(), pending: true };
     mine = mine.filter((x) => x.id !== a.id);
     closed = [entry, ...closed];
-    renderMine(); renderClosed();
+    renderAll();
     const res = await api().close(a.id, soldPrice);
     if (res.error) {
       closed = closed.filter((x) => x !== entry);
       mine.splice(index, 0, a);
-      renderMine(); renderClosed();
+      renderAll();
       toast(`No se pudo cerrar: ${res.error}`, true);
       return;
     }
     entry.pending = false;
     entry.closed_at = res.closed_at;
-    renderClosed();
+    renderClosed(); renderTotals();
     toast(soldPrice ? `Vendido por ${soldPrice}p` : "Contrato cerrado");
   }
 
-  function editPrice(span, a) {
-    span.outerHTML = `<input type="number" min="1" value="${a.price}" class="price-input">`;
-    const input = document.querySelector(`tr[data-id="${a.id}"] .price-input`);
+  // Edición en la celda (precio y costo): Enter guarda, Esc o salir del campo cancela.
+  function inlineEdit(span, initial, onSave) {
+    span.outerHTML = `<input type="number" min="0" step="any" value="${initial ?? ""}" class="inline-input" id="inline-edit">`;
+    const input = $("#inline-edit");
     input.focus(); input.select();
     let done = false;
     const finish = (save) => {
       if (done) return; done = true;
-      const price = parseInt(input.value, 10);
-      if (!save || !price || price === a.price) { renderMine(); return; }
-      runUpdate(a, { price }, `Precio actualizado: ${a.price}p → ${price}p`);
+      if (save) onSave(input.value.trim()); else renderMine();
     };
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
     input.addEventListener("blur", () => finish(false));
@@ -444,22 +579,149 @@
     $("#close-dialog").close("ok");
   });
 
+  // Menú "⋯" de cada fila
+  const menu = $("#row-menu");
+  let menuFor = null;
+  function openMenu(btn, a) {
+    closeMenu();
+    menuFor = a;
+    btn.classList.add("open");
+    menu.innerHTML = `
+      <button data-menu="edit">Editar</button>
+      <button data-menu="toggle">${a.visible ? "Ocultar" : "Mostrar"}</button>
+      <hr>
+      <button data-menu="sold" class="sold">Vendido</button>
+      <button data-menu="close" class="danger">Cerrar sin venta</button>`;
+    menu.hidden = false;
+    const r = btn.getBoundingClientRect(), m = menu.getBoundingClientRect();
+    const top = r.bottom + 4 + m.height > innerHeight ? r.top - m.height - 4 : r.bottom + 4;
+    menu.style.top = `${top}px`;
+    menu.style.left = `${Math.max(8, r.right - m.width)}px`;
+  }
+  function closeMenu() {
+    menu.hidden = true; menuFor = null;
+    document.querySelectorAll("button.more.open").forEach((b) => b.classList.remove("open"));
+  }
+  menu.addEventListener("click", (e) => {
+    const item = e.target.closest("[data-menu]");
+    if (!item || !menuFor) return;
+    const a = menuFor, act = item.dataset.menu;
+    closeMenu();
+    if (pending.has(a.id)) return;
+    if (act === "edit") openRiven({ existing: a });
+    if (act === "toggle") runUpdate(a, { visible: !a.visible }, a.visible ? "Contrato oculto" : "Contrato visible");
+    if (act === "sold") askClose(a, true);
+    if (act === "close") askClose(a, false);
+  });
+  document.addEventListener("mousedown", (e) => { if (!menu.hidden && !menu.contains(e.target) && !e.target.closest("[data-act=menu]")) closeMenu(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) closeMenu(); });
+  $("main").addEventListener("scroll", closeMenu);
+
   $("#mine").addEventListener("click", (e) => {
+    const th = e.target.closest("th[data-sort]");
+    if (th) {
+      // Cada click: ascendente → descendente → orden original
+      const key = th.dataset.sort;
+      sort = sort.key !== key ? { key, dir: 1 } : sort.dir > 0 ? { key, dir: -1 } : { key: null, dir: 1 };
+      try { localStorage.setItem("mine-sort", JSON.stringify(sort)); } catch { /* sin storage */ }
+      renderMine();
+      return;
+    }
     const el = e.target.closest("[data-act]");
     if (!el || el.disabled) return;
     const a = mine.find((x) => x.id === el.closest("tr").dataset.id);
     if (!a) return;
     const act = el.dataset.act;
-    if (act === "ref") return openRiven(a);
+    if (act === "menu") return menu.hidden || menuFor?.id !== a.id ? openMenu(el, a) : closeMenu();
     if (pending.has(a.id)) return;
-    if (act === "edit-price") editPrice(el, a);
-    if (act === "toggle") runUpdate(a, { visible: !a.visible }, a.visible ? "Contrato oculto" : "Contrato visible");
-    if (act === "close") askClose(a, false);
-    if (act === "sold") askClose(a, true);
+    if (act === "edit-price") inlineEdit(el, a.price, (v) => {
+      const price = parseInt(v, 10);
+      if (!price || price === a.price) return renderMine();
+      runUpdate(a, { price }, `Precio actualizado: ${a.price}p → ${price}p`);
+    });
+    if (act === "edit-cost") inlineEdit(el, costs[a.id]?.cost, async (v) => {
+      if (await saveCost(a.id, v === "" ? null : v)) toast(v === "" ? "Costo borrado" : `Costo guardado: ${fmtP(v)}`);
+    });
   });
   $("#reload").addEventListener("click", loadMine);
 
-  // ---- Modal: riven → referencia → publicar ------------------------------
+  // ---- Stock unveiled -------------------------------------------------------
+
+  const RIVEN_TYPES = ["rifle", "shotgun", "pistol", "melee", "zaw", "kitgun"];
+  $("#lot-type").innerHTML = RIVEN_TYPES.map((t) => `<option value="${t}">${cap(t)}</option>`).join("");
+  $("#lot-type").value = "melee";
+
+  function renderLots() {
+    const left = lots.reduce((s, l) => s + l.remaining, 0);
+    $("#stock-title").textContent = `Stock unveiled · ${left} sin abrir`;
+    if (!lots.length) {
+      $("#lots").innerHTML = `<div class="hint">Cargá un lote de rivens sin abrir (ej. 6 melee por 50p). Después, "Abrir" te lleva a cargar el riven con su costo ya puesto.</div>`;
+      return;
+    }
+    $("#lots").innerHTML = `<table>
+      <thead><tr><th>Tipo</th><th>Sin abrir</th><th>Costo c/u</th><th>Total</th><th>Nota</th><th>Cargado</th><th></th></tr></thead>
+      <tbody>${lots.map((l) => `<tr data-lot="${l.id}" class="${l.remaining ? "" : "hidden-row"}">
+        <td class="lot-type">${esc(l.riven_type)}</td>
+        <td class="nowrap"><span class="remaining">${l.remaining}</span> <span class="muted">de ${l.quantity}</span></td>
+        <td class="nowrap">${fmtP(l.unit_cost)}</td>
+        <td class="nowrap">${fmtP(l.total_cost)}</td>
+        <td class="muted">${esc(l.note)}</td>
+        <td class="nowrap muted" title="${esc(fullDate(l.created_at))}">${esc(ago(l.created_at))}</td>
+        <td class="actions">
+          ${l.remaining ? `<button class="small" data-lot-act="open" title="Cargar el riven que salió y publicarlo">Abrir</button>
+          <button class="ghost" data-lot-act="discard" title="Abrí uno y no lo voy a publicar">−1</button>` : ""}
+          ${l.opened ? "" : `<button class="ghost" data-lot-act="delete" title="Borrar el lote (solo si no abriste ninguno)">Borrar</button>`}
+        </td>
+      </tr>`).join("")}</tbody></table>`;
+  }
+
+  $("#lot-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const qty = parseInt($("#lot-qty").value, 10);
+    const cost = $("#lot-cost").value.trim();
+    if (!qty || qty < 1) { toast("Poné la cantidad", true); return; }
+    if (cost === "") { toast("Poné el costo (0 si fue gratis)", true); return; }
+    const res = await api().add_lot($("#lot-type").value, qty, cost, $("#lot-cost-mode").value === "total", $("#lot-note").value);
+    if (res.error) { toast(res.error, true); return; }
+    applyLocal(res); renderLots(); renderTotals();
+    toast(`Agregado: ${qty} ${$("#lot-type").value}`);
+    $("#lot-qty").value = 1; $("#lot-cost").value = ""; $("#lot-note").value = "";
+  });
+
+  $("#lots").addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-lot-act]");
+    if (!btn) return;
+    const lot = lots.find((l) => l.id === Number(btn.closest("tr").dataset.lot));
+    const act = btn.dataset.lotAct;
+    if (act === "open") return openRiven({ lotId: lot.id });
+    const res = act === "discard" ? await api().discard_from_lot(lot.id) : await api().delete_lot(lot.id);
+    if (res.error) { toast(res.error, true); return; }
+    applyLocal(res); renderLots(); renderTotals();
+    toast(act === "discard" ? `Descontado 1 ${lot.riven_type}` : "Lote borrado");
+  });
+
+  // ---- Cerrados -------------------------------------------------------------
+
+  function renderClosed() {
+    $("#closed-card").hidden = !closed.length;
+    $("#closed").innerHTML = `<table>
+      <thead><tr><th>Riven</th><th>Stats</th><th>Último precio</th><th>Vendido</th><th>Costo</th><th>Ganancia</th><th>Cerrado</th></tr></thead>
+      <tbody>${closed.map((a) => {
+        const cost = costs[a.id]?.cost;
+        const profit = a.sold_price && cost !== undefined ? a.sold_price - cost : null;
+        return `<tr class="${a.pending ? "busy" : ""}">
+        <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
+        <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
+        <td>${a.price}p</td>
+        <td>${a.sold_price ? `<b class="pos-txt">${a.sold_price}p</b>` : `<span class="muted">No</span>`}</td>
+        <td class="nowrap">${cost === undefined ? `<span class="muted">—</span>` : fmtP(cost)}</td>
+        <td class="nowrap">${profit === null ? `<span class="muted">—</span>` : `<b class="${profit >= 0 ? "pos-txt" : "neg-txt"}">${profit > 0 ? "+" : ""}${fmtP(profit)}</b>`}</td>
+        <td class="muted nowrap">${a.pending ? `${spinner} Cerrando…` : esc(fullDate(a.closed_at))}</td>
+      </tr>`;
+      }).join("")}</tbody></table>`;
+  }
+
+  // ---- Modal: riven → referencia → publicar / editar ------------------------
 
   const SLOTS = [
     { label: "Positivo 1", positive: true }, { label: "Positivo 2", positive: true },
@@ -567,28 +829,148 @@
   }
 
   const weaponCombo = new Combo($("#f-weapon"), () => refreshSlots());
-  const statCombos = slotEls.map((el) => new Combo(el.querySelector(".slot-stat"), () => refreshUnit(el)));
+  // Al elegir o borrar un stat se recalculan las opciones de los otros (no se repiten stats).
+  const statCombos = slotEls.map((el) => new Combo(el.querySelector(".slot-stat"), () => refreshSlots()));
 
   const currentWeapon = () => weaponBySlug[weaponCombo.value];
+  const currentLot = () => lots.find((l) => String(l.id) === $("#f-origin").value);
+
+  // Si el riven sale de un lote, solo se ofrecen armas de ese tipo.
+  function refreshWeapons() {
+    const type = currentLot()?.riven_type;
+    weaponCombo.setOptions(catalog.weapons
+      .filter((w) => !type || w.type === type)
+      .map((w) => ({ value: w.slug, label: w.name, hint: w.type })));
+  }
 
   function refreshSlots() {
     const weapon = currentWeapon();
     const type = weapon?.type;
     statCombos.forEach((combo, i) => {
+      // Un stat ya elegido en otro casillero no se ofrece acá (un riven no repite stats).
+      const taken = new Set(statCombos.filter((_, j) => j !== i).map((c) => c.value).filter(Boolean));
       combo.setOptions(catalog.stats
-        .filter((s) => (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type)) && (SLOTS[i].positive || !s.positiveOnly))
+        .filter((s) => (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type))
+          && (SLOTS[i].positive || !s.positiveOnly) && !taken.has(s.slug))
         .map((s) => ({ value: s.slug, label: s.name, hint: UNIT[s.unit] })));
       refreshUnit(slotEls[i]);
     });
     $("#rd-info").textContent = weapon
       ? `${weapon.name} · ${weapon.type} · disposición ${weapon.disposition}`
       : "Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.";
+    refreshNames();
   }
 
   function refreshUnit(el) {
     const meta = statBySlug[statCombos[slotEls.indexOf(el)].value];
     el.querySelector(".unit").dataset.unit = UNIT[meta?.unit] ?? "";
   }
+
+  function refreshOrigins(selected = "") {
+    $("#f-origin").innerHTML = `<option value="">Comprado suelto / ya lo tenía</option>` +
+      lots.filter((l) => l.remaining > 0).map((l) =>
+        `<option value="${l.id}">Stock: ${cap(l.riven_type)} · ${l.remaining} sin abrir · ${fmtP(l.unit_cost)} c/u${l.note ? ` · ${esc(l.note)}` : ""}</option>`).join("");
+    $("#f-origin").value = String(selected);
+  }
+  $("#f-origin").addEventListener("change", () => {
+    const lot = currentLot();
+    $("#f-cost").value = lot ? Math.round(lot.unit_cost * 100) / 100 : "";
+    refreshWeapons();
+    refreshSlots();
+  });
+
+  // ---- Nombre del riven ----------------------------------------------------
+  // Regla (wiki de Warframe, verificada con 4.835 contratos reales): los positivos se ordenan por
+  // su "modificador aleatorio" = valor / valor base del stat para ese tipo de arma (bases del
+  // export oficial de DE, data/riven_bases.json), de mayor a menor:
+  //   2 positivos: Prefijo(1.º) + sufijo(2.º)                        -> "Critatis"
+  //   3 positivos: Prefijo(1.º) + "-" + prefijo(2.º) + sufijo(3.º)   -> "Lexi-critatis"
+  // El negativo no participa. Los valores redondeados (x1.06, 0.2) pueden dejar dos stats
+  // empatados: por eso se ofrecen todas las combinaciones y se preselecciona la sugerida.
+  let nameAuto = true;   // false si el usuario eligió otro nombre a mano
+
+  function rivenName(order) {
+    const pre = order.slice(0, -1).map((s) => statBySlug[s]?.prefix);
+    const suf = statBySlug[order.at(-1)]?.suffix;
+    if (!suf || pre.some((p) => !p)) return null;
+    const [first, ...rest] = pre.map((p) => p.toLowerCase());
+    return cap(first + (rest.length ? "-" + rest.join("") : "") + suf.toLowerCase());
+  }
+  const permutations = (xs) => xs.length <= 1 ? [xs]
+    : xs.flatMap((x, i) => permutations([...xs.slice(0, i), ...xs.slice(i + 1)]).map((p) => [x, ...p]));
+
+  // Devuelve {order, sure}: el orden sugerido y si es seguro (no lo es cuando por el redondeo
+  // del valor mostrado dos stats podrían estar en el orden inverso).
+  function suggestedOrder(positives, type) {
+    const bases = catalog.bases?.[type];
+    if (!bases) return null;
+    const toMag = (unit, v) => (unit === "multiply" ? Math.abs(v - 1) : unit === "percent" ? Math.abs(v) / 100 : Math.abs(v));
+    const scored = positives.map((p) => {
+      const unit = statBySlug[p.slug]?.unit;
+      const half = 0.5 * 10 ** -((p.raw.split(".")[1] ?? "").length);   // medio paso de redondeo
+      const base = bases[p.slug];
+      const mod = base ? toMag(unit, p.value) / base : NaN;
+      const err = base ? Math.abs(toMag(unit, Math.abs(p.value) + half) - toMag(unit, Math.abs(p.value))) / base : 0;
+      return { slug: p.slug, mod, lo: mod - err, hi: mod + err };
+    });
+    if (scored.some((s) => Number.isNaN(s.mod))) return null;
+    scored.sort((a, b) => b.mod - a.mod);
+    return { order: scored.map((s) => s.slug), sure: scored.every((s, i) => i === 0 || scored[i - 1].lo > s.hi) };
+  }
+
+  function refreshNames() {
+    const box = $("#name-chips");
+    if (editing) {
+      box.innerHTML = `<span class="name-chip selected">${esc(cap(editing.name))}</span>`;
+      return;
+    }
+    const positives = [0, 1, 2]
+      .map((i) => {
+        const raw = slotEls[i].querySelector(".slot-value").value.trim();
+        return { slug: statCombos[i].value, value: parseFloat(raw), raw };
+      })
+      .filter((p) => p.slug);
+    if (positives.length < 2) {
+      box.innerHTML = `<span class="hint">Elegí 2 o 3 stats positivos y aparecen los nombres posibles.</span>`;
+      if (nameAuto) $("#f-name").value = "";
+      return;
+    }
+    const names = [...new Set(permutations(positives.map((p) => p.slug)).map(rivenName).filter(Boolean))];
+    const valuesOk = positives.every((p) => !Number.isNaN(p.value));
+    const guess = valuesOk ? suggestedOrder(positives, currentWeapon()?.type) : null;
+    const suggested = guess && rivenName(guess.order);
+    if (suggested) names.sort((a, b) => (b === suggested) - (a === suggested));
+    const custom = !$("#f-name").hidden;
+    if (!custom && (nameAuto || !names.includes($("#f-name").value.trim()))) {
+      $("#f-name").value = suggested ?? names[0] ?? "";
+      nameAuto = true;
+    }
+    const chosen = $("#f-name").value.trim();
+    const tag = guess?.sure ? "sugerido" : "revisá";
+    const tagTitle = guess?.sure ? "Orden calculado con los valores base del juego" : "Dos stats están muy parejos: confirmá con el nombre del juego";
+    let hint = "";
+    if (!suggested) hint = valuesOk ? "Elegí el que figura en el juego." : "Cargá los valores para sugerir el orden.";
+    box.innerHTML = names.map((n) => `<button type="button" class="name-chip ${!custom && n === chosen ? "selected" : ""}" data-name="${esc(n)}">
+        ${esc(n)}${n === suggested ? `<small title="${tagTitle}">${tag}</small>` : ""}</button>`).join("") +
+      `<button type="button" class="name-chip ${custom ? "selected" : ""}" data-name="">Otro…</button>` +
+      (hint ? `<span class="hint">${hint}</span>` : "");
+  }
+
+  $("#name-chips").addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-name]");
+    if (!chip || editing) return;
+    const name = chip.dataset.name;
+    $("#f-name").hidden = name !== "";
+    if (name) {
+      $("#f-name").value = name;
+      nameAuto = !!chip.querySelector("small");   // elegir el sugerido vuelve al modo automático
+    } else {
+      nameAuto = false;
+      $("#f-name").focus();
+    }
+    refreshNames();
+  });
+  slotEls.forEach((el) => el.querySelector(".slot-value").addEventListener("input", refreshNames));
 
   function readForm() {
     const weapon = currentWeapon();
@@ -610,26 +992,33 @@
     };
   }
 
-  function setMode(existing) {
-    editing = existing;
-    $("#rd-title").innerHTML = existing ? `Referencia · ${rivenLabel(existing)}` : "Nuevo riven";
-    $("#publish-title").textContent = existing ? "Actualizar precio del contrato" : "Publicar venta directa";
-    $("#publish-go").textContent = existing ? "Actualizar precio" : "Publicar";
-    $("#f-visible-wrap").hidden = !!existing;
-    $("#f-note-wrap").hidden = !!existing;
-    document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value")
-      .forEach((el) => (el.disabled = !!existing));
+  function resetForm() {
+    weaponCombo.set("");
+    ["#f-name", "#f-note", "#f-price", "#f-cost"].forEach((s) => ($(s).value = ""));
+    $("#f-name").hidden = true;
+    nameAuto = true;
+    $("#f-polarity").value = "madurai"; $("#f-mr").value = 8; $("#f-rank").value = 0; $("#f-rolls").value = 0;
+    slotEls.forEach((el, i) => { statCombos[i].set(""); el.querySelector(".slot-value").value = ""; });
+    $("#f-visible").checked = true;
   }
 
-  function openRiven(existing = null) {
-    const wasEditing = editing !== null;
-    setMode(existing);
+  // openRiven({}) = nuevo · openRiven({lotId}) = nuevo desde un lote · openRiven({existing}) = editar
+  function openRiven({ existing = null, lotId = "" } = {}) {
+    editing = existing;
+    $("#rd-title").innerHTML = existing ? `Editar · ${rivenLabel(existing)}` : "Nuevo riven";
+    $("#publish-title").textContent = existing ? "Editar contrato" : "Publicar venta directa";
+    $("#publish-go").textContent = existing ? "Guardar cambios" : "Publicar";
+    $("#origin-row").hidden = !!existing;
+    document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value")
+      .forEach((el) => (el.disabled = !!existing));
     $("#confirm").hidden = true;
     $("#ref-section").hidden = true;
     $("#publish-step").textContent = "2";
+    resetForm();
+    refreshOrigins(lotId);
+    refreshWeapons();
     if (existing) {
       weaponCombo.set(existing.weapon);
-      $("#f-name").value = existing.name;
       $("#f-polarity").value = existing.polarity;
       $("#f-mr").value = existing.mr; $("#f-rank").value = existing.rank; $("#f-rolls").value = existing.rolls;
       refreshSlots();
@@ -637,21 +1026,16 @@
       [pos[0], pos[1], pos[2], neg[0]].forEach((s, i) => {
         statCombos[i].set(s?.slug ?? "");
         slotEls[i].querySelector(".slot-value").value = s?.value ?? "";
-        refreshUnit(slotEls[i]);
       });
       $("#f-price").value = existing.price;
-    } else if (wasEditing) {
-      // Venía de mirar un contrato existente: empezar de cero.
-      weaponCombo.set("");
-      ["#f-name", "#f-note"].forEach((s) => ($(s).value = ""));
-      $("#f-polarity").value = "madurai"; $("#f-mr").value = 8; $("#f-rank").value = 0; $("#f-rolls").value = 0;
-      slotEls.forEach((el, i) => { statCombos[i].set(""); el.querySelector(".slot-value").value = ""; });
-      $("#f-visible").checked = true;
-      $("#f-price").value = "";
-      refreshSlots();
-    } else {
-      refreshSlots();
+      $("#f-cost").value = costs[existing.id]?.cost ?? "";
+      $("#f-visible").checked = existing.visible;
+      $("#f-note").value = existing.note ?? "";
+    } else if (lotId) {
+      const lot = currentLot();
+      $("#f-cost").value = Math.round(lot.unit_cost * 100) / 100;
     }
+    refreshSlots();
     $("#riven-dialog").showModal();
     if (existing) runReference(); else $("#f-weapon").focus();
   }
@@ -705,46 +1089,77 @@
   });
   $("#ref-go").addEventListener("click", runReference);
 
-  // Publicar / actualizar: primer click muestra el resumen, el segundo confirma.
-  $("#publish-go").addEventListener("click", () => {
+  // Cambios del modo editar: lo que va a warframe.market y el costo (local).
+  function editChanges() {
+    const price = parseInt($("#f-price").value, 10);
+    const changes = {};
+    if (price !== editing.price) changes.price = price;
+    if ($("#f-visible").checked !== editing.visible) changes.visible = $("#f-visible").checked;
+    if ($("#f-note").value.trim() !== (editing.note ?? "").trim()) changes.note = $("#f-note").value.trim();
+    const costRaw = $("#f-cost").value.trim();
+    const oldCost = costs[editing.id]?.cost;
+    const costChanged = costRaw === "" ? oldCost !== undefined : Number(costRaw) !== oldCost;
+    return { changes, costChanged, costRaw };
+  }
+
+  // Publicar / guardar: primer click muestra el resumen, el segundo confirma.
+  $("#publish-go").addEventListener("click", async () => {
     const price = parseInt($("#f-price").value, 10);
     if (!price || price < 1) { toast("Poné un precio", true); $("#f-price").focus(); return; }
     if (editing) {
-      if (price === editing.price) { toast("Es el mismo precio que ya tiene"); return; }
-      $("#confirm-text").innerHTML = `Cambiar el precio de ${rivenLabel(editing)}: <b>${editing.price}p → ${price}p</b>`;
+      const { changes, costChanged, costRaw } = editChanges();
+      if (!Object.keys(changes).length) {
+        // Solo cambió el costo (o nada): es local, no hace falta confirmar.
+        if (costChanged && await saveCost(editing.id, costRaw === "" ? null : costRaw)) toast("Costo guardado");
+        else if (!costChanged) toast("No hay cambios");
+        $("#riven-dialog").close();
+        return;
+      }
+      const parts = [];
+      if ("price" in changes) parts.push(`precio <b>${editing.price}p → ${changes.price}p</b>`);
+      if ("visible" in changes) parts.push(changes.visible ? "<b>mostrar</b>" : "<b>ocultar</b>");
+      if ("note" in changes) parts.push("nota nueva");
+      $("#confirm-text").innerHTML = `${rivenLabel(editing)}: ${parts.join(" · ")}${costChanged ? " · costo (solo en la app)" : ""}`;
     } else {
       const { weapon, item, attributes } = readForm();
       const pos = attributes.filter((a) => a.positive).length, neg = attributes.length - pos;
       if (!weapon) { toast("Elegí un arma de la lista", true); return; }
       if (pos < 2 || neg > 1) { toast("Un riven tiene 2 o 3 positivos y como mucho 1 negativo", true); return; }
       if (attributes.some((a) => Number.isNaN(a.value))) { toast("Falta el valor de algún stat", true); return; }
-      if (!item.name) { toast("Falta el nombre del riven", true); $("#f-name").focus(); return; }
-      $("#confirm-text").innerHTML = `Se publica en tu cuenta: ${esc(weapon.name)} <span style="text-transform:capitalize">${esc(item.name)}</span> · <b>${price}p</b> · ${$("#f-visible").checked ? "visible" : "oculto"}`;
+      if (!item.name) { toast("Falta el nombre del riven", true); return; }
+      const lot = currentLot();
+      $("#confirm-text").innerHTML = `Se publica en tu cuenta: ${esc(weapon.name)} <span style="text-transform:capitalize">${esc(item.name)}</span> · <b>${price}p</b> · ${$("#f-visible").checked ? "visible" : "oculto"}` +
+        (lot ? ` · sale del stock (${esc(lot.riven_type)})` : "");
     }
     $("#confirm").hidden = false;
     $("#confirm-ok").focus();
   });
   $("#confirm-back").addEventListener("click", () => ($("#confirm").hidden = true));
-  $("#f-price").addEventListener("input", () => ($("#confirm").hidden = true));
+  ["#f-price", "#f-cost", "#f-note", "#f-visible"].forEach((s) => $(s).addEventListener("input", () => ($("#confirm").hidden = true)));
 
   $("#confirm-ok").addEventListener("click", async () => {
     const price = parseInt($("#f-price").value, 10);
     $("#confirm-ok").disabled = true;
     try {
       if (editing) {
-        // Optimista: se cierra el modal ya y la fila muestra el precio nuevo con spinner.
+        // Optimista: se cierra el modal ya y la fila muestra los cambios con spinner.
         const a = mine.find((x) => x.id === editing.id) ?? editing;
+        const { changes, costChanged, costRaw } = editChanges();
         $("#riven-dialog").close();
-        runUpdate(a, { price }, `Precio actualizado: ${a.price}p → ${price}p`);
+        if (costChanged) saveCost(a.id, costRaw === "" ? null : costRaw);
+        runUpdate(a, changes, "Contrato actualizado");
       } else {
         // Publicar no puede ser optimista (el id lo da la API): el botón muestra que está en curso.
         const { item } = readForm();
         $("#confirm-ok").innerHTML = `Publicando…${spinner}`;
         $("#confirm-back").disabled = true;
-        const res = await api().create(item, price, $("#f-visible").checked, $("#f-note").value);
+        const cost = $("#f-cost").value.trim();
+        const res = await api().create(item, price, $("#f-visible").checked, $("#f-note").value,
+          cost === "" ? null : cost, currentLot()?.id ?? null);
         if (res.error) { toast(`No se pudo publicar: ${res.error}`, true); return; }
         mine = [res.auction, ...mine];
-        renderMine();
+        applyLocal(res);
+        renderAll();
         toast(`Publicado: ${weaponName(res.auction.weapon)} ${res.auction.name} · ${price}p`);
         $("#riven-dialog").close();
       }
@@ -756,7 +1171,7 @@
     }
   });
 
-  $("#fab").addEventListener("click", () => openRiven(null));
+  $("#fab").addEventListener("click", () => openRiven());
   $("#rd-x").addEventListener("click", () => $("#riven-dialog").close());
 
   // ---- Arranque ---------------------------------------------------------
@@ -769,8 +1184,9 @@
     }
     catalog.stats.forEach((s) => (statBySlug[s.slug] = s));
     catalog.weapons.forEach((w) => (weaponBySlug[w.slug] = w));
-    weaponCombo.setOptions(catalog.weapons.map((w) => ({ value: w.slug, label: w.name, hint: w.type })));
+    refreshWeapons();
     refreshSlots();
+    renderTotals();
     loadMine();
   });
 </script>

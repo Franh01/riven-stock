@@ -77,6 +77,9 @@ class WFMClient:
             break
         if res.status_code in (401, 403) and auth:
             raise AuthError(f"{res.status_code} en {path}: el JWT no sirve o expiró")
+        if res.status_code == 429:
+            # Cloudflare (error 1015) bloquea un rato si hay muchas búsquedas seguidas.
+            raise WFMError("warframe.market está limitando los pedidos (429). Esperá un minuto y probá de nuevo.")
         if not res.ok:
             raise WFMError(f"{method} {path} -> {res.status_code}: {res.text[:300]}")
         return res.json()

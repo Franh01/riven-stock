@@ -1,6 +1,7 @@
 """Riven Stock: app desktop (ventana pywebview + interfaz HTML en ui/)."""
 
 import ctypes
+import json
 import sys
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from wfm_client import SEARCH_CAP, WFMClient, WFMError, cheapest_ingame
 
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
 ICON = ROOT / "assets" / "icon.ico"
+BASES = ROOT / "data" / "riven_bases.json"  # lo genera tools/derive_riven_bases.py
 TITLE = "Riven Stock"
 
 
@@ -30,12 +32,15 @@ class Api:
         ]
         stats = [
             {"slug": a["slug"], "name": a["i18n"]["en"]["name"], "unit": a.get("unit"),
-             "positiveOnly": bool(a.get("positiveOnly")), "exclusiveTo": a.get("exclusiveTo") or []}
+             "positiveOnly": bool(a.get("positiveOnly")), "exclusiveTo": a.get("exclusiveTo") or [],
+             "prefix": a.get("prefix"), "suffix": a.get("suffix")}
             for a in self.client.riven_attributes()
         ]
         return {
             "weapons": sorted(weapons, key=lambda w: w["name"]),
             "stats": sorted(stats, key=lambda s: s["name"]),
+            # Valor base de cada stat por tipo de riven, para sugerir el orden del nombre.
+            "bases": json.loads(BASES.read_text(encoding="utf-8")) if BASES.exists() else {},
         }
 
     def search(self, weapon, n=7):
@@ -59,19 +64,65 @@ class Api:
     # ---- Mis contratos ----------------------------------------------
 
     def my_auctions(self):
+        """Todo lo que muestra la pantalla principal: contratos abiertos (API), y del registro
+        local los cerrados, los costos, el stock unveiled y lo invertido."""
         try:
             auctions = [a for a in self.client.my_auctions() if a["is_direct_sell"]]
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
         auctions.sort(key=lambda a: (not a["visible"], a["item"]["weapon_url_name"]))
         self._seen = {a["id"]: a for a in auctions}
+        return {"auctions": [auction_view(a) for a in auctions], **self.local()}
+
+    def local(self):
+        """Solo los datos locales (no llama a la API)."""
         with store.connect() as conn:
-            closed = store.closed_auctions(conn)
-        return {
-            "auctions": [auction_view(a) for a in auctions],
-            "closed": [{**auction_view(c["auction"]), "sold_price": c["sold_price"],
-                        "closed_at": c["closed_at"]} for c in closed],
-        }
+            return {
+                "closed": [{**auction_view(c["auction"]), "sold_price": c["sold_price"],
+                            "closed_at": c["closed_at"]} for c in store.closed_auctions(conn)],
+                "costs": store.costs(conn),
+                "lots": store.lots(conn),
+                "invested": store.invested(conn),
+            }
+
+    # ---- Costos y stock unveiled (solo local) ----------------------------
+
+    def set_cost(self, auction_id, cost):
+        try:
+            with store.connect() as conn:
+                store.set_cost(conn, auction_id, None if cost in (None, "") else float(cost))
+        except (ValueError, store.sqlite3.Error) as e:
+            return {"error": str(e)}
+        return self.local()
+
+    def add_lot(self, riven_type, quantity, cost, cost_is_total=True, note=""):
+        try:
+            quantity = int(quantity)
+            if quantity < 1:
+                raise ValueError("La cantidad tiene que ser al menos 1")
+            total = float(cost) if cost_is_total else float(cost) * quantity
+            with store.connect() as conn:
+                store.add_lot(conn, riven_type, quantity, total, note)
+        except (ValueError, TypeError, store.sqlite3.Error) as e:
+            return {"error": str(e)}
+        return self.local()
+
+    def discard_from_lot(self, lot_id):
+        """Un riven del lote se abrió y no se va a publicar."""
+        try:
+            with store.connect() as conn:
+                store.open_from_lot(conn, int(lot_id), None)
+        except (ValueError, store.sqlite3.Error) as e:
+            return {"error": str(e)}
+        return self.local()
+
+    def delete_lot(self, lot_id):
+        try:
+            with store.connect() as conn:
+                store.delete_lot(conn, int(lot_id))
+        except (ValueError, store.sqlite3.Error) as e:
+            return {"error": str(e)}
+        return self.local()
 
     def _current(self, auction_id, fresh=True):
         """El contrato tal como está en la API. `fresh=True` lo vuelve a leer (para no pisar
@@ -84,15 +135,16 @@ class Api:
                 return a
         raise WFMError("El contrato ya no existe en warframe.market (¿se cerró desde la web?)")
 
-    def update(self, auction_id, price=None, visible=None):
-        """Cambia precio y/o visibilidad; lo que venga en None queda como está."""
+    def update(self, auction_id, price=None, visible=None, note=None):
+        """Cambia precio, visibilidad y/o nota; lo que venga en None queda como está.
+        (La API no permite cambiar los stats de un contrato ya publicado.)"""
         try:
             cur = self._current(auction_id)
             new = self.client.update_auction(
                 auction_id,
                 price=int(price) if price is not None else cur["buyout_price"],
                 visible=bool(visible) if visible is not None else cur["visible"],
-                note=cur.get("note_raw", ""),
+                note=note if note is not None else cur.get("note_raw", ""),
                 minimal_reputation=cur.get("minimal_reputation", 0),
             )
         except (WFMError, requests.RequestException, ValueError) as e:
@@ -102,8 +154,9 @@ class Api:
             store.log_event(conn, new, "update")
         return {"auction": auction_view(new)}
 
-    def create(self, item, price, visible=True, note=""):
-        """Publica una venta directa. `item` viene del formulario del modal."""
+    def create(self, item, price, visible=True, note="", cost=None, lot_id=None):
+        """Publica una venta directa. `item` viene del formulario del modal. `cost` y `lot_id`
+        (si el riven salió de un lote del stock unveiled) se guardan solo en local."""
         try:
             positives = [a for a in item["attributes"] if a["positive"]]
             negatives = [a for a in item["attributes"] if not a["positive"]]
@@ -111,6 +164,11 @@ class Api:
                 raise ValueError("Un riven tiene 2 o 3 stats positivos y como mucho 1 negativo")
             if not item.get("name", "").strip():
                 raise ValueError("Falta el nombre del riven")
+            if lot_id:
+                with store.connect() as conn:
+                    lot = store.get_lot(conn, int(lot_id))
+                if not lot or lot["remaining"] <= 0:
+                    raise ValueError("Ese lote ya no tiene rivens sin abrir")
             new = self.client.create_direct_sale(
                 {
                     "weapon_url_name": item["weapon_url_name"],
@@ -129,7 +187,11 @@ class Api:
         self._seen[new["id"]] = new
         with store.connect() as conn:
             store.log_event(conn, new, "create")
-        return {"auction": auction_view(new)}
+            if lot_id:
+                store.open_from_lot(conn, int(lot_id), new["id"])
+            if cost not in (None, ""):
+                store.set_cost(conn, new["id"], float(cost), int(lot_id) if lot_id else None)
+        return {"auction": auction_view(new), **self.local()}
 
     def close(self, auction_id, sold_price=None):
         """Cierra el contrato y guarda una copia local (después desaparece de la API).
@@ -162,6 +224,7 @@ def auction_view(a):
         "mr": item.get("mastery_level"),
         "rank": item.get("mod_rank"),
         "polarity": item.get("polarity"),
+        "note": a.get("note_raw", ""),
         "updated": a.get("updated"),
     }
 
