@@ -104,6 +104,20 @@
   .hint { color: var(--muted); font-size: 12px; }
   [hidden] { display: none !important; }
 
+  /* Buscador (filtro local) */
+  .head-tools { display: flex; align-items: center; gap: 10px; }
+  .search { position: relative; width: 300px; }
+  .search > svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .search input { padding: 7px 30px 7px 32px; font-size: 13px; }
+  .search-clear {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    display: grid; place-items: center; width: 22px; height: 22px; padding: 0;
+    background: none; box-shadow: none; border-radius: 6px; color: var(--muted);
+  }
+  .search-clear:hover { background: var(--panel); color: var(--text); filter: none; }
+  .search-clear svg { display: block; }
+  mark.hit { background: #a066f640; color: inherit; border-radius: 3px; padding: 0 1px; }
+
   /* Menú de acciones de cada fila */
   button.more { background: none; border: 1px solid transparent; box-shadow: none; padding: 4px 8px; border-radius: 8px; color: var(--muted); }
   button.more:hover, button.more.open { border-color: var(--line); background: var(--panel-2); color: var(--text); filter: none; }
@@ -249,7 +263,16 @@
   <section class="card">
     <div class="card-head">
       <h2 id="mine-title">Mis ventas directas</h2>
-      <button class="ghost" id="reload">Actualizar</button>
+      <div class="head-tools">
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="search" placeholder="Buscar arma, nombre o stat…" autocomplete="off" title="Filtra tus contratos y los cerrados (Ctrl+F)">
+          <button class="search-clear" id="search-clear" title="Limpiar (Esc)" hidden>
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <button class="ghost" id="reload">Actualizar</button>
+      </div>
     </div>
     <div id="mine"><div class="state">Cargando…</div></div>
   </section>
@@ -273,7 +296,7 @@
   </section>
 
   <section class="card" id="closed-card" hidden>
-    <div class="card-head"><h2>Cerrados desde la app</h2></div>
+    <div class="card-head"><h2 id="closed-title">Cerrados desde la app</h2></div>
     <div id="closed"></div>
   </section>
 </main>
@@ -394,12 +417,15 @@
   const weaponName = (slug) => weaponBySlug[slug]?.name ?? slug.replace(/_/g, " ");
   const rivenLabel = (a) => `${esc(weaponName(a.weapon))} <span style="text-transform:capitalize">${esc(a.name)}</span>`;
 
-  function formatStat(st) {
+  function formatStat(st, highlight = false) {
     const meta = statBySlug[st.slug];
     const v = st.value, sign = v > 0 ? "+" : "";
     const val = meta?.unit === "multiply" ? `x${v}` : `${sign}${v}${UNIT[meta?.unit] ?? ""}`;
-    return `<span class="stat ${st.positive ? "" : "neg"}">${esc(val)} ${esc(meta?.name ?? st.slug)}</span>`;
+    const name = meta?.name ?? st.slug;
+    return `<span class="stat ${st.positive ? "" : "neg"}">${esc(val)} ${highlight ? hl(name) : esc(name)}</span>`;
   }
+  // Para tus tablas: resalta lo buscado en el nombre del stat (en la referencia, no).
+  const formatStatHl = (st) => formatStat(st, true);
 
   function ago(iso) {
     if (!iso) return "";
@@ -471,18 +497,66 @@
 
   const DOTS = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="13" cy="8" r="1.6" fill="currentColor"/></svg>`;
 
+  // ---- Buscador: filtro local por arma, nombre, stats y nota -----------------
+  // Todas las palabras tienen que aparecer (en cualquier orden); sin mayúsculas ni acentos.
+  let queryTokens = [];
+
+  function matchesQuery(a) {
+    if (!queryTokens.length) return true;
+    const hay = norm([weaponName(a.weapon), a.weapon.replace(/_/g, " "), a.name,
+      ...a.stats.map((s) => statBySlug[s.slug]?.name ?? s.slug), a.note ?? ""].join(" "));
+    return queryTokens.every((t) => hay.includes(t));
+  }
+
+  // Resalta en `text` las palabras buscadas (devuelve HTML escapado).
+  function hl(text) {
+    const s = String(text ?? "");
+    if (!queryTokens.length) return esc(s);
+    const low = norm(s), marks = new Array(s.length).fill(false);
+    // norm() quita acentos sin cambiar la cantidad de letras de los nombres del juego (ASCII).
+    if (low.length === s.length) {
+      for (const t of queryTokens) {
+        for (let i = low.indexOf(t); i >= 0; i = low.indexOf(t, i + 1)) marks.fill(true, i, i + t.length);
+      }
+    }
+    let out = "", open = false;
+    for (let i = 0; i < s.length; i++) {
+      if (marks[i] !== open) { out += marks[i] ? `<mark class="hit">` : "</mark>"; open = marks[i]; }
+      out += esc(s[i]);
+    }
+    return out + (open ? "</mark>" : "");
+  }
+
+  function setQuery(value) {
+    $("#search").value = value;
+    queryTokens = norm(value).split(/\s+/).filter(Boolean);
+    $("#search-clear").hidden = !value;
+    renderMine(); renderClosed();
+  }
+  $("#search").addEventListener("input", (e) => setQuery(e.target.value));
+  $("#search").addEventListener("keydown", (e) => { if (e.key === "Escape" && e.target.value) { e.preventDefault(); setQuery(""); } });
+  $("#search-clear").addEventListener("click", () => { setQuery(""); $("#search").focus(); });
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f" && !document.querySelector("dialog[open]")) {
+      e.preventDefault(); $("#search").focus(); $("#search").select();
+    }
+  });
+
   function renderMine() {
     const visibles = mine.filter((a) => a.visible).length;
-    $("#mine-title").textContent = `Mis ventas directas · ${visibles} visibles · ${mine.length - visibles} ocultas`;
+    const rows = sortedMine().filter(matchesQuery);
+    $("#mine-title").textContent = `Mis ventas directas · ${visibles} visibles · ${mine.length - visibles} ocultas` +
+      (queryTokens.length ? ` · ${rows.length} coinciden` : "");
     if (!mine.length) { $("#mine").innerHTML = `<div class="state">No tenés ventas directas publicadas.</div>`; return; }
+    if (!rows.length) { $("#mine").innerHTML = `<div class="state">Ningún contrato coincide con “${esc($("#search").value.trim())}”.</div>`; return; }
     $("#mine").innerHTML = `<table>
       <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Costo</th>${sortHeader("price", "Precio")}${sortHeader("updated", "Actualizado")}<th>Estado</th><th></th></tr></thead>
-      <tbody>${sortedMine().map((a) => {
+      <tbody>${rows.map((a) => {
         const busy = pending.has(a.id);
         const cost = costs[a.id]?.cost;
         return `<tr data-id="${esc(a.id)}" class="${a.visible ? "" : "hidden-row"} ${busy ? "busy" : ""}">
-        <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
-        <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
+        <td><div class="riven-weapon">${hl(weaponName(a.weapon))}</div><div class="riven-name">${hl(a.name)}</div></td>
+        <td><div class="stats">${a.stats.map(formatStatHl).join("")}</div></td>
         <td>${esc(a.rolls)}</td>
         <td>${esc(a.mr)}</td>
         <td class="nowrap"><span class="editable ${cost === undefined ? "muted" : ""}" data-act="edit-cost" title="Click para cargar lo que te costó">${cost === undefined ? "—" : fmtP(cost)}</span></td>
@@ -704,14 +778,17 @@
 
   function renderClosed() {
     $("#closed-card").hidden = !closed.length;
+    const rows = closed.filter(matchesQuery);
+    $("#closed-title").textContent = "Cerrados desde la app" + (queryTokens.length ? ` · ${rows.length} de ${closed.length} coinciden` : "");
+    if (!rows.length) { $("#closed").innerHTML = `<div class="state">Ningún cerrado coincide con la búsqueda.</div>`; return; }
     $("#closed").innerHTML = `<table>
       <thead><tr><th>Riven</th><th>Stats</th><th>Último precio</th><th>Vendido</th><th>Costo</th><th>Ganancia</th><th>Cerrado</th></tr></thead>
-      <tbody>${closed.map((a) => {
+      <tbody>${rows.map((a) => {
         const cost = costs[a.id]?.cost;
         const profit = a.sold_price && cost !== undefined ? a.sold_price - cost : null;
         return `<tr class="${a.pending ? "busy" : ""}">
-        <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
-        <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
+        <td><div class="riven-weapon">${hl(weaponName(a.weapon))}</div><div class="riven-name">${hl(a.name)}</div></td>
+        <td><div class="stats">${a.stats.map(formatStatHl).join("")}</div></td>
         <td>${a.price}p</td>
         <td>${a.sold_price ? `<b class="pos-txt">${a.sold_price}p</b>` : `<span class="muted">No</span>`}</td>
         <td class="nowrap">${cost === undefined ? `<span class="muted">—</span>` : fmtP(cost)}</td>
