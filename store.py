@@ -36,11 +36,14 @@ def connect(path=DB_PATH):
         conn.close()
 
 
-def log_event(conn, auction, action, sold_price=None):
+def now_iso():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def log_event(conn, auction, action, sold_price=None, at=None):
     conn.execute(
         "INSERT INTO auction_events (auction_id, action, sold_price, snapshot, at) VALUES (?, ?, ?, ?, ?)",
-        (auction["id"], action, sold_price, json.dumps(auction, ensure_ascii=False),
-         datetime.now(timezone.utc).isoformat(timespec="seconds")),
+        (auction["id"], action, sold_price, json.dumps(auction, ensure_ascii=False), at or now_iso()),
     )
     conn.commit()
 

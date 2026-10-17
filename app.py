@@ -20,6 +20,7 @@ class Api:
 
     def __init__(self):
         self.client = WFMClient()
+        self._seen = {}  # id -> último contrato propio leído de la API (crudo)
 
     def catalog(self):
         weapons = [
@@ -63,6 +64,7 @@ class Api:
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
         auctions.sort(key=lambda a: (not a["visible"], a["item"]["weapon_url_name"]))
+        self._seen = {a["id"]: a for a in auctions}
         with store.connect() as conn:
             closed = store.closed_auctions(conn)
         return {
@@ -71,10 +73,14 @@ class Api:
                         "closed_at": c["closed_at"]} for c in closed],
         }
 
-    def _current(self, auction_id):
-        """El contrato tal como está ahora en la API (para no pisar campos con datos viejos)."""
+    def _current(self, auction_id, fresh=True):
+        """El contrato tal como está en la API. `fresh=True` lo vuelve a leer (para no pisar
+        la nota u otros campos con datos viejos); `False` usa la última lectura si la hay."""
+        if not fresh and auction_id in self._seen:
+            return self._seen[auction_id]
         for a in self.client.my_auctions():
             if a["id"] == auction_id:
+                self._seen[auction_id] = a
                 return a
         raise WFMError("El contrato ya no existe en warframe.market (¿se cerró desde la web?)")
 
@@ -91,6 +97,7 @@ class Api:
             )
         except (WFMError, requests.RequestException, ValueError) as e:
             return {"error": str(e)}
+        self._seen[auction_id] = new
         with store.connect() as conn:
             store.log_event(conn, new, "update")
         return {"auction": auction_view(new)}
@@ -119,21 +126,25 @@ class Api:
             )
         except (WFMError, requests.RequestException, ValueError, KeyError) as e:
             return {"error": str(e)}
+        self._seen[new["id"]] = new
         with store.connect() as conn:
             store.log_event(conn, new, "create")
         return {"auction": auction_view(new)}
 
     def close(self, auction_id, sold_price=None):
-        """Cierra el contrato y guarda una copia local (después desaparece de la API)."""
+        """Cierra el contrato y guarda una copia local (después desaparece de la API).
+        La copia sale de la última lectura (un pedido menos): para el historial alcanza."""
         try:
-            cur = self._current(auction_id)
+            cur = self._current(auction_id, fresh=False)
             self.client.close_auction(auction_id)
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
+        self._seen.pop(auction_id, None)
+        closed_at = store.now_iso()
         with store.connect() as conn:
             store.log_event(conn, {**cur, "closed": True}, "close",
-                            sold_price=int(sold_price) if sold_price else None)
-        return {"closed": auction_id}
+                            sold_price=int(sold_price) if sold_price else None, at=closed_at)
+        return {"closed": auction_id, "closed_at": closed_at}
 
 
 def auction_view(a):

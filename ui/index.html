@@ -159,6 +159,16 @@
   button.sold-btn { background: none; border: 1px solid #7ee2a866; color: var(--pos); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
   button.sold-btn:hover { background: #7ee2a81a; }
   button.solid-sold { background: linear-gradient(180deg, #5fd497, #2f9e66); box-shadow: 0 4px 16px #2f9e6655; }
+  .spinner {
+    display: inline-block; width: 13px; height: 13px; margin-left: 8px; vertical-align: -2px;
+    border: 2px solid #c99bff44; border-top-color: var(--accent-2); border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  tr.busy td:not(.actions) { opacity: .7; }
+  td:has(> .badge) { white-space: nowrap; }
+  tr.busy .price-edit { cursor: default; }
+  tr.busy .price-edit:hover { background: none; }
   .ref-note { margin-top: 10px; color: var(--muted); font-size: 12px; }
 </style>
 </head>
@@ -295,18 +305,26 @@
 
   // ---- Mis contratos ---------------------------------------------------
 
+  // La interfaz es optimista: cada acción se ve al instante y la fila queda "pendiente"
+  // (spinner, botones bloqueados) hasta que responde la API. Si falla, se revierte.
+  let closed = [];
+  const pending = new Set();   // ids de contratos con un pedido en curso
+
   async function loadMine() {
     $("#reload").disabled = true;
     try {
       const data = await api().my_auctions();
       if (data.error) { $("#mine").innerHTML = `<div class="state error">${esc(data.error)}</div>`; return; }
       mine = data.auctions;
+      closed = data.closed;
       renderMine();
-      renderClosed(data.closed);
+      renderClosed();
     } finally {
       $("#reload").disabled = false;
     }
   }
+
+  const spinner = `<span class="spinner" title="Esperando a warframe.market…"></span>`;
 
   function renderMine() {
     const visibles = mine.filter((a) => a.visible).length;
@@ -314,42 +332,73 @@
     if (!mine.length) { $("#mine").innerHTML = `<div class="state">No tenés ventas directas publicadas.</div>`; return; }
     $("#mine").innerHTML = `<table>
       <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
-      <tbody>${mine.map((a) => `<tr data-id="${esc(a.id)}" class="${a.visible ? "" : "hidden-row"}">
+      <tbody>${mine.map((a) => {
+        const busy = pending.has(a.id), off = busy ? "disabled" : "";
+        return `<tr data-id="${esc(a.id)}" class="${a.visible ? "" : "hidden-row"} ${busy ? "busy" : ""}">
         <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
         <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
         <td>${esc(a.rolls)}</td>
         <td>${esc(a.mr)}</td>
-        <td class="price"><span class="price-edit" data-act="edit-price" title="Click para editar">${a.price}p</span></td>
-        <td><span class="badge ${a.visible ? "on" : "off"}">${a.visible ? "Visible" : "Oculto"}</span></td>
+        <td class="price"><span class="price-edit" ${busy ? "" : `data-act="edit-price"`} title="Click para editar">${a.price}p</span></td>
+        <td><span class="badge ${a.visible ? "on" : "off"}">${a.visible ? "Visible" : "Oculto"}</span>${busy ? spinner : ""}</td>
         <td class="actions">
           <button class="ghost" data-act="ref" title="Precio de referencia del arma">Referencia</button>
-          <button class="ghost" data-act="toggle">${a.visible ? "Ocultar" : "Mostrar"}</button>
-          <button class="sold-btn" data-act="sold" title="Cerrar el contrato y registrar la venta">Vendido</button>
-          <button class="danger" data-act="close" title="Cerrar sin venta">Cerrar</button>
+          <button class="ghost" data-act="toggle" ${off}>${a.visible ? "Ocultar" : "Mostrar"}</button>
+          <button class="sold-btn" data-act="sold" ${off} title="Cerrar el contrato y registrar la venta">Vendido</button>
+          <button class="danger" data-act="close" ${off} title="Cerrar sin venta">Cerrar</button>
         </td>
-      </tr>`).join("")}</tbody></table>`;
+      </tr>`;
+      }).join("")}</tbody></table>`;
   }
 
-  function renderClosed(closed) {
+  function renderClosed() {
     $("#closed-card").hidden = !closed.length;
     $("#closed").innerHTML = `<table>
       <thead><tr><th>Riven</th><th>Stats</th><th>Último precio</th><th>Vendido</th><th>Cerrado</th></tr></thead>
-      <tbody>${closed.map((a) => `<tr>
+      <tbody>${closed.map((a) => `<tr class="${a.pending ? "busy" : ""}">
         <td><div class="riven-weapon">${esc(weaponName(a.weapon))}</div><div class="riven-name">${esc(a.name)}</div></td>
         <td><div class="stats">${a.stats.map(formatStat).join("")}</div></td>
         <td>${a.price}p</td>
         <td>${a.sold_price ? `<b style="color: var(--pos)">${a.sold_price}p</b>` : `<span class="muted">No</span>`}</td>
-        <td class="muted">${esc(new Date(a.closed_at).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }))}</td>
+        <td class="muted">${a.pending
+          ? `${spinner} Cerrando…`
+          : esc(new Date(a.closed_at).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }))}</td>
       </tr>`).join("")}</tbody></table>`;
   }
 
-  async function runUpdate(id, changes, okMsg) {
-    const res = await api().update(id, changes.price ?? null, changes.visible ?? null);
-    if (res.error) { toast(res.error, true); renderMine(); return null; }
-    mine = mine.map((a) => (a.id === id ? res.auction : a));
+  // Cambio de precio y/o visibilidad: se aplica en pantalla ya, y se confirma (o revierte) después.
+  async function runUpdate(a, changes, okMsg) {
+    const before = a;
+    mine = mine.map((x) => (x.id === a.id ? { ...x, ...changes } : x));
+    pending.add(a.id);
     renderMine();
-    toast(okMsg);
-    return res.auction;
+    const res = await api().update(a.id, changes.price ?? null, changes.visible ?? null);
+    pending.delete(a.id);
+    mine = mine.map((x) => (x.id === a.id ? (res.error ? before : res.auction) : x));
+    renderMine();
+    if (res.error) toast(`No se pudo guardar: ${res.error}`, true);
+    else toast(okMsg);
+  }
+
+  // Cerrar (con o sin venta): la fila pasa a "Cerrados" ya, con "Cerrando…" hasta que confirma.
+  async function runClose(a, soldPrice) {
+    const index = mine.findIndex((x) => x.id === a.id);
+    const entry = { ...a, sold_price: soldPrice, closed_at: new Date().toISOString(), pending: true };
+    mine = mine.filter((x) => x.id !== a.id);
+    closed = [entry, ...closed];
+    renderMine(); renderClosed();
+    const res = await api().close(a.id, soldPrice);
+    if (res.error) {
+      closed = closed.filter((x) => x !== entry);
+      mine.splice(index, 0, a);
+      renderMine(); renderClosed();
+      toast(`No se pudo cerrar: ${res.error}`, true);
+      return;
+    }
+    entry.pending = false;
+    entry.closed_at = res.closed_at;
+    renderClosed();
+    toast(soldPrice ? `Vendido por ${soldPrice}p` : "Contrato cerrado");
   }
 
   function editPrice(span, a) {
@@ -357,12 +406,11 @@
     const input = document.querySelector(`tr[data-id="${a.id}"] .price-input`);
     input.focus(); input.select();
     let done = false;
-    const finish = async (save) => {
+    const finish = (save) => {
       if (done) return; done = true;
       const price = parseInt(input.value, 10);
       if (!save || !price || price === a.price) { renderMine(); return; }
-      input.disabled = true;
-      await runUpdate(a.id, { price }, `Precio actualizado: ${a.price}p → ${price}p`);
+      runUpdate(a, { price }, `Precio actualizado: ${a.price}p → ${price}p`);
     };
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
     input.addEventListener("blur", () => finish(false));
@@ -383,13 +431,9 @@
     dlg.returnValue = "";
     dlg.showModal();
     if (sold) { $("#sold-price").focus(); $("#sold-price").select(); }
-    dlg.onclose = async () => {
+    dlg.onclose = () => {
       if (dlg.returnValue !== "ok") return;
-      const price = sold ? parseInt($("#sold-price").value, 10) || null : null;
-      const res = await api().close(a.id, price);
-      if (res.error) { toast(res.error, true); return; }
-      toast(price ? `Vendido por ${price}p` : "Contrato cerrado");
-      loadMine();
+      runClose(a, sold ? parseInt($("#sold-price").value, 10) || null : null);
     };
   }
 
@@ -402,17 +446,16 @@
 
   $("#mine").addEventListener("click", (e) => {
     const el = e.target.closest("[data-act]");
-    if (!el) return;
+    if (!el || el.disabled) return;
     const a = mine.find((x) => x.id === el.closest("tr").dataset.id);
+    if (!a) return;
     const act = el.dataset.act;
+    if (act === "ref") return openRiven(a);
+    if (pending.has(a.id)) return;
     if (act === "edit-price") editPrice(el, a);
-    if (act === "toggle") {
-      el.disabled = true;
-      runUpdate(a.id, { visible: !a.visible }, a.visible ? "Contrato oculto" : "Contrato visible");
-    }
+    if (act === "toggle") runUpdate(a, { visible: !a.visible }, a.visible ? "Contrato oculto" : "Contrato visible");
     if (act === "close") askClose(a, false);
     if (act === "sold") askClose(a, true);
-    if (act === "ref") openRiven(a);
   });
   $("#reload").addEventListener("click", loadMine);
 
@@ -689,18 +732,26 @@
     $("#confirm-ok").disabled = true;
     try {
       if (editing) {
-        const updated = await runUpdate(editing.id, { price }, `Precio actualizado: ${editing.price}p → ${price}p`);
-        if (updated) $("#riven-dialog").close();
+        // Optimista: se cierra el modal ya y la fila muestra el precio nuevo con spinner.
+        const a = mine.find((x) => x.id === editing.id) ?? editing;
+        $("#riven-dialog").close();
+        runUpdate(a, { price }, `Precio actualizado: ${a.price}p → ${price}p`);
       } else {
+        // Publicar no puede ser optimista (el id lo da la API): el botón muestra que está en curso.
         const { item } = readForm();
+        $("#confirm-ok").innerHTML = `Publicando…${spinner}`;
+        $("#confirm-back").disabled = true;
         const res = await api().create(item, price, $("#f-visible").checked, $("#f-note").value);
-        if (res.error) { toast(res.error, true); return; }
+        if (res.error) { toast(`No se pudo publicar: ${res.error}`, true); return; }
+        mine = [res.auction, ...mine];
+        renderMine();
         toast(`Publicado: ${weaponName(res.auction.weapon)} ${res.auction.name} · ${price}p`);
         $("#riven-dialog").close();
-        loadMine();
       }
     } finally {
       $("#confirm-ok").disabled = false;
+      $("#confirm-ok").textContent = "Confirmar";
+      $("#confirm-back").disabled = false;
       $("#confirm").hidden = true;
     }
   });
