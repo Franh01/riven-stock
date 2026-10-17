@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Riven Stock</title>
+<style>
+  :root {
+    --bg: #0c0518;
+    --panel: #160b2a;
+    --panel-2: #1e1038;
+    --line: #2f1d52;
+    --text: #ece4ff;
+    --muted: #9a8cba;
+    --accent: #a066f6;
+    --accent-2: #c99bff;
+    --pos: #7ee2a8;
+    --neg: #ff8a9a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(1200px 600px at 20% -10%, #2a1450 0%, var(--bg) 60%);
+    color: var(--text);
+    font: 14px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    display: flex; flex-direction: column;
+  }
+  header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 28px; border-bottom: 1px solid var(--line);
+  }
+  header h1 { margin: 0; font: 600 20px "Segoe UI Variable Display", "Segoe UI", sans-serif; letter-spacing: .3px; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  main { flex: 1; overflow: auto; padding: 24px 28px 32px; display: grid; gap: 20px; align-content: start; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .card h2 { margin: 0 0 14px; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .form { display: grid; grid-template-columns: 2fr repeat(3, 1.4fr) 1.4fr auto; gap: 12px; align-items: end; }
+  label { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+  input, select, button { font: inherit; color: var(--text); }
+  input, select {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px;
+    padding: 9px 11px; outline: none; width: 100%;
+  }
+  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #a066f633; }
+  select:disabled, input:disabled { opacity: .5; }
+  button {
+    background: linear-gradient(180deg, #b47cff, #7b3fe4); border: 0; border-radius: 9px;
+    padding: 10px 20px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    box-shadow: 0 4px 16px #7b3fe455;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { filter: grayscale(.6); opacity: .6; cursor: default; }
+  .hint { margin-top: 12px; color: var(--muted); font-size: 12px; }
+  .summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chip { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px; min-width: 120px; }
+  .chip b { display: block; font-size: 22px; font-weight: 600; color: var(--accent-2); }
+  .chip span { color: var(--muted); font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px; border-bottom: 1px solid #241540; vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.price { font-weight: 700; color: var(--accent-2); font-size: 16px; white-space: nowrap; }
+  .riven-name { text-transform: capitalize; }
+  .stats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .stat { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: #7ee2a81a; color: var(--pos); }
+  .stat.neg { background: #ff8a9a1a; color: var(--neg); }
+  .muted { color: var(--muted); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .state { color: var(--muted); padding: 24px 0; text-align: center; }
+  .error { color: var(--neg); }
+</style>
+</head>
+<body>
+<header>
+  <svg width="38" height="38" viewBox="0 0 100 100" aria-hidden="true">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#eed6ff"/><stop offset=".45" stop-color="#a05cf6"/><stop offset="1" stop-color="#421696"/>
+      </linearGradient>
+    </defs>
+    <rect width="100" height="100" rx="20" fill="#1a0b33"/>
+    <path d="M48 12 L45.5 29 L51.5 44 L44 59 L50 75 L48 88 L23 50 Z" fill="url(#g)"/>
+    <path d="M53 10 L50.5 27 L56.5 42 L49 57 L55 73 L53 86 L78 48 Z" fill="url(#g)"/>
+  </svg>
+  <div>
+    <h1>Riven Stock</h1>
+    <p>Ventas directas en warframe.market · vendedores en juego</p>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Precio de referencia</h2>
+    <form class="form" id="search-form">
+      <label>Arma
+        <input id="weapon" list="weapons" placeholder="Cargando catálogo…" autocomplete="off" disabled>
+        <datalist id="weapons"></datalist>
+      </label>
+      <label>Positivo 1 <select class="pos" disabled></select></label>
+      <label>Positivo 2 <select class="pos" disabled></select></label>
+      <label>Positivo 3 <select class="pos" disabled></select></label>
+      <label>Negativo <select id="neg" disabled></select></label>
+      <button id="go" disabled>Buscar</button>
+    </form>
+    <div class="hint" id="weapon-info">Las 7 ventas directas más baratas de vendedores que están en el juego ahora, con los mismos stats positivos.</div>
+  </section>
+
+  <section class="card" id="results-card" hidden>
+    <h2 id="results-title">Resultados</h2>
+    <div class="summary" id="summary"></div>
+    <div id="results"></div>
+  </section>
+</main>
+
+<script>
+  let catalog = { weapons: [], stats: [] };
+  const statBySlug = {};
+  const $ = (sel) => document.querySelector(sel);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  function findWeapon(text) {
+    const t = text.trim().toLowerCase();
+    return catalog.weapons.find((w) => w.name.toLowerCase() === t || w.slug === t);
+  }
+
+  function statOptions(type, { negative = false } = {}) {
+    return catalog.stats.filter((s) =>
+      (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type)) && !(negative && s.positiveOnly));
+  }
+
+  function fillSelect(select, stats, emptyLabel) {
+    const prev = select.value;
+    select.innerHTML = `<option value="">${emptyLabel}</option>` +
+      stats.map((s) => `<option value="${esc(s.slug)}">${esc(s.name)}</option>`).join("");
+    if (stats.some((s) => s.slug === prev)) select.value = prev;
+  }
+
+  function refreshStats() {
+    const weapon = findWeapon($("#weapon").value);
+    const type = weapon?.type;
+    document.querySelectorAll(".pos").forEach((sel) => fillSelect(sel, statOptions(type), "—"));
+    fillSelect($("#neg"), statOptions(type, { negative: true }), "Cualquiera");
+    $("#weapon-info").textContent = weapon
+      ? `${weapon.name} · ${weapon.type} · disposición ${weapon.disposition}`
+      : "Las 7 ventas directas más baratas de vendedores que están en el juego ahora, con los mismos stats positivos.";
+  }
+
+  function formatStat(st) {
+    const meta = statBySlug[st.slug];
+    const name = meta?.name ?? st.slug;
+    const v = st.value;
+    let val;
+    if (meta?.unit === "multiply") val = `x${v}`;
+    else if (meta?.unit === "seconds") val = `${v > 0 ? "+" : ""}${v}s`;
+    else if (meta?.unit === "percent") val = `${v > 0 ? "+" : ""}${v}%`;
+    else val = `${v > 0 ? "+" : ""}${v}`;
+    return `<span class="stat ${st.positive ? "" : "neg"}">${esc(val)} ${esc(name)}</span>`;
+  }
+
+  function render(weapon, data) {
+    $("#results-card").hidden = false;
+    $("#results-title").textContent = `Resultados · ${weapon.name}`;
+    if (data.error) {
+      $("#summary").innerHTML = "";
+      $("#results").innerHTML = `<div class="state error">${esc(data.error)}</div>`;
+      return;
+    }
+    const rows = data.results;
+    if (!rows.length) {
+      $("#summary").innerHTML = "";
+      $("#results").innerHTML = `<div class="state">No hay ventas directas de vendedores en juego con esos stats.</div>`;
+      return;
+    }
+    const prices = rows.map((r) => r.price).sort((a, b) => a - b);
+    const median = prices[Math.floor(prices.length / 2)];
+    const avg = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+    $("#summary").innerHTML = [
+      ["Mínimo", prices[0]], ["Mediana", median], ["Promedio", avg], ["Comparables", rows.length],
+    ].map(([k, v]) => `<div class="chip"><b>${v}${k === "Comparables" ? "" : "p"}</b><span>${k}</span></div>`).join("");
+    $("#results").innerHTML = `<table>
+      <thead><tr><th>Precio</th><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Vendedor</th></tr></thead>
+      <tbody>${rows.map((r) => `<tr>
+        <td class="price">${r.price}p</td>
+        <td><a class="riven-name" href="https://warframe.market/auction/${esc(r.id)}" target="_blank">${esc(r.name)}</a></td>
+        <td><div class="stats">${r.stats.map(formatStat).join("")}</div></td>
+        <td>${esc(r.rolls)}</td>
+        <td>${esc(r.mr)}</td>
+        <td>${esc(r.seller)} <span class="muted">· rep ${esc(r.reputation)}</span></td>
+      </tr>`).join("")}</tbody></table>`;
+  }
+
+  async function search(ev) {
+    ev.preventDefault();
+    const weapon = findWeapon($("#weapon").value);
+    if (!weapon) { $("#weapon").focus(); $("#weapon-info").textContent = "Elegí un arma de la lista."; return; }
+    const positives = [...new Set([...document.querySelectorAll(".pos")].map((s) => s.value).filter(Boolean))];
+    if (!positives.length) { $("#weapon-info").textContent = "Elegí al menos un stat positivo."; return; }
+    const neg = $("#neg").value;
+    $("#go").disabled = true; $("#go").textContent = "Buscando…";
+    try {
+      render(weapon, await window.pywebview.api.search(weapon.slug, positives, neg ? [neg] : []));
+    } finally {
+      $("#go").disabled = false; $("#go").textContent = "Buscar";
+    }
+  }
+
+  window.addEventListener("pywebviewready", async () => {
+    try {
+      catalog = await window.pywebview.api.catalog();
+    } catch (e) {
+      $("#weapon").placeholder = "No se pudo cargar el catálogo";
+      $("#weapon-info").innerHTML = `<span class="error">${esc(e.message || e)}</span>`;
+      return;
+    }
+    catalog.stats.forEach((s) => (statBySlug[s.slug] = s));
+    $("#weapons").innerHTML = catalog.weapons.map((w) => `<option value="${esc(w.name)}">`).join("");
+    document.querySelectorAll("input, select, button").forEach((el) => (el.disabled = false));
+    $("#weapon").placeholder = "Ej. Rubico";
+    refreshStats();
+    $("#weapon").focus();
+  });
+  $("#weapon").addEventListener("input", refreshStats);
+  $("#search-form").addEventListener("submit", search);
+</script>
+</body>
+</html>

@@ -1,2 +1,5 @@
 requests
 python-dotenv
+pywebview
+# solo para tools/make_icon.py (y el OCR más adelante)
+pillow
