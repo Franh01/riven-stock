@@ -1,0 +1,159 @@
+"""Cliente para la API de warframe.market (rivens, solo ventas directas).
+
+Todas las llamadas a la API pasan por este módulo: si la API cambia, se
+arregla acá. Rate limit: como máximo ~3 requests/segundo.
+"""
+
+import json
+import os
+import threading
+import time
+from pathlib import Path
+
+import requests
+from dotenv import load_dotenv
+
+BASE_URL = "https://api.warframe.market"
+CACHE_DIR = Path(__file__).parent / "cache"
+CATALOG_MAX_AGE_HOURS = 24
+MIN_INTERVAL_S = 0.35  # ~3 req/s
+
+HEADERS = {
+    "Platform": "pc",
+    "Language": "en",
+    "Accept": "application/json",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+    ),
+}
+
+
+class WFMError(Exception):
+    pass
+
+
+class AuthError(WFMError):
+    """El JWT falta o expiró (401/403): copiar uno nuevo desde el navegador."""
+
+
+class WFMClient:
+    def __init__(self, jwt=None):
+        load_dotenv(Path(__file__).parent / ".env")
+        self.jwt = jwt if jwt is not None else (os.getenv("WFM_JWT") or "").strip() or None
+        self.session = requests.Session()
+        self.session.headers.update(HEADERS)
+        self._lock = threading.Lock()
+        self._last_request = 0.0
+
+    # ---- HTTP base ---------------------------------------------------
+
+    def _throttle(self):
+        with self._lock:
+            wait = self._last_request + MIN_INTERVAL_S - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            self._last_request = time.monotonic()
+
+    def _request(self, method, path, *, auth=False, **kwargs):
+        headers = kwargs.pop("headers", {})
+        if auth:
+            if not self.jwt:
+                raise AuthError("Falta WFM_JWT en .env")
+            headers["Authorization"] = f"Bearer {self.jwt}"
+        for attempt in range(3):
+            self._throttle()
+            res = self.session.request(method, BASE_URL + path, headers=headers, timeout=20, **kwargs)
+            if res.status_code == 429 and attempt < 2:
+                time.sleep(2 * (attempt + 1))
+                continue
+            break
+        if res.status_code in (401, 403) and auth:
+            raise AuthError(f"{res.status_code} en {path}: el JWT no sirve o expiró")
+        if not res.ok:
+            raise WFMError(f"{method} {path} -> {res.status_code}: {res.text[:300]}")
+        return res.json()
+
+    def get(self, path, **kwargs):
+        return self._request("GET", path, **kwargs)
+
+    # ---- Catálogo (v2, cacheado) -------------------------------------
+
+    def _cached(self, name, path):
+        CACHE_DIR.mkdir(exist_ok=True)
+        file = CACHE_DIR / f"{name}.json"
+        if file.exists() and (time.time() - file.stat().st_mtime) / 3600 < CATALOG_MAX_AGE_HOURS:
+            return json.loads(file.read_text(encoding="utf-8"))
+        data = self.get(path)["data"]
+        file.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        return data
+
+    def riven_weapons(self):
+        """~420 armas: slug (= weapon_url_name), i18n.en.name, group, disposition..."""
+        return self._cached("riven_weapons", "/v2/riven/weapons")
+
+    def riven_attributes(self):
+        """~50 stats: slug (= nombre para positive_stats), positiveOnly, exclusiveTo..."""
+        return self._cached("riven_attributes", "/v2/riven/attributes")
+
+    # ---- Búsqueda de ventas directas (v1, sin auth) -------------------
+
+    def search_direct(self, weapon, positive_stats=(), negative_stats=None):
+        """Ventas directas de rivens de `weapon` con esos stats positivos.
+
+        Filtra por stats del lado del servidor: la respuesta corta en ~500
+        resultados, así que traer todo y filtrar local pierde vendedores.
+        `negative_stats`: None = cualquiera; lista = esos negativos.
+        """
+        params = {
+            "type": "riven",
+            "weapon_url_name": weapon,
+            "buyout_policy": "direct",
+            "sort_by": "price_asc",
+        }
+        if positive_stats:
+            params["positive_stats"] = ",".join(positive_stats)
+        if negative_stats:
+            params["negative_stats"] = ",".join(negative_stats)
+        auctions = self.get("/v1/auctions/search", params=params)["payload"]["auctions"]
+        return [a for a in auctions if a.get("is_direct_sell")]
+
+    def top_direct_ingame(self, weapon, positive_stats, negative_stats=None, n=7):
+        """Las `n` ventas directas más baratas de vendedores `ingame`."""
+        auctions = [
+            a
+            for a in self.search_direct(weapon, positive_stats, negative_stats)
+            if a["owner"].get("status") == "ingame"
+            and a.get("visible", True)
+            and not a.get("closed")
+            and not a.get("private")
+        ]
+        auctions.sort(key=lambda a: a["buyout_price"])
+        return auctions[:n]
+
+    # ---- Cuenta propia (requiere JWT) ---------------------------------
+
+    def me(self):
+        """Datos del usuario dueño del JWT (v2)."""
+        return self.get("/v2/me", auth=True)["data"]
+
+    def profile_auctions(self, slug):
+        """Contratos públicos de un perfil (v1, no necesita auth)."""
+        return self.get(f"/v1/profile/{slug}/auctions")["payload"]["auctions"]
+
+
+def summarize(auction):
+    """Una línea legible de un contrato."""
+    item = auction["item"]
+    stats = ", ".join(
+        f"{'+' if a['positive'] else '-'}{a['url_name']} {a['value']}" for a in item["attributes"]
+    )
+    line = (
+        f"{auction['buyout_price']:>6}p  {item['weapon_url_name']} {item.get('name', '')}"
+        f"  [{stats}]  rolls={item.get('re_rolls')}  MR{item.get('mastery_level')}"
+    )
+    # En la búsqueda `owner` es un objeto; en los contratos de un perfil es solo el id.
+    owner = auction["owner"]
+    if isinstance(owner, dict):
+        line += f"  {owner['ingame_name']} ({owner['status']}, rep {owner.get('reputation')})"
+    return line

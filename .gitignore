@@ -1,0 +1,7 @@
+.env
+.venv/
+__pycache__/
+*.db
+*.log
+cache/
+open-here-with-context
