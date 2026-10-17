@@ -7,3 +7,7 @@ cache/
 open-here-with-context
 HARs/
 *.har
+
+# Notas de trabajo (locales, no se publican)
+INDEX.md
+CLAUDE.md
