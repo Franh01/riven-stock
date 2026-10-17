@@ -4,6 +4,7 @@ Todas las llamadas a la API pasan por este módulo: si la API cambia, se
 arregla acá. Rate limit: como máximo ~3 requests/segundo.
 """
 
+import http.cookiejar
 import json
 import os
 import threading
@@ -43,6 +44,9 @@ class WFMClient:
         self.jwt = jwt if jwt is not None else (os.getenv("WFM_JWT") or "").strip() or None
         self.session = requests.Session()
         self.session.headers.update(HEADERS)
+        # La API manda una cookie JWT anónima en cada respuesta; si la sesión la reenvía,
+        # v1 la prefiere al header Authorization y responde 401. Auth va solo por header.
+        self.session.cookies.set_policy(http.cookiejar.DefaultCookiePolicy(allowed_domains=[]))
         self._lock = threading.Lock()
         self._last_request = 0.0
 
