@@ -8,7 +8,7 @@ import requests
 import webview
 
 import store
-from wfm_client import WFMClient, WFMError
+from wfm_client import SEARCH_CAP, WFMClient, WFMError, cheapest_ingame
 
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
 ICON = ROOT / "assets" / "icon.ico"
@@ -37,16 +37,23 @@ class Api:
             "stats": sorted(stats, key=lambda s: s["name"]),
         }
 
-    def search(self, weapon, positives, negatives):
+    def search(self, weapon, n=7):
+        """Precio de referencia: las `n` ventas directas más baratas del arma (cualquier stat)
+        de vendedores en juego."""
         try:
-            top = self.client.top_direct_ingame(weapon, positives, negatives or None)
+            found = self.client.search_direct(weapon)
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
-        return {"results": [
-            {**auction_view(a), "seller": a["owner"]["ingame_name"],
-             "reputation": a["owner"].get("reputation")}
-            for a in top
-        ]}
+        top = cheapest_ingame(found, n)
+        return {
+            "results": [
+                {**auction_view(a), "seller": a["owner"]["ingame_name"],
+                 "reputation": a["owner"].get("reputation")}
+                for a in top
+            ],
+            # Si la búsqueda llegó al corte y no hubo `n` in game, puede haber más fuera del corte.
+            "maybe_incomplete": len(found) >= SEARCH_CAP - 10 and len(top) < n,
+        }
 
     # ---- Mis contratos ----------------------------------------------
 

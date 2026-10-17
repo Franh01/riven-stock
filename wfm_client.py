@@ -18,6 +18,7 @@ BASE_URL = "https://api.warframe.market"
 CACHE_DIR = Path(__file__).parent / "cache"
 CATALOG_MAX_AGE_HOURS = 24
 MIN_INTERVAL_S = 0.35  # ~3 req/s
+SEARCH_CAP = 500  # la búsqueda de contratos corta en ~500 resultados (los más baratos con price_asc)
 
 HEADERS = {
     "Platform": "pc",
@@ -124,18 +125,9 @@ class WFMClient:
         auctions = self.get("/v1/auctions/search", params=params)["payload"]["auctions"]
         return [a for a in auctions if a.get("is_direct_sell")]
 
-    def top_direct_ingame(self, weapon, positive_stats, negative_stats=None, n=7):
+    def top_direct_ingame(self, weapon, positive_stats=(), negative_stats=None, n=7):
         """Las `n` ventas directas más baratas de vendedores `ingame`."""
-        auctions = [
-            a
-            for a in self.search_direct(weapon, positive_stats, negative_stats)
-            if a["owner"].get("status") == "ingame"
-            and a.get("visible", True)
-            and not a.get("closed")
-            and not a.get("private")
-        ]
-        auctions.sort(key=lambda a: a["buyout_price"])
-        return auctions[:n]
+        return cheapest_ingame(self.search_direct(weapon, positive_stats, negative_stats), n)
 
     # ---- Cuenta propia (requiere JWT) ---------------------------------
 
@@ -184,6 +176,17 @@ class WFMClient:
     def profile_auctions(self, slug):
         """Contratos públicos de un perfil (v1, no necesita auth)."""
         return self.get(f"/v1/profile/{slug}/auctions")["payload"]["auctions"]
+
+
+def cheapest_ingame(auctions, n=7):
+    """Las `n` más baratas de vendedores `ingame` dentro de una búsqueda."""
+    ingame = [
+        a for a in auctions
+        if a["owner"].get("status") == "ingame"
+        and a.get("visible", True) and not a.get("closed") and not a.get("private")
+    ]
+    ingame.sort(key=lambda a: a["buyout_price"])
+    return ingame[:n]
 
 
 def summarize(auction):

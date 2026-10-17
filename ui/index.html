@@ -141,6 +141,25 @@
   .confirm { background: #a066f614; border: 1px solid #a066f655; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px; }
   .confirm[hidden] { display: none; }
   [hidden] { display: none !important; }
+
+  /* Selector con autocompletado */
+  .combo { position: relative; }
+  .combo-list {
+    position: absolute; z-index: 30; left: 0; min-width: max(100%, 270px); top: calc(100% + 4px);
+    max-height: 264px; overflow: auto; padding: 4px;
+    background: #1b0e33; border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 12px 34px #000b;
+  }
+  .combo-item { display: flex; justify-content: space-between; gap: 10px; padding: 7px 10px; border-radius: 7px; cursor: pointer; color: var(--text); font-size: 13px; }
+  .combo-item small { color: var(--muted); }
+  .combo-item mark { background: none; color: var(--accent-2); font-weight: 700; }
+  .combo-item.active { background: #a066f633; }
+  .combo-item.selected { color: var(--accent-2); }
+  .combo-empty { padding: 8px 10px; color: var(--muted); font-size: 13px; }
+
+  button.sold-btn { background: none; border: 1px solid #7ee2a866; color: var(--pos); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
+  button.sold-btn:hover { background: #7ee2a81a; }
+  button.solid-sold { background: linear-gradient(180deg, #5fd497, #2f9e66); box-shadow: 0 4px 16px #2f9e6655; }
+  .ref-note { margin-top: 10px; color: var(--muted); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -187,7 +206,7 @@
     <section>
       <div class="section-title"><span class="step">1</span><h2>Riven</h2></div>
       <div class="grid-riven">
-        <label>Arma <input id="f-weapon" list="weapons" placeholder="Ej. Rubico" autocomplete="off"></label>
+        <label>Arma <input id="f-weapon" placeholder="Escribí el arma…"></label>
         <label>Nombre <input id="f-name" placeholder="Ej. Crita-acritis"></label>
         <label>Polaridad
           <select id="f-polarity"><option value="madurai">Madurai</option><option value="naramon">Naramon</option><option value="vazarin">Vazarin</option></select>
@@ -196,11 +215,10 @@
         <label>Rango <input id="f-rank" type="number" min="0" max="8" value="0"></label>
         <label>Rolls <input id="f-rolls" type="number" min="0" value="0"></label>
       </div>
-      <datalist id="weapons"></datalist>
       <div class="grid-stats" id="stat-slots"></div>
       <div class="row-actions">
         <button id="ref-go">Ver precio de referencia</button>
-        <span class="hint" id="rd-info">Valores tal como aparecen en el juego. Para la referencia solo cuentan el arma y los positivos.</span>
+        <span class="hint" id="rd-info">Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.</span>
       </div>
     </section>
 
@@ -208,6 +226,7 @@
       <div class="section-title"><span class="step">2</span><h2 id="ref-title">Referencia</h2></div>
       <div class="summary" id="summary"></div>
       <div id="results"></div>
+      <div class="ref-note" id="ref-note"></div>
     </section>
 
     <section id="publish-section">
@@ -231,17 +250,16 @@
 
 <dialog id="close-dialog">
   <form method="dialog" style="padding: 24px">
-    <h3 style="margin: 0 0 10px; font-size: 17px">Cerrar contrato</h3>
+    <h3 style="margin: 0 0 10px; font-size: 17px" id="cd-title">Cerrar contrato</h3>
     <p id="close-text"></p>
-    <div class="sold">
-      <input type="checkbox" id="sold-check">
-      <label for="sold-check" style="display:inline; color: var(--text); font-size: 14px;">Se vendió por</label>
-      <input type="number" id="sold-price" min="1" disabled>
+    <div class="sold" id="sold-row">
+      <label for="sold-price" style="display:inline; color: var(--text); font-size: 14px;">Vendido por</label>
+      <input type="number" id="sold-price" min="1">
       <span class="muted">p</span>
     </div>
     <div class="dialog-actions">
       <button class="ghost" value="cancel">Cancelar</button>
-      <button class="solid-danger" value="ok">Cerrar contrato</button>
+      <button value="ok" id="cd-ok">Cerrar contrato</button>
     </div>
   </form>
 </dialog>
@@ -304,9 +322,10 @@
         <td class="price"><span class="price-edit" data-act="edit-price" title="Click para editar">${a.price}p</span></td>
         <td><span class="badge ${a.visible ? "on" : "off"}">${a.visible ? "Visible" : "Oculto"}</span></td>
         <td class="actions">
-          <button class="ghost" data-act="ref" title="Precio de referencia con estos stats">Referencia</button>
+          <button class="ghost" data-act="ref" title="Precio de referencia del arma">Referencia</button>
           <button class="ghost" data-act="toggle">${a.visible ? "Ocultar" : "Mostrar"}</button>
-          <button class="danger" data-act="close">Cerrar</button>
+          <button class="sold-btn" data-act="sold" title="Cerrar el contrato y registrar la venta">Vendido</button>
+          <button class="danger" data-act="close" title="Cerrar sin venta">Cerrar</button>
         </td>
       </tr>`).join("")}</tbody></table>`;
   }
@@ -349,26 +368,37 @@
     input.addEventListener("blur", () => finish(false));
   }
 
-  function askClose(a) {
+  // Vendido y Cerrar usan el mismo diálogo: los dos cierran el contrato en warframe.market;
+  // Vendido además registra el precio de venta.
+  function askClose(a, sold) {
     const dlg = $("#close-dialog");
-    $("#close-text").innerHTML = `${rivenLabel(a)} · ${a.price}p.<br>` +
-      `El contrato desaparece de warframe.market y no se puede deshacer. La app guarda una copia.`;
-    $("#sold-check").checked = false;
-    $("#sold-price").disabled = true;
+    $("#cd-title").textContent = sold ? "Marcar como vendido" : "Cerrar contrato";
+    $("#close-text").innerHTML = `${rivenLabel(a)} · ${a.price}p.<br>` + (sold
+      ? `Se cierra el contrato en warframe.market y la venta queda registrada en la app.`
+      : `Se cierra sin registrar venta. Desaparece de warframe.market y no se puede deshacer.`);
+    $("#sold-row").hidden = !sold;
     $("#sold-price").value = a.price;
+    $("#cd-ok").textContent = sold ? "Vendido" : "Cerrar contrato";
+    $("#cd-ok").className = sold ? "solid-sold" : "solid-danger";
     dlg.returnValue = "";
     dlg.showModal();
+    if (sold) { $("#sold-price").focus(); $("#sold-price").select(); }
     dlg.onclose = async () => {
       if (dlg.returnValue !== "ok") return;
-      const sold = $("#sold-check").checked ? parseInt($("#sold-price").value, 10) || null : null;
-      const res = await api().close(a.id, sold);
+      const price = sold ? parseInt($("#sold-price").value, 10) || null : null;
+      const res = await api().close(a.id, price);
       if (res.error) { toast(res.error, true); return; }
-      toast(sold ? `Cerrado como vendido por ${sold}p` : "Contrato cerrado");
+      toast(price ? `Vendido por ${price}p` : "Contrato cerrado");
       loadMine();
     };
   }
 
-  $("#sold-check").addEventListener("change", (e) => { $("#sold-price").disabled = !e.target.checked; if (e.target.checked) $("#sold-price").focus(); });
+  // Enter en el precio confirma (sin esto, el form tomaría "Cancelar", que es el primer botón).
+  $("#sold-price").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    $("#close-dialog").close("ok");
+  });
 
   $("#mine").addEventListener("click", (e) => {
     const el = e.target.closest("[data-act]");
@@ -380,7 +410,8 @@
       el.disabled = true;
       runUpdate(a.id, { visible: !a.visible }, a.visible ? "Contrato oculto" : "Contrato visible");
     }
-    if (act === "close") askClose(a);
+    if (act === "close") askClose(a, false);
+    if (act === "sold") askClose(a, true);
     if (act === "ref") openRiven(a);
   });
   $("#reload").addEventListener("click", loadMine);
@@ -395,45 +426,131 @@
     <div class="stat-slot" data-i="${i}">
       <span class="tag ${s.positive ? "" : "neg"}">${s.label}</span>
       <div class="row">
-        <select class="slot-stat"></select>
+        <input class="slot-stat" placeholder="Escribí un stat…">
         <div class="unit" data-unit=""><input class="slot-value" type="number" step="0.1" placeholder="valor"></div>
       </div>
     </div>`).join("");
   const slotEls = [...document.querySelectorAll(".stat-slot")];
 
-  function findWeapon(text) {
-    const t = text.trim().toLowerCase();
-    return catalog.weapons.find((w) => w.name.toLowerCase() === t || w.slug === t);
+  // Selector con autocompletado: se escribe y la lista de abajo se filtra.
+  // Opciones: [{value, label, hint?}]. `combo.value` es el value elegido ("" si no hay).
+  const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  class Combo {
+    constructor(input, onChange) {
+      this.input = input; this.onChange = onChange; this.options = []; this.value = ""; this.active = 0;
+      const wrap = document.createElement("div");
+      wrap.className = "combo";
+      input.replaceWith(wrap);
+      this.list = document.createElement("div");
+      this.list.className = "combo-list"; this.list.hidden = true;
+      wrap.append(input, this.list);
+      input.autocomplete = "off";
+      input.addEventListener("input", () => { this.value = ""; this.active = 0; this.render(); this.onChange(""); });
+      input.addEventListener("focus", () => { input.select(); this.active = 0; this.render(); });
+      input.addEventListener("blur", () => this.commit());
+      input.addEventListener("keydown", (e) => this.key(e));
+      // mousedown (no click) para elegir antes de que el blur cierre la lista.
+      this.list.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        const item = e.target.closest("[data-i]");
+        if (item) this.pick(this.shown[item.dataset.i].value);
+      });
+    }
+    setOptions(options) {
+      this.options = options;
+      if (this.value && !options.some((o) => o.value === this.value)) this.set("");
+    }
+    set(value) {
+      this.value = value;
+      this.input.value = this.options.find((o) => o.value === value)?.label ?? "";
+    }
+    pick(value) {
+      this.set(value); this.list.hidden = true; this.onChange(value);
+    }
+    matches() {
+      const q = norm(this.input.value.trim());
+      if (!q || this.value) return this.options;  // sin texto nuevo: todas
+      const scored = [];
+      for (const o of this.options) {
+        const l = norm(o.label), i = l.indexOf(q);
+        if (i < 0) continue;
+        scored.push([i === 0 ? 0 : l[i - 1] === " " ? 1 : 2, o]);  // empieza > empieza palabra > contiene
+      }
+      return scored.sort((a, b) => a[0] - b[0]).map(([, o]) => o);
+    }
+    render() {
+      this.shown = this.matches().slice(0, 80);
+      const q = this.value ? "" : this.input.value.trim();
+      const mark = (label) => {
+        if (!q) return esc(label);
+        const i = norm(label).indexOf(norm(q));
+        return i < 0 ? esc(label) : esc(label.slice(0, i)) + `<mark>${esc(label.slice(i, i + q.length))}</mark>` + esc(label.slice(i + q.length));
+      };
+      if (!this.value) this.active = Math.min(this.active, Math.max(this.shown.length - 1, 0));
+      else this.active = Math.max(this.shown.findIndex((o) => o.value === this.value), 0);
+      this.list.innerHTML = this.shown.length
+        ? this.shown.map((o, i) => `<div class="combo-item ${i === this.active ? "active" : ""} ${o.value === this.value ? "selected" : ""}" data-i="${i}">
+            <span>${mark(o.label)}</span>${o.hint ? `<small>${esc(o.hint)}</small>` : ""}</div>`).join("")
+        : `<div class="combo-empty">Sin resultados</div>`;
+      this.list.hidden = false;
+      this.list.querySelector(".active")?.scrollIntoView({ block: "nearest" });
+    }
+    key(e) {
+      if (this.list.hidden && ["ArrowDown", "ArrowUp"].includes(e.key)) { this.render(); e.preventDefault(); return; }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const n = this.shown.length;
+        if (!n) return;
+        this.active = (this.active + (e.key === "ArrowDown" ? 1 : n - 1)) % n;
+        [...this.list.children].forEach((el, i) => el.classList.toggle("active", i === this.active));
+        this.list.children[this.active].scrollIntoView({ block: "nearest" });
+      } else if (e.key === "Enter" && !this.list.hidden) {
+        e.preventDefault();
+        if (this.shown[this.active]) this.pick(this.shown[this.active].value);
+      } else if (e.key === "Escape" && !this.list.hidden) {
+        e.preventDefault(); e.stopPropagation();  // que no cierre el modal
+        this.list.hidden = true;
+      } else if (e.key === "Tab" && !this.list.hidden && !this.value && this.input.value.trim() && this.shown[this.active]) {
+        this.pick(this.shown[this.active].value);
+      }
+    }
+    commit() {
+      this.list.hidden = true;
+      if (this.value) { this.set(this.value); return; }
+      // Texto escrito sin elegir: vale si coincide exacto; si no, se borra.
+      const exact = this.options.find((o) => norm(o.label) === norm(this.input.value.trim()));
+      if (exact) this.pick(exact.value); else this.input.value = "";
+    }
   }
 
+  const weaponCombo = new Combo($("#f-weapon"), () => refreshSlots());
+  const statCombos = slotEls.map((el) => new Combo(el.querySelector(".slot-stat"), () => refreshUnit(el)));
+
+  const currentWeapon = () => weaponBySlug[weaponCombo.value];
+
   function refreshSlots() {
-    const weapon = findWeapon($("#f-weapon").value);
+    const weapon = currentWeapon();
     const type = weapon?.type;
-    slotEls.forEach((el, i) => {
-      const sel = el.querySelector(".slot-stat");
-      const prev = sel.value;
-      const options = catalog.stats.filter((s) =>
-        (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type)) && (SLOTS[i].positive || !s.positiveOnly));
-      sel.innerHTML = `<option value="">—</option>` + options.map((s) => `<option value="${esc(s.slug)}">${esc(s.name)}</option>`).join("");
-      if (options.some((s) => s.slug === prev)) sel.value = prev;
-      refreshUnit(el);
+    statCombos.forEach((combo, i) => {
+      combo.setOptions(catalog.stats
+        .filter((s) => (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type)) && (SLOTS[i].positive || !s.positiveOnly))
+        .map((s) => ({ value: s.slug, label: s.name, hint: UNIT[s.unit] })));
+      refreshUnit(slotEls[i]);
     });
     $("#rd-info").textContent = weapon
       ? `${weapon.name} · ${weapon.type} · disposición ${weapon.disposition}`
-      : "Valores tal como aparecen en el juego. Para la referencia solo cuentan el arma y los positivos.";
+      : "Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.";
   }
 
   function refreshUnit(el) {
-    const meta = statBySlug[el.querySelector(".slot-stat").value];
+    const meta = statBySlug[statCombos[slotEls.indexOf(el)].value];
     el.querySelector(".unit").dataset.unit = UNIT[meta?.unit] ?? "";
   }
-  slotEls.forEach((el) => el.querySelector(".slot-stat").addEventListener("change", () => refreshUnit(el)));
-  $("#f-weapon").addEventListener("input", refreshSlots);
 
   function readForm() {
-    const weapon = findWeapon($("#f-weapon").value);
+    const weapon = currentWeapon();
     const attributes = slotEls.map((el, i) => {
-      const slug = el.querySelector(".slot-stat").value;
+      const slug = statCombos[i].value;
       if (!slug) return null;
       let value = parseFloat(el.querySelector(".slot-value").value);
       // Un negativo en % o segundos va con signo menos aunque lo escriban sin él.
@@ -468,23 +585,24 @@
     $("#ref-section").hidden = true;
     $("#publish-step").textContent = "2";
     if (existing) {
-      $("#f-weapon").value = weaponName(existing.weapon);
+      weaponCombo.set(existing.weapon);
       $("#f-name").value = existing.name;
       $("#f-polarity").value = existing.polarity;
       $("#f-mr").value = existing.mr; $("#f-rank").value = existing.rank; $("#f-rolls").value = existing.rolls;
       refreshSlots();
       const pos = existing.stats.filter((s) => s.positive), neg = existing.stats.filter((s) => !s.positive);
       [pos[0], pos[1], pos[2], neg[0]].forEach((s, i) => {
-        slotEls[i].querySelector(".slot-stat").value = s?.slug ?? "";
+        statCombos[i].set(s?.slug ?? "");
         slotEls[i].querySelector(".slot-value").value = s?.value ?? "";
         refreshUnit(slotEls[i]);
       });
       $("#f-price").value = existing.price;
     } else if (wasEditing) {
       // Venía de mirar un contrato existente: empezar de cero.
-      ["#f-weapon", "#f-name", "#f-note"].forEach((s) => ($(s).value = ""));
+      weaponCombo.set("");
+      ["#f-name", "#f-note"].forEach((s) => ($(s).value = ""));
       $("#f-polarity").value = "madurai"; $("#f-mr").value = 8; $("#f-rank").value = 0; $("#f-rolls").value = 0;
-      slotEls.forEach((el) => { el.querySelector(".slot-stat").value = ""; el.querySelector(".slot-value").value = ""; });
+      slotEls.forEach((el, i) => { statCombos[i].set(""); el.querySelector(".slot-value").value = ""; });
       $("#f-visible").checked = true;
       $("#f-price").value = "";
       refreshSlots();
@@ -496,13 +614,11 @@
   }
 
   async function runReference() {
-    const { weapon, attributes } = readForm();
+    const weapon = currentWeapon();
     if (!weapon) { toast("Elegí un arma de la lista", true); $("#f-weapon").focus(); return; }
-    const positives = [...new Set(attributes.filter((a) => a.positive).map((a) => a.url_name))];
-    if (!positives.length) { toast("Elegí al menos un stat positivo", true); return; }
     $("#ref-go").disabled = true; $("#ref-go").textContent = "Buscando…";
     try {
-      renderReference(weapon, await api().search(weapon.slug, positives, []));
+      renderReference(weapon, await api().search(weapon.slug));
     } finally {
       $("#ref-go").disabled = false; $("#ref-go").textContent = "Ver precio de referencia";
     }
@@ -511,12 +627,15 @@
   function renderReference(weapon, data) {
     $("#ref-section").hidden = false;
     $("#publish-step").textContent = "3";
-    $("#ref-title").textContent = `Referencia · ${weapon.name} · vendedores en juego`;
+    $("#ref-title").textContent = `Referencia · ${weapon.name} · las 7 más baratas de vendedores en juego`;
+    $("#ref-note").textContent = data.maybe_incomplete
+      ? "Puede faltar alguna: la búsqueda llegó al límite de resultados de warframe.market."
+      : "";
     if (data.error) { $("#summary").innerHTML = ""; $("#results").innerHTML = `<div class="state error">${esc(data.error)}</div>`; return; }
     const rows = data.results;
     if (!rows.length) {
       $("#summary").innerHTML = "";
-      $("#results").innerHTML = `<div class="state">No hay ventas directas de vendedores en juego con esos stats.</div>`;
+      $("#results").innerHTML = `<div class="state">No hay ventas directas de este arma de vendedores en juego ahora.</div>`;
       return;
     }
     const prices = rows.map((r) => r.price).sort((a, b) => a - b);
@@ -599,7 +718,8 @@
     }
     catalog.stats.forEach((s) => (statBySlug[s.slug] = s));
     catalog.weapons.forEach((w) => (weaponBySlug[w.slug] = w));
-    $("#weapons").innerHTML = catalog.weapons.map((w) => `<option value="${esc(w.name)}">`).join("");
+    weaponCombo.setOptions(catalog.weapons.map((w) => ({ value: w.slug, label: w.name, hint: w.type })));
+    refreshSlots();
     loadMine();
   });
 </script>
