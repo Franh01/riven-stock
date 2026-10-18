@@ -184,6 +184,46 @@ class Api:
             store.log_event(conn, new, "update")
         return {"auction": auction_view(new)}
 
+    def repolarize(self, auction_id, polarity, price=None, visible=None, note=None):
+        """La API no deja cambiar la polaridad de un contrato publicado: se publica uno igual con
+        la polaridad nueva, se cierra el viejo (sin ensuciar el historial de cerrados) y el costo
+        y el vínculo con el lote pasan al nuevo. Si falla la publicación, el viejo no se toca."""
+        try:
+            cur = self._current(auction_id)
+            old = cur["item"]
+            new = self.client.create_direct_sale(
+                {
+                    "weapon_url_name": old["weapon_url_name"],
+                    "name": old.get("name", ""),
+                    "attributes": [{"url_name": s["url_name"], "positive": bool(s["positive"]),
+                                    "value": float(s["value"])} for s in old["attributes"]],
+                    "mastery_level": int(old["mastery_level"]),
+                    "mod_rank": int(old["mod_rank"]),
+                    "re_rolls": int(old["re_rolls"]),
+                    "polarity": polarity,
+                },
+                price=int(price) if price is not None else cur["buyout_price"],
+                visible=bool(visible) if visible is not None else cur.get("visible", True),
+                note=note if note is not None else cur.get("note_raw", ""),
+            )
+        except (WFMError, requests.RequestException, ValueError, KeyError) as e:
+            return {"error": str(e)}
+        self._seen[new["id"]] = new
+        warning = None
+        try:
+            self.client.close_auction(auction_id)
+            self._seen.pop(auction_id, None)
+        except (WFMError, requests.RequestException) as e:
+            warning = f"Se publicó la nueva pero no se pudo cerrar la vieja: {e}"
+        with store.connect() as conn:
+            store.log_event(conn, new, "create")
+            if warning is None:
+                conn.execute("UPDATE riven_costs SET auction_id = ? WHERE auction_id = ?", (new["id"], auction_id))
+                conn.execute("UPDATE lot_openings SET auction_id = ? WHERE auction_id = ?", (new["id"], auction_id))
+                conn.commit()
+        return {"auction": auction_view(new), "replaced": None if warning else auction_id,
+                "warning": warning, **self.local()}
+
     def create(self, item, price, visible=True, note="", cost=None, lot_id=None):
         """Publica una venta directa. `item` viene del formulario del modal. `cost` y `lot_id`
         (si el riven salió de un lote del stock unveiled) se guardan solo en local."""

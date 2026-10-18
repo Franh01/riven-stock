@@ -1223,8 +1223,10 @@
     $("#publish-title").textContent = existing ? "Editar contrato" : "Publicar venta directa";
     $("#publish-go").textContent = existing ? "Guardar cambios" : "Publicar";
     $("#origin-row").hidden = !!existing;
-    document.querySelectorAll(".grid-riven input, .grid-riven select, .pol-btn, .slot-stat, .slot-value")
+    // La polaridad sigue editable: cambiarla republica el contrato por detrás (ver repolarize).
+    document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value")
       .forEach((el) => (el.disabled = !!existing));
+    document.querySelectorAll(".pol-btn").forEach((el) => (el.disabled = false));
     $("#confirm").hidden = true;
     $("#ref-section").hidden = true;
     $("#publish-step").textContent = "2";
@@ -1307,6 +1309,8 @@
   function editChanges() {
     const price = parseInt($("#f-price").value, 10);
     const changes = {};
+    const polarity = $("#f-polarity").value;
+    if (polarity !== editing.polarity) changes.polarity = polarity;
     if (price !== editing.price) changes.price = price;
     if ($("#f-visible").checked !== editing.visible) changes.visible = $("#f-visible").checked;
     if ($("#f-note").value.trim() !== (editing.note ?? "").trim()) changes.note = $("#f-note").value.trim();
@@ -1330,6 +1334,7 @@
         return;
       }
       const parts = [];
+      if ("polarity" in changes) parts.push(`polaridad <b>${cap(editing.polarity)} → ${cap(changes.polarity)}</b>`);
       if ("price" in changes) parts.push(`precio <b>${editing.price}p → ${changes.price}p</b>`);
       if ("visible" in changes) parts.push(changes.visible ? "<b>mostrar</b>" : "<b>ocultar</b>");
       if ("note" in changes) parts.push("nota nueva");
@@ -1359,6 +1364,22 @@
         // Optimista: se cierra el modal ya y la fila muestra los cambios con spinner.
         const a = mine.find((x) => x.id === editing.id) ?? editing;
         const { changes, costChanged, costRaw } = editChanges();
+        if ("polarity" in changes) {
+          // Cambiar la polaridad republica el contrato: no puede ser optimista (el id nuevo lo da la API).
+          $("#confirm-ok").innerHTML = `Guardando…${spinner}`;
+          $("#confirm-back").disabled = true;
+          if (costChanged) await saveCost(a.id, costRaw === "" ? null : costRaw);
+          const res = await api().repolarize(a.id, changes.polarity, changes.price ?? null,
+            changes.visible ?? null, changes.note ?? null);
+          if (res.error) { toast(`No se pudo cambiar la polaridad: ${res.error}`, true); return; }
+          mine = mine.map((x) => (x.id === a.id ? res.auction : x));
+          if (res.warning) mine = [a, ...mine];
+          applyLocal(res);
+          renderAll();
+          toast(res.warning || "Contrato actualizado");
+          $("#riven-dialog").close();
+          return;
+        }
         $("#riven-dialog").close();
         if (costChanged) saveCost(a.id, costRaw === "" ? null : costRaw);
         runUpdate(a, changes, "Contrato actualizado");
