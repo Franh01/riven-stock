@@ -146,6 +146,35 @@ class Api:
             return {"error": str(e)}
         return self.local()
 
+    def transmute(self, auction_ids, riven_type):
+        """Transmutación del juego: 4 rivens publicados se cierran (sin venta) y entra al stock
+        unveiled 1 riven sin abrir del tipo que salió, con el costo de los 4 sumado. Ese costo ya
+        está en "invertido" por los rivens sacrificados, así que el lote no lo suma otra vez."""
+        ids = list(dict.fromkeys(auction_ids or []))
+        if len(ids) != 4:
+            return {"error": "Hay que elegir exactamente 4 rivens"}
+        if riven_type not in store.RIVEN_TYPES:
+            return {"error": "Tipo de riven inválido"}
+        missing = [i for i in ids if i not in self._seen]
+        if missing:
+            return {"error": "Algún riven ya no está en la lista: actualizá y probá de nuevo"}
+        with store.connect() as conn:
+            known = store.costs(conn)
+        total_cost = sum(known.get(i, {}).get("cost", 0) for i in ids)
+        closed = []
+        for auction_id in ids:
+            res = self.close(auction_id)
+            if "error" in res:
+                note = f" Ya se cerraron {len(closed)} antes del error." if closed else ""
+                return {"error": res["error"] + note, "transmuted": closed}
+            closed.append(auction_id)
+        try:
+            with store.connect() as conn:
+                store.add_lot(conn, riven_type, 1, total_cost, "Transmutación de 4 rivens", from_transmute=True)
+        except store.sqlite3.Error as e:
+            return {"error": f"Se cerraron los 4 pero no se pudo cargar el stock: {e}", "transmuted": closed}
+        return {**self.local(), "transmuted": closed}
+
     def delete_lot(self, lot_id):
         try:
             with store.connect() as conn:

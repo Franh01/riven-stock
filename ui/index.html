@@ -196,6 +196,20 @@
   dialog p { margin: 0 0 16px; color: var(--muted); }
 
   #close-dialog { width: min(460px, 90vw); }
+  #tm-dialog { width: min(620px, 92vw); }
+  .tm-list { max-height: 320px; overflow: auto; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 10px; }
+  .tm-list table { font-size: 13px; }
+  .tm-list th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  .tm-list td { padding: 7px 10px; }
+  .tm-list tr { cursor: pointer; }
+  .tm-list tr:hover td { background: var(--panel-2); }
+  .tm-list tr.picked td { background: #a066f61f; }
+  .tm-list input[type=checkbox] { width: 16px; height: 16px; padding: 0; accent-color: var(--accent); }
+  .tm-list .num { text-align: right; white-space: nowrap; }
+  .tm-list th.num { text-align: right; }
+  .tm-foot { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font-size: 14px; }
+  .tm-foot select { width: auto; }
+  .tm-foot .muted { margin-left: auto; }
   .sold-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
   .sold-row input { width: 110px; }
   .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
@@ -320,7 +334,10 @@
   <section class="card">
     <div class="card-head">
       <h2 id="stock-title">Stock unveiled</h2>
-      <span class="hint">Solo en esta app: no se publica en warframe.market.</span>
+      <div class="head-tools">
+        <span class="hint">Solo en esta app: no se publica en warframe.market.</span>
+        <button class="ghost" id="tm-open" title="Cambiar 4 rivens publicados por 1 sin abrir">Transmutar</button>
+      </div>
     </div>
     <form class="lot-form" id="lot-form">
       <label>Tipo <select id="lot-type"></select></label>
@@ -423,6 +440,23 @@
     <div class="dialog-actions">
       <button class="ghost" value="cancel">Cancelar</button>
       <button value="ok" id="cd-ok">Cerrar contrato</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="tm-dialog">
+  <form method="dialog" style="padding: 24px">
+    <h3 style="margin: 0 0 10px; font-size: 17px">Transmutar 4 rivens</h3>
+    <p>Elegí los 4 rivens que pusiste en la transmutación del juego. Se cierran sin venta en warframe.market (no se puede deshacer) y entra 1 riven sin abrir al stock.</p>
+    <div class="tm-list" id="tm-list"></div>
+    <div class="tm-foot">
+      <span>Salió uno de tipo</span>
+      <select id="tm-type"></select>
+      <span class="muted" id="tm-count"></span>
+    </div>
+    <div class="dialog-actions">
+      <button class="ghost" value="cancel">Cancelar</button>
+      <button value="ok" id="tm-ok" class="solid-danger" disabled>Transmutar</button>
     </div>
   </form>
 </dialog>
@@ -885,6 +919,73 @@
     applyLocal(res); renderLots(); renderTotals();
     toast(`Agregado: ${qty} ${$("#lot-type").value}`);
     $("#lot-qty").value = 1; $("#lot-cost").value = ""; $("#lot-note").value = "";
+  });
+
+  // Transmutación: 4 contratos publicados -> 1 riven sin abrir en el stock.
+  $("#tm-type").innerHTML = RIVEN_TYPES.map((t) => `<option value="${t}">${cap(t)}</option>`).join("");
+  let tmPicked = new Set(), tmSort = { key: "price", dir: -1 };
+  const tmChecked = () => [...tmPicked];
+  function tmRefresh() {
+    const n = tmPicked.size;
+    $("#tm-count").textContent = `${n}/4 elegidos`;
+    $("#tm-ok").disabled = n !== 4;
+    document.querySelectorAll("#tm-list input").forEach((i) => { i.checked = tmPicked.has(i.value); i.disabled = !i.checked && n >= 4; });
+    document.querySelectorAll("#tm-list tr[data-id]").forEach((r) => r.classList.toggle("picked", tmPicked.has(r.dataset.id)));
+  }
+  function tmRender() {
+    const val = (a) => tmSort.key === "price" ? a.price : tmSort.key === "cost" ? (costs[a.id]?.cost ?? -1) : new Date(a.updated || 0).getTime();
+    const rows = [...mine].sort((a, b) => (val(a) - val(b)) * tmSort.dir);
+    const th = (key, label, cls = "") => {
+      const on = tmSort.key === key;
+      return `<th class="sortable ${on ? "sorted" : ""} ${cls}" data-sort="${key}">${label}<span class="arrow">${on ? (tmSort.dir > 0 ? "↑" : "↓") : ""}</span></th>`;
+    };
+    $("#tm-list").innerHTML = `<table><thead><tr><th></th><th>Riven</th>${th("cost", "Costo", "num")}${th("price", "Precio", "num")}${th("updated", "Actualizado", "num")}</tr></thead><tbody>` +
+      rows.map((a) => {
+        const c = costs[a.id]?.cost;
+        return `<tr data-id="${esc(a.id)}"><td><input type="checkbox" value="${esc(a.id)}"></td>
+          <td>${rivenLabel(a)}${a.visible ? "" : ` <span class="muted">(oculto)</span>`}</td>
+          <td class="num">${c == null ? "—" : c + "p"}</td><td class="num">${a.price}p</td>
+          <td class="num muted">${a.updated ? new Date(a.updated).toLocaleDateString() : "—"}</td></tr>`;
+      }).join("") + `</tbody></table>`;
+    tmRefresh();
+  }
+  $("#tm-open").addEventListener("click", () => {
+    if (mine.length < 4) return toast("Necesitás al menos 4 rivens publicados", true);
+    tmPicked = new Set();
+    tmRender();
+    const dlg = $("#tm-dialog");
+    dlg.returnValue = "";
+    dlg.showModal();
+    dlg.onclose = async () => {
+      if (dlg.returnValue !== "ok") return;
+      const ids = tmChecked(), type = $("#tm-type").value;
+      const btn = $("#tm-open");
+      btn.disabled = true; btn.textContent = "Transmutando…";
+      const res = await api().transmute(ids, type);
+      btn.disabled = false; btn.textContent = "Transmutar";
+      if (res.error) {
+        toast(`No se pudo transmutar: ${res.error}`, true);
+        if (res.transmuted?.length) { const fresh = await api().my_auctions(); if (!fresh.error) { mine = fresh.auctions; applyLocal(fresh); renderAll(); } }
+        return;
+      }
+      mine = mine.filter((a) => !res.transmuted.includes(a.id));
+      applyLocal(res); renderAll();
+      toast(`Transmutado: 1 ${type} sin abrir en el stock`);
+    };
+  });
+  $("#tm-list").addEventListener("click", (e) => {
+    const h = e.target.closest("th[data-sort]");
+    if (h) {
+      const k = h.dataset.sort;
+      tmSort = { key: k, dir: tmSort.key === k ? -tmSort.dir : -1 };
+      return tmRender();
+    }
+    const r = e.target.closest("tr[data-id]");
+    if (!r) return;
+    const id = r.dataset.id;
+    if (tmPicked.has(id)) tmPicked.delete(id);
+    else if (tmPicked.size < 4) tmPicked.add(id);
+    tmRefresh();
   });
 
   $("#lots").addEventListener("click", async (e) => {

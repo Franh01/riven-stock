@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "riven_stock.db"
+RIVEN_TYPES = ("rifle", "shotgun", "pistol", "melee", "zaw", "kitgun")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS auction_events (
@@ -66,9 +67,17 @@ def connect(path=DB_PATH):
     try:
         conn.row_factory = sqlite3.Row
         conn.executescript(SCHEMA)
+        _migrate(conn)
         yield conn
     finally:
         conn.close()
+
+
+def _migrate(conn):
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(stock_lots)")}
+    if "from_transmute" not in cols:
+        conn.execute("ALTER TABLE stock_lots ADD COLUMN from_transmute INTEGER NOT NULL DEFAULT 0")
+        conn.commit()
 
 
 def now_iso():
@@ -117,10 +126,11 @@ def costs(conn):
 
 # ---- Stock unveiled ----------------------------------------------------------
 
-def add_lot(conn, riven_type, quantity, total_cost, note=""):
+def add_lot(conn, riven_type, quantity, total_cost, note="", from_transmute=False):
+    """from_transmute: el costo viene de los rivens sacrificados, que ya cuentan en "invertido"."""
     cur = conn.execute(
-        "INSERT INTO stock_lots (riven_type, quantity, total_cost, note, created_at) VALUES (?, ?, ?, ?, ?)",
-        (riven_type, int(quantity), float(total_cost), note or "", now_iso()),
+        "INSERT INTO stock_lots (riven_type, quantity, total_cost, note, created_at, from_transmute) VALUES (?, ?, ?, ?, ?, ?)",
+        (riven_type, int(quantity), float(total_cost), note or "", now_iso(), int(from_transmute)),
     )
     conn.commit()
     return cur.lastrowid
@@ -163,8 +173,10 @@ def delete_lot(conn, lot_id):
 
 
 def invested(conn):
-    """Platino invertido: el total de los lotes + el costo de los rivens comprados sueltos."""
-    lots_total = conn.execute("SELECT COALESCE(SUM(total_cost), 0) FROM stock_lots").fetchone()[0]
+    """Platino invertido: el total de los lotes + el costo de los rivens comprados sueltos.
+    Los lotes de transmutación no suman: su costo ya está en los rivens que se sacrificaron."""
+    lots_total = conn.execute(
+        "SELECT COALESCE(SUM(total_cost), 0) FROM stock_lots WHERE from_transmute = 0").fetchone()[0]
     loose = conn.execute("SELECT COALESCE(SUM(cost), 0) FROM riven_costs WHERE lot_id IS NULL").fetchone()[0]
     return lots_total + loose
 
