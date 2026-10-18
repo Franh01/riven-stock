@@ -28,7 +28,7 @@ class Api:
     def catalog(self):
         weapons = [
             {"slug": w["slug"], "name": w["i18n"]["en"]["name"], "type": w["rivenType"],
-             "disposition": w.get("disposition")}
+             "group": w.get("group"), "disposition": w.get("disposition")}
             for w in self.client.riven_weapons()
         ]
         stats = [

@@ -206,6 +206,11 @@
   .step { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #a066f633; color: var(--accent-2); }
   .origin-row { display: grid; grid-template-columns: 150px minmax(0, 420px); gap: 10px; align-items: center; margin-bottom: 14px; }
   .origin-row .tag, .name-row .tag { font-size: 12px; color: var(--muted); }
+  .polarity-group { display: flex; gap: 6px; }
+  .pol-btn { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 8px; background: var(--panel-2, #1c1330); border: 1px solid var(--line, #3a2a5a); cursor: pointer; }
+  .pol-btn span { font-size: 12px; }
+  .pol-btn:hover { border-color: var(--accent); }
+  .pol-btn.active { border-color: var(--accent); color: var(--accent-2); box-shadow: 0 0 0 3px #a066f633; }
   .grid-riven { display: grid; grid-template-columns: 2fr 1.1fr .7fr .7fr .7fr; gap: 12px; }
   /* Stats en columna: una fila por stat (etiqueta | stat | valor) */
   .grid-stats { display: grid; gap: 8px; margin-top: 16px; max-width: 640px; }
@@ -359,7 +364,7 @@
       <div class="grid-riven">
         <label>Arma <input id="f-weapon" placeholder="Escribí el arma…"></label>
         <label>Polaridad
-          <select id="f-polarity"><option value="madurai">Madurai</option><option value="naramon">Naramon</option><option value="vazarin">Vazarin</option></select>
+          <div class="polarity-group" id="f-polarity-group"><button type="button" class="pol-btn" data-value="madurai" title="Madurai"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5 L12 19 L20 5"/></svg><span>Madurai</span></button><button type="button" class="pol-btn" data-value="naramon" title="Naramon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 L19 5"/><path d="M10 5 H19 V14"/></svg><span>Naramon</span></button><button type="button" class="pol-btn" data-value="vazarin" title="Vazarin"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5 V19 H11 A7 7 0 0 0 11 5 Z"/></svg><span>Vazarin</span></button></div><input type="hidden" id="f-polarity" value="madurai">
         </label>
         <label>MR <input id="f-mr" type="number" min="8" max="16" value="8"></label>
         <label>Rango <input id="f-rank" type="number" min="0" max="8" value="0"></label>
@@ -1025,6 +1030,14 @@
     }
   }
 
+  // Polaridad: botones con el símbolo; #f-polarity (hidden) guarda el valor.
+  function setPolarity(v) {
+    $("#f-polarity").value = v;
+    document.querySelectorAll(".pol-btn").forEach((b) => b.classList.toggle("active", b.dataset.value === v));
+  }
+  document.querySelectorAll(".pol-btn").forEach((b) => b.addEventListener("click", () => setPolarity(b.dataset.value)));
+  setPolarity("madurai");
+
   const weaponCombo = new Combo($("#f-weapon"), () => refreshSlots());
   // Al elegir o borrar un stat se recalculan las opciones de los otros (no se repiten stats).
   const statCombos = slotEls.map((el) => new Combo(el.querySelector(".slot-stat"), () => refreshSlots()));
@@ -1033,10 +1046,14 @@
   const currentLot = () => lots.find((l) => String(l.id) === $("#f-origin").value);
 
   // Si el riven sale de un lote, solo se ofrecen armas de ese tipo.
+  // Ojo: un riven de pistola puede ser de un arma que la API clasifica como
+  // shotgun pero va en la ranura secundaria (ej. Brakk), por eso también se
+  // acepta group === "secondary" cuando el lote es de pistola.
+  const matchesLotType = (w, type) => !type || w.type === type || (type === "pistol" && w.group === "secondary");
   function refreshWeapons() {
     const type = currentLot()?.riven_type;
     weaponCombo.setOptions(catalog.weapons
-      .filter((w) => !type || w.type === type)
+      .filter((w) => matchesLotType(w, type))
       .map((w) => ({ value: w.slug, label: w.name, hint: w.type })));
   }
 
@@ -1194,7 +1211,7 @@
     ["#f-name", "#f-note", "#f-price", "#f-cost"].forEach((s) => ($(s).value = ""));
     $("#f-name").hidden = true;
     nameAuto = true;
-    $("#f-polarity").value = "madurai"; $("#f-mr").value = 8; $("#f-rank").value = 0; $("#f-rolls").value = 0;
+    setPolarity("madurai"); $("#f-mr").value = 8; $("#f-rank").value = 0; $("#f-rolls").value = 0;
     slotEls.forEach((el, i) => { statCombos[i].set(""); el.querySelector(".slot-value").value = ""; });
     $("#f-visible").checked = true;
   }
@@ -1206,7 +1223,7 @@
     $("#publish-title").textContent = existing ? "Editar contrato" : "Publicar venta directa";
     $("#publish-go").textContent = existing ? "Guardar cambios" : "Publicar";
     $("#origin-row").hidden = !!existing;
-    document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value")
+    document.querySelectorAll(".grid-riven input, .grid-riven select, .pol-btn, .slot-stat, .slot-value")
       .forEach((el) => (el.disabled = !!existing));
     $("#confirm").hidden = true;
     $("#ref-section").hidden = true;
@@ -1216,7 +1233,7 @@
     refreshWeapons();
     if (existing) {
       weaponCombo.set(existing.weapon);
-      $("#f-polarity").value = existing.polarity;
+      setPolarity(existing.polarity);
       $("#f-mr").value = existing.mr; $("#f-rank").value = existing.rank; $("#f-rolls").value = existing.rolls;
       refreshSlots();
       const pos = existing.stats.filter((s) => s.positive), neg = existing.stats.filter((s) => !s.positive);
