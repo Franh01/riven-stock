@@ -13,6 +13,7 @@ import websocket
 import webview
 
 import store
+from orders import OrderCache
 from wfm_client import SEARCH_CAP, WFMClient, WFMError, cheapest_ingame
 
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
@@ -27,6 +28,8 @@ class Api:
     def __init__(self):
         self.client = WFMClient()
         self._seen = {}  # id -> último contrato propio leído de la API (crudo)
+        self._online = False   # lo mantiene el hilo contador
+        self._cache = OrderCache(self.client, self._wanted_weapons)
 
     def catalog(self):
         weapons = [
@@ -49,7 +52,8 @@ class Api:
 
     # ---- Preferencias (locales) -------------------------------------------
 
-    SETTING_KEYS = {"auto_ingame", "mine_sort", "invisible_on_close"}
+    SETTING_KEYS = {"auto_ingame", "mine_sort", "invisible_on_close",
+                    "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor"}
 
     def get_settings(self):
         with store.connect() as conn:
@@ -86,10 +90,13 @@ class Api:
     def start_counter(self):
         self._stop = threading.Event()
         threading.Thread(target=self._counter_loop, daemon=True).start()
+        threading.Thread(target=self._drop_loop, daemon=True).start()
+        self._cache.start()
 
     def stop_counter(self):
         if getattr(self, "_stop", None):
             self._stop.set()
+        self._cache.stop()
 
     def _counter_loop(self):
         last = time.monotonic()
@@ -103,7 +110,8 @@ class Api:
                     st, st_at = self.client.get_status(), now
                 until = st.get("statusUntil") if st else None
                 left = (datetime.fromisoformat(until.replace("Z", "+00:00")) - datetime.now(timezone.utc)).total_seconds() if until else 0
-                if st and st.get("status") in ("online", "ingame") and left > 0:
+                self._online = bool(st and st.get("status") in ("online", "ingame") and left > 0)
+                if self._online:
                     with store.connect() as conn:
                         store.add_online_seconds(conn, elapsed)
                         # solo cuentan los rivens visibles: uno oculto no está a la venta
@@ -112,6 +120,98 @@ class Api:
                         st, st_at = self.client.set_status(st["status"], 240 * 60), now
             except Exception:
                 st = None   # sin red o error de la API: no suma ese minuto y reintenta
+
+    # ---- Caché de órdenes y baja automática ---------------------------------
+
+    DROP_PASS_S = 300      # cada cuánto corre el motor de baja
+    CACHE_MAX_AGE_S = 900  # el motor no decide con órdenes más viejas que esto
+
+    def activity(self):
+        """La interfaz avisa que se está usando; el caché solo carga en idle."""
+        self._cache.touch()
+        return {"ok": True}
+
+    def _wanted_weapons(self):
+        """Armas de mis rivens visibles, primero las de los rivens más cerca de su umbral de horas."""
+        with store.connect() as conn:
+            cfg, hours = store.settings(conn), store.riven_hours(conn)
+        base = cfg.get("autodrop_hours", 10)
+        score = {}
+        for i, a in list(self._seen.items()):
+            if not a.get("visible", True):
+                continue
+            h = hours.get(i, {})
+            ratio = h.get("hours", 0) / (h.get("hours_override") or base or 1)
+            w = a["item"]["weapon_url_name"]
+            score[w] = max(score.get(w, 0), ratio)
+        return sorted(score, key=score.get, reverse=True)
+
+    def weapon_orders(self, weapon):
+        """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta)."""
+        try:
+            e = self._cache.get(weapon) or self._cache.load(weapon)
+        except (WFMError, requests.RequestException) as ex:
+            return {"error": str(ex)}
+        return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],
+                            "reputation": a["owner"].get("reputation")} for a in e["orders"][:7]],
+                "age_s": int(time.time() - e["at"])}
+
+    def _drop_loop(self):
+        while not self._stop.wait(self.DROP_PASS_S):
+            try:
+                if self._online:
+                    self.autodrop_pass()
+            except Exception:
+                pass
+
+    def autodrop_pass(self):
+        """Una pasada: baja como mucho UN riven. Decide solo con órdenes del caché."""
+        with store.connect() as conn:
+            cfg, hours = store.settings(conn), store.riven_hours(conn)
+        if not cfg.get("autodrop_enabled", False):
+            return None
+        for aid, a in sorted(self._seen.items(), key=lambda kv: kv[1]["item"]["weapon_url_name"]):
+            h = hours.get(aid)
+            if not a.get("visible", True) or not h or not h["autodrop_on"]:
+                continue
+            need = h["hours_override"] or cfg.get("autodrop_hours", 10)
+            if h["hours"] < need:
+                continue
+            e = self._cache.get(a["item"]["weapon_url_name"], self.CACHE_MAX_AGE_S)
+            if not e:
+                continue   # el caché lo carga en idle; sin datos frescos no se decide
+            price = a["buyout_price"]
+            others = [o["buyout_price"] for o in e["orders"] if o["id"] != aid]
+            amount = h["amount_override"] or cfg.get("autodrop_amount", 5)
+            floor = h["floor_override"] or cfg.get("autodrop_floor", 10)
+            new = max(price - amount, floor)
+            if not others or price <= min(others) or new >= price:
+                with store.connect() as conn:   # ya es el más barato (o está en el piso): otras N horas
+                    store.reset_riven_hours(conn, aid)
+                continue
+            return self._apply_drop(aid, new)
+        return None
+
+    def _apply_drop(self, aid, new):
+        try:
+            cur = self._current(aid)
+            old = cur["buyout_price"]
+            if new >= old:
+                return None
+            upd = self.client.update_auction(
+                aid, price=new, visible=cur["visible"], note=cur.get("note_raw", ""),
+                minimal_reputation=cur.get("minimal_reputation", 0))
+        except (WFMError, requests.RequestException):
+            return None
+        self._seen[aid] = upd
+        item = upd["item"]
+        text = f"Bajé {item['weapon_url_name']} {item.get('name', '')} de {old} a {new} pt".replace("  ", " ")
+        with store.connect() as conn:
+            store.log_event(conn, upd, "update")
+            store.add_price(conn, aid, new, "auto")
+            store.add_drop(conn, aid, old, new, text)
+            store.reset_riven_hours(conn, aid)
+        return {"id": aid, "old": old, "new": new}
 
     def online_hours(self):
         with store.connect() as conn:

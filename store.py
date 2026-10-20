@@ -82,6 +82,29 @@ CREATE TABLE IF NOT EXISTS price_history (
 );
 CREATE INDEX IF NOT EXISTS idx_price_history ON price_history (auction_id, at);
 
+-- Bajas automáticas de precio (permiten el historial y la reversión).
+CREATE TABLE IF NOT EXISTS price_drops (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    auction_id   TEXT NOT NULL,
+    old_price    INTEGER NOT NULL,
+    new_price    INTEGER NOT NULL,
+    at           TEXT NOT NULL,
+    reverted_at  TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_price_drops ON price_drops (auction_id, at);
+
+-- Avisos del panel de alertas.
+CREATE TABLE IF NOT EXISTS notifications (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind        TEXT NOT NULL,
+    auction_id  TEXT,
+    drop_id     INTEGER,
+    text        TEXT NOT NULL,
+    created_at  TEXT NOT NULL,
+    read_at     TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_notifications ON notifications (read_at, created_at);
+
 -- Preferencias de la interfaz (pywebview corre en modo privado: localStorage no persiste).
 CREATE TABLE IF NOT EXISTS settings (
     key         TEXT PRIMARY KEY,
@@ -290,6 +313,17 @@ def reset_riven_hours(conn, auction_id):
     conn.execute("UPDATE riven_online_hours SET seconds = 0, counting_since = ? WHERE auction_id = ?",
                  (now_iso(), auction_id))
     conn.commit()
+
+
+def add_drop(conn, auction_id, old_price, new_price, text):
+    """Registra una baja y su aviso en una sola transacción. Devuelve el id de la baja."""
+    at = now_iso()
+    cur = conn.execute("INSERT INTO price_drops (auction_id, old_price, new_price, at) VALUES (?, ?, ?, ?)",
+                       (auction_id, old_price, new_price, at))
+    conn.execute("INSERT INTO notifications (kind, auction_id, drop_id, text, created_at) VALUES ('drop', ?, ?, ?, ?)",
+                 (auction_id, cur.lastrowid, text, at))
+    conn.commit()
+    return cur.lastrowid
 
 
 # ---- Preferencias ------------------------------------------------------------

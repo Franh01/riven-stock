@@ -611,6 +611,13 @@
     if (!statusMenu.hidden && !e.target.closest(".status-wrap")) statusMenu.hidden = true;
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") statusMenu.hidden = true; });
+  // Avisa al backend que la app se usa (el caché de órdenes solo carga en idle).
+  let lastPing = 0;
+  ["mousemove", "mousedown", "keydown", "wheel"].forEach((ev) => document.addEventListener(ev, () => {
+    if (Date.now() - lastPing < 5000) return;
+    lastPing = Date.now();
+    api().activity();
+  }, { passive: true }));
   // Refresca la hora que queda; cuando vence, vuelve a preguntar el estado real.
   setInterval(() => {
     if (!myStatus?.statusUntil || statusBusy) return;
