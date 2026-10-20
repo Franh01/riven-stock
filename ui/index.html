@@ -565,7 +565,7 @@
   .upd-actions{display:flex;justify-content:flex-end;gap:10px}
   #upd-dialog{max-width:520px;width:92vw}
 </style>
-<dialog id="confirm-dialog">
+<dialog id="confirm-dialog" data-no-backdrop>
   <div class="dlg-head"><h3 id="cf-title">Confirmar</h3></div>
   <div class="dlg-body"><p id="cf-text"></p></div>
   <div class="cf-actions"><button class="ghost" id="cf-no">Cancelar</button><button class="danger" id="cf-yes">Aceptar</button></div>
@@ -621,6 +621,13 @@
 // Global: al abrir cualquier modal, no dejar el foco (y su marcado) en el botón de cerrar.
 { const _sm = HTMLDialogElement.prototype.showModal;
   HTMLDialogElement.prototype.showModal = function () { _sm.call(this); const f = document.activeElement; if (f && f.classList && f.classList.contains('icon')) f.blur(); }; }
+// Global: click fuera de cualquier modal lo cierra (salvo los marcados data-no-backdrop o que estén ocupados).
+document.addEventListener('mousedown', (e) => {
+  const d = e.target;
+  if (!(d instanceof HTMLDialogElement) || !d.open || d.hasAttribute('data-no-backdrop')) return;
+  const r = d.getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) d.close();
+});
   let catalog = { weapons: [], stats: [], bases: {} };
   const statBySlug = {}, weaponBySlug = {};
   let mine = [];        // contratos abiertos (API)
@@ -1932,7 +1939,7 @@
     $("#upd-title").textContent = "Hay una versión nueva: " + updInfo.version;
     $("#upd-notes").innerHTML = mdLite(updInfo.notas);
     $("#upd-go").disabled = false; $("#upd-go").textContent = "Actualizar ahora";
-    $("#upd-later").hidden = false; $("#upd-x").hidden = false;
+    $("#upd-later").hidden = false; $("#upd-x").hidden = false; $("#upd-dialog").removeAttribute("data-no-backdrop");
     $("#upd-hint").textContent = "Al actualizar, Riven Stock se va a reiniciar. Tus datos no se tocan.";
     updShown = updInfo.version;
     if (!$("#upd-dialog").open) $("#upd-dialog").showModal();
@@ -1948,7 +1955,7 @@
   }
   $("#upd-go").addEventListener("click", async () => {
     $("#upd-go").disabled = true; $("#upd-go").textContent = "Descargando…";
-    $("#upd-later").hidden = true; $("#upd-x").hidden = true;
+    $("#upd-later").hidden = true; $("#upd-x").hidden = true; $("#upd-dialog").setAttribute("data-no-backdrop", "");
     $("#upd-title").textContent = "Actualizando…";
     $("#upd-hint").textContent = "Se está descargando la versión nueva. Cuando termine, Riven Stock se reinicia solo; esperá unos segundos.";
     const x = await api().install_update();
@@ -1956,7 +1963,7 @@
       $("#upd-title").textContent = "No se pudo actualizar";
       $("#upd-hint").textContent = x.error;
       $("#upd-go").disabled = false; $("#upd-go").textContent = "Reintentar";
-      $("#upd-later").hidden = false; $("#upd-x").hidden = false;
+      $("#upd-later").hidden = false; $("#upd-x").hidden = false; $("#upd-dialog").removeAttribute("data-no-backdrop");
     } else {
       $("#upd-title").textContent = "Reiniciando…";
       $("#upd-hint").textContent = "Riven Stock se va a cerrar y volver a abrir en unos segundos.";
