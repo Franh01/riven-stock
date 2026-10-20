@@ -89,6 +89,11 @@ class Api:
     RENEW_BEFORE_S = 600
 
     def start_counter(self):
+        try:
+            with store.connect() as conn:
+                store.purge_old(conn)
+        except Exception:
+            pass
         self._stop = threading.Event()
         threading.Thread(target=self._counter_loop, daemon=True).start()
         threading.Thread(target=self._drop_loop, daemon=True).start()
@@ -191,6 +196,17 @@ class Api:
     def set_autodrop(self, auction_id, on):
         with store.connect() as conn:
             store.set_autodrop(conn, auction_id, on)
+        return {"ok": True}
+
+    def set_overrides(self, auction_id, hours=None, amount=None, floor=None):
+        def num(v, cast):
+            try:
+                v = cast(v)
+                return v if v > 0 else None
+            except (TypeError, ValueError):
+                return None
+        with store.connect() as conn:
+            store.set_overrides(conn, auction_id, num(hours, float), num(amount, int), num(floor, int))
         return {"ok": True}
 
     def riven_summary(self, auction_id):

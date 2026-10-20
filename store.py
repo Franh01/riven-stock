@@ -360,6 +360,21 @@ def set_autodrop(conn, auction_id, on):
     conn.commit()
 
 
+def set_overrides(conn, auction_id, hours, amount, floor):
+    """Ajustes propios de un riven; None = usa el valor global."""
+    conn.execute("UPDATE riven_online_hours SET hours_override = ?, amount_override = ?, floor_override = ? WHERE auction_id = ?",
+                 (hours, amount, floor, auction_id))
+    conn.commit()
+
+
+def purge_old(conn):
+    """Retención: avisos leídos de más de 60 días y bajas de más de 12 meses."""
+    conn.execute("DELETE FROM notifications WHERE read_at IS NOT NULL AND created_at < datetime('now', '-60 days')")
+    conn.execute("DELETE FROM price_drops WHERE at < datetime('now', '-12 months') "
+                 "AND id NOT IN (SELECT drop_id FROM notifications WHERE drop_id IS NOT NULL)")
+    conn.commit()
+
+
 # ---- Preferencias ------------------------------------------------------------
 
 def settings(conn):
