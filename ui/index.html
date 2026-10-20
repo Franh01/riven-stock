@@ -567,7 +567,9 @@
       toast(`No se pudo cambiar el estado: ${res.error}`, true);
       return;
     }
+    const until = myStatus.statusUntil;   // si la API no devolvió la hora, se conserva la optimista
     myStatus = { ...myStatus, ...res.status };
+    if (!myStatus.statusUntil) myStatus.statusUntil = until;
     renderStatus();
     toast(`Estado: ${STATUS_LABEL[status]} hasta las ${hhmm(myStatus.statusUntil)}`);
   }
@@ -581,6 +583,7 @@
         ${DURATIONS.map(([m, label]) => `<button data-status="${s}" data-min="${m}" title="${STATUS_LABEL[s]} por ${label}">${label}</button>`).join("")}
       </div>`).join("") +
       `<label class="auto-row"><input type="checkbox" id="auto-ingame" ${autoIngame() ? "checked" : ""}> Al abrir la app, ponerme <b>En juego</b> por 4 h</label>` +
+      `<label class="auto-row"><input type="checkbox" id="invisible-close" ${settings.invisible_on_close !== false ? "checked" : ""}> Al cerrar la app, ponerme <b>Invisible</b></label>` +
       `<div class="hint">warframe.market no deja más de 4 h. Al vencer, vuelve a tu estado por defecto, aunque la app esté cerrada.</div>`;
     statusMenu.hidden = false;
   });
@@ -591,6 +594,12 @@
     changeStatus(b.dataset.status, Number(b.dataset.min));
   });
   statusMenu.addEventListener("change", (e) => {
+    if (e.target.id === "invisible-close") {
+      settings.invisible_on_close = e.target.checked;
+      api().set_setting("invisible_on_close", e.target.checked);
+      toast(e.target.checked ? "Al cerrar la app vas a quedar Invisible" : "Al cerrar la app no cambia tu estado");
+      return;
+    }
     if (e.target.id !== "auto-ingame") return;
     settings.auto_ingame = e.target.checked;
     api().set_setting("auto_ingame", e.target.checked);

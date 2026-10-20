@@ -53,6 +53,13 @@ CREATE TABLE IF NOT EXISTS riven_costs (
     at          TEXT NOT NULL
 );
 
+-- Horas online efectivas acumuladas: UNA sola fila (id = 1), nunca una fila por muestra.
+CREATE TABLE IF NOT EXISTS online_hours_log (
+    id          INTEGER PRIMARY KEY CHECK (id = 1),
+    seconds     REAL NOT NULL DEFAULT 0,
+    updated_at  TEXT NOT NULL
+);
+
 -- Preferencias de la interfaz (pywebview corre en modo privado: localStorage no persiste).
 CREATE TABLE IF NOT EXISTS settings (
     key         TEXT PRIMARY KEY,
@@ -66,6 +73,8 @@ def connect(path=DB_PATH):
     conn = sqlite3.connect(path)
     try:
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")   # la UI no espera al hilo de fondo
+        conn.execute("PRAGMA busy_timeout=5000")
         conn.executescript(SCHEMA)
         _migrate(conn)
         yield conn
@@ -179,6 +188,21 @@ def invested(conn):
         "SELECT COALESCE(SUM(total_cost), 0) FROM stock_lots WHERE from_transmute = 0").fetchone()[0]
     loose = conn.execute("SELECT COALESCE(SUM(cost), 0) FROM riven_costs WHERE lot_id IS NULL").fetchone()[0]
     return lots_total + loose
+
+
+# ---- Horas online efectivas ----------------------------------------------------
+
+def add_online_seconds(conn, seconds):
+    conn.execute(
+        """INSERT INTO online_hours_log (id, seconds, updated_at) VALUES (1, ?, ?)
+           ON CONFLICT (id) DO UPDATE SET seconds = seconds + excluded.seconds, updated_at = excluded.updated_at""",
+        (float(seconds), now_iso()))
+    conn.commit()
+
+
+def online_seconds(conn):
+    row = conn.execute("SELECT seconds FROM online_hours_log WHERE id = 1").fetchone()
+    return row["seconds"] if row else 0.0
 
 
 # ---- Preferencias ------------------------------------------------------------

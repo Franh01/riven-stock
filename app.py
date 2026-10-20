@@ -3,6 +3,9 @@
 import ctypes
 import json
 import sys
+import threading
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -46,7 +49,7 @@ class Api:
 
     # ---- Preferencias (locales) -------------------------------------------
 
-    SETTING_KEYS = {"auto_ingame", "mine_sort"}
+    SETTING_KEYS = {"auto_ingame", "mine_sort", "invisible_on_close"}
 
     def get_settings(self):
         with store.connect() as conn:
@@ -72,6 +75,55 @@ class Api:
             return {"status": self.client.set_status(status, int(minutes) * 60)}
         except (WFMError, ValueError, OSError, websocket.WebSocketException) as e:
             return {"error": str(e)}
+
+    # ---- Horas online efectivas ---------------------------------------------
+
+    TICK_S = 60          # una muestra por minuto
+    TICK_CAP_S = 120     # tope por muestra: una suspensión de la PC no suma horas
+    STATUS_REFRESH_S = 300
+    RENEW_BEFORE_S = 600
+
+    def start_counter(self):
+        self._stop = threading.Event()
+        threading.Thread(target=self._counter_loop, daemon=True).start()
+
+    def stop_counter(self):
+        if getattr(self, "_stop", None):
+            self._stop.set()
+
+    def _counter_loop(self):
+        last = time.monotonic()
+        st, st_at = None, 0.0
+        while not self._stop.wait(self.TICK_S):
+            now = time.monotonic()
+            elapsed = min(now - last, self.TICK_CAP_S)
+            last = now
+            try:
+                if st is None or now - st_at > self.STATUS_REFRESH_S:
+                    st, st_at = self.client.get_status(), now
+                until = st.get("statusUntil") if st else None
+                left = (datetime.fromisoformat(until.replace("Z", "+00:00")) - datetime.now(timezone.utc)).total_seconds() if until else 0
+                if st and st.get("status") in ("online", "ingame") and left > 0:
+                    with store.connect() as conn:
+                        store.add_online_seconds(conn, elapsed)
+                    if left < self.RENEW_BEFORE_S:   # el servidor corta a las 4 h: renovar mientras la app esté abierta
+                        st, st_at = self.client.set_status(st["status"], 240 * 60), now
+            except Exception:
+                st = None   # sin red o error de la API: no suma ese minuto y reintenta
+
+    def online_hours(self):
+        with store.connect() as conn:
+            return {"hours": store.online_seconds(conn) / 3600}
+
+    def on_closing(self):
+        """Al cerrar la app: Invisible, salvo que el usuario lo haya desactivado."""
+        self.stop_counter()
+        try:
+            with store.connect() as conn:
+                if store.settings(conn).get("invisible_on_close", True):
+                    self.client.set_status("invisible", 60)
+        except Exception:
+            pass   # si falla, el estado vence solo
 
     def search(self, weapon, n=7):
         """Precio de referencia: las `n` ventas directas más baratas del arma (cualquier stat)
@@ -342,11 +394,14 @@ def set_window_icon():
 def main():
     # Agrupa la ventana en la barra de tareas con su propio ícono, no el de Python.
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("franh01.rivenstock")
+    api = Api()
+    api.start_counter()
     window = webview.create_window(
-        TITLE, str(ROOT / "ui" / "index.html"), js_api=Api(),
+        TITLE, str(ROOT / "ui" / "index.html"), js_api=api,
         width=1180, height=780, min_size=(860, 580), background_color="#0c0518",
     )
     window.events.shown += set_window_icon
+    window.events.closing += api.on_closing
     webview.start()
 
 

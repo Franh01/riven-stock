@@ -9,6 +9,7 @@ import json
 import os
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -205,6 +206,8 @@ class WFMClient:
         st = res["status"] or {}
         if st.get("status") != status:   # el evento llegó antes que el ok: armar con la respuesta
             st = {**reply.get("payload", {}), "statusUntil": st.get("statusUntil")}
+        if not st.get("statusUntil"):    # el evento no llegó a tiempo: la hora es la pedida
+            st["statusUntil"] = (datetime.now(timezone.utc) + timedelta(seconds=duration_s)).isoformat(timespec="seconds")
         return st
 
     def me(self):
