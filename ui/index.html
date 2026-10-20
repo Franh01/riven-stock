@@ -1667,15 +1667,28 @@
     const m = Math.round((Date.now() - new Date(iso)) / 60000);
     return m < 1 ? "recién" : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : new Date(iso).toLocaleDateString("es-AR");
   };
+  function groupAlerts(items) {
+    const out = [], byAuc = {};
+    for (const n of items) {   // items vienen de la más nueva a la más vieja
+      const k = n.drop_id && n.auction_id;
+      if (k && byAuc[k]) { const g = byAuc[k]; g.all.push(n); g.old_price = n.old_price; continue; }
+      const g = { ...n, all: [n] }; out.push(g); if (k) byAuc[k] = g;
+    }
+    return out;
+  }
   function renderAlerts() {
-    $("#al-list").innerHTML = alerts.items.length ? alerts.items.map((n) => {
-      const canRevert = n.drop_id && !n.reverted_at;
+    $("#al-list").innerHTML = alerts.items.length ? groupAlerts(alerts.items).map((n) => {
+      const fake = String(n.auction_id || "").startsWith("FAKE");
+      const canRevert = n.drop_id && !n.reverted_at && !fake;
       const d = n.drop_id && n.old_price != null ? dropInfo(n) : null;
-      const head = d ? `<div class="al-name">${esc(d.name)}<small>${esc(d.weapon)}</small>${n.reverted_at ? `<span class="tag">Revertida</span>` : ""}</div>${priceLine(n)}` : `<div class="al-name">${esc(n.text)}</div>`;
-      return `<div class="al-card ${n.read_at ? "" : "unread"} ${n.reverted_at ? "rev" : ""}" data-id="${n.id}"><span class="bar"></span>
+      const unread = n.all.some((x) => !x.read_at);
+      const ids = n.all.map((x) => x.id).join(",");
+      const cnt = n.all.length > 1 ? `<span class="tag" style="background:#a05cf622;color:var(--accent)">${n.all.length} bajas</span>` : "";
+      const head = d ? `<div class="al-name">${esc(d.weapon)}<small>${esc(d.name)}</small>${cnt}${n.reverted_at ? `<span class="tag">Revertida</span>` : ""}</div>${priceLine(n)}` : `<div class="al-name">${esc(n.text)}</div>`;
+      return `<div class="al-card ${unread ? "unread" : ""} ${n.reverted_at ? "rev" : ""}" data-id="${ids}"><span class="bar"></span>
         <div>${head}<div class="when">${esc(agoTxt(n.created_at))}</div></div>
         <div class="acts">
-          ${n.auction_id ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">Ver riven</button>` : ""}
+          ${n.auction_id && !fake ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">Ver Riven</button>` : ""}
           ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">Revertir</button>` : ""}
         </div></div>`;
     }).join("") : `<div class="state">Sin alertas.</div>`;
@@ -1687,10 +1700,10 @@
     clearTimeout(hoverTimer);
     hoverTimer = setTimeout(async () => {
       c.classList.remove("unread");
-      const id = Number(c.dataset.id), it = alerts.items.find((x) => x.id === id);
-      if (it) it.read_at = new Date().toISOString();
+      const ids = c.dataset.id.split(",").map(Number);
+      alerts.items.forEach((x) => { if (ids.includes(x.id)) x.read_at = x.read_at || new Date().toISOString(); });
       alerts.unread = alerts.items.filter((x) => !x.read_at).length; renderBell();
-      try { await api().mark_read(id); } catch (err) { /* se reintenta al abrir */ }
+      try { for (const id of ids) await api().mark_read(id); } catch (err) { /* se reintenta al abrir */ }
     }, 500);
   });
   $("#al-list").addEventListener("mouseout", (e) => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".al-card")) clearTimeout(hoverTimer); });
@@ -1739,7 +1752,7 @@
     }
     for (const n of fresh) {
       const d = dropInfo(n);
-      pop(`<div class="p-top">Baja automática</div><div class="p-name">${d ? `${esc(d.name)} <span style="font-weight:500;color:var(--muted)">${esc(d.weapon)}</span>` : esc(n.text)}</div>${n.old_price != null ? priceLine(n) : ""}`);
+      pop(`<div class="p-top">Baja automática</div><div class="p-name">${d ? `${esc(d.weapon)} <span style="font-weight:500;color:var(--muted)">${esc(d.name)}</span>` : esc(n.text)}</div>${n.old_price != null ? priceLine(n) : ""}`);
     }
   }
   async function loadAlerts() {
