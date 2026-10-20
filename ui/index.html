@@ -250,6 +250,35 @@
   .sum-orders td { vertical-align: top; }
   .sum-orders .seller { font-weight: 600; }
   .sum-orders .seller small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+  #alerts-dialog { width: min(680px, 92vw); }
+  .al-card { display: grid; grid-template-columns: 4px 1fr auto; gap: 14px; align-items: center; padding: 14px 18px 14px 0; border-bottom: 1px solid var(--line); transition: background .25s; }
+  .al-card .bar { align-self: stretch; background: transparent; border-radius: 0 3px 3px 0; transition: background .25s; }
+  .al-card.unread { background: #a05cf614; }
+  .al-card.unread .bar { background: var(--accent); }
+  .al-card .al-name { font-size: 16px; font-weight: 700; }
+  .al-card .al-name small { font-weight: 500; color: var(--muted); font-size: 13px; margin-left: 6px; }
+  .al-prices { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .al-prices .old { color: var(--neg); text-decoration: line-through; text-decoration-thickness: 2px; font-size: 15px; opacity: .85; }
+  .al-prices .arrow { color: var(--muted); }
+  .al-prices .new { color: var(--pos); font-weight: 800; font-size: 20px; }
+  .al-prices .diff { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #7ee2a81f; color: var(--pos); }
+  .al-card .when { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .al-card.rev .new, .al-card.rev .old, .al-card.rev .al-name { opacity: .5; }
+  .al-card .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #e5546b26; color: var(--neg); margin-left: 8px; }
+  .al-card .acts { display: flex; flex-direction: column; gap: 6px; }
+  .al-card .acts button { min-width: 92px; }
+  button.danger { background: #e5546b22; border: 1px solid #e5546b88; color: var(--neg); box-shadow: none; }
+  button.danger:hover { background: #e5546b44; }
+  #confirm-dialog { width: min(440px, 92vw); }
+  #confirm-dialog .cf-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 22px; }
+  #confirm-dialog p { margin: 0; line-height: 1.5; }
+  #pop { position: fixed; right: 22px; bottom: 22px; z-index: 60; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; pointer-events: none; }
+  .pop { pointer-events: auto; cursor: pointer; width: 330px; background: var(--panel-2, #1c1a26); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 12px 16px; box-shadow: 0 10px 34px #000a;
+         transform: translateY(40px); opacity: 0; transition: transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .3s; }
+  .pop.show { transform: none; opacity: 1; }
+  .pop .p-top { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+  .pop .p-name { font-weight: 700; margin-top: 3px; }
+  .pop .when { color: var(--muted); font-size: 12px; margin-top: 4px; }
   .alert-item { padding: 12px 14px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
   .alert-item.unread { background: #a05cf61a; }
   .alert-item .when { color: var(--muted); font-size: 12px; }
@@ -501,6 +530,12 @@
   <div class="dlg-head"><h3>Baja automática</h3><button class="icon" id="cfg-x" title="Cerrar">×</button></div>
   <div class="dlg-body" id="cfg-body"></div>
 </dialog>
+<dialog id="confirm-dialog">
+  <div class="dlg-head"><h3 id="cf-title">Confirmar</h3></div>
+  <div class="dlg-body"><p id="cf-text"></p></div>
+  <div class="cf-actions"><button class="ghost" id="cf-no">Cancelar</button><button class="danger" id="cf-yes">Aceptar</button></div>
+</dialog>
+<div id="pop"></div>
 <dialog id="alerts-dialog">
   <div class="dlg-head"><h3>Alertas</h3>
     <span><button class="ghost" id="al-readall">Marcar todas leídas</button> <button class="icon" id="al-x" title="Cerrar">×</button></span></div>
@@ -1622,19 +1657,98 @@
     $("#bell-count").hidden = !alerts.unread;
     $("#bell-count").textContent = alerts.unread;
   }
+  const dropInfo = (n) => {
+    const m = /^Bajé (\S+) (.+?) de \d+ a \d+ pt$/.exec(n.text || "");
+    return m ? { weapon: m[1].replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), name: m[2] } : null;
+  };
+  const fmtPt = (v) => Number(v).toLocaleString("es-AR");
+  const priceLine = (n) => `<div class="al-prices"><span class="old">${fmtPt(n.old_price)}</span><span class="arrow">→</span><span class="new">${fmtPt(n.new_price)} pt</span><span class="diff">−${fmtPt(n.old_price - n.new_price)}</span></div>`;
+  const agoTxt = (iso) => {
+    const m = Math.round((Date.now() - new Date(iso)) / 60000);
+    return m < 1 ? "recién" : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : new Date(iso).toLocaleDateString("es-AR");
+  };
   function renderAlerts() {
     $("#al-list").innerHTML = alerts.items.length ? alerts.items.map((n) => {
       const canRevert = n.drop_id && !n.reverted_at;
-      return `<div class="alert-item ${n.read_at ? "" : "unread"}" data-id="${n.id}">
-        <div><div>${esc(n.text)}${n.reverted_at ? " <span class=\"muted\">(revertida)</span>" : ""}</div><div class="when">${esc(when(n.created_at))}</div></div>
-        <div style="white-space:nowrap">
-          ${n.auction_id ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">Ver</button>` : ""}
+      const d = n.drop_id && n.old_price != null ? dropInfo(n) : null;
+      const head = d ? `<div class="al-name">${esc(d.name)}<small>${esc(d.weapon)}</small>${n.reverted_at ? `<span class="tag">Revertida</span>` : ""}</div>${priceLine(n)}` : `<div class="al-name">${esc(n.text)}</div>`;
+      return `<div class="al-card ${n.read_at ? "" : "unread"} ${n.reverted_at ? "rev" : ""}" data-id="${n.id}"><span class="bar"></span>
+        <div>${head}<div class="when">${esc(agoTxt(n.created_at))}</div></div>
+        <div class="acts">
+          ${n.auction_id ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">Ver riven</button>` : ""}
           ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">Revertir</button>` : ""}
         </div></div>`;
     }).join("") : `<div class="state">Sin alertas.</div>`;
   }
+  // Marcar como leída al dejar el mouse un momento sobre la alerta
+  let hoverTimer = null;
+  $("#al-list").addEventListener("mouseover", (e) => {
+    const c = e.target.closest(".al-card.unread"); if (!c || c.contains(e.relatedTarget)) return;
+    clearTimeout(hoverTimer);
+    hoverTimer = setTimeout(async () => {
+      c.classList.remove("unread");
+      const id = Number(c.dataset.id), it = alerts.items.find((x) => x.id === id);
+      if (it) it.read_at = new Date().toISOString();
+      alerts.unread = alerts.items.filter((x) => !x.read_at).length; renderBell();
+      try { await api().mark_read(id); } catch (err) { /* se reintenta al abrir */ }
+    }, 500);
+  });
+  $("#al-list").addEventListener("mouseout", (e) => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".al-card")) clearTimeout(hoverTimer); });
+
+  // Confirmación propia (en vez del confirm() del navegador)
+  function askConfirm(title, text, okLabel = "Aceptar") {
+    return new Promise((resolve) => {
+      const dlg = $("#confirm-dialog");
+      $("#cf-title").textContent = title; $("#cf-text").textContent = text; $("#cf-yes").textContent = okLabel;
+      const done = (v) => { dlg.onclose = null; dlg.close(); resolve(v); };
+      $("#cf-yes").onclick = () => done(true); $("#cf-no").onclick = () => done(false);
+      dlg.onclose = () => resolve(false);
+      dlg.showModal();
+    });
+  }
+
+  // Avisos que suben desde abajo + sonido sutil; si llegan muchos juntos se agrupan en uno
+  let audioCtx = null;
+  function blip() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audioCtx.currentTime;
+      [660, 880].forEach((f, k) => {
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = "sine"; o.frequency.value = f; o.connect(g); g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(0.0001, t + k * 0.11); g.gain.exponentialRampToValueAtTime(0.035, t + k * 0.11 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + k * 0.11 + 0.28);
+        o.start(t + k * 0.11); o.stop(t + k * 0.11 + 0.3);
+      });
+    } catch (e) { /* sin audio */ }
+  }
+  function pop(html) {
+    const el = document.createElement("div"); el.className = "pop"; el.innerHTML = html;
+    const close = () => { el.classList.remove("show"); setTimeout(() => el.remove(), 400); };
+    el.addEventListener("click", () => { close(); $("#bell").click(); });
+    $("#pop").appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("show")));
+    setTimeout(close, 9000);
+  }
+  let lastAlertId = null;
+  function announce(fresh) {
+    if (!fresh.length) return;
+    blip();
+    if (fresh.length > 3) {
+      pop(`<div class="p-top">Baja automática</div><div class="p-name">${fresh.length} rivens bajaron de precio</div><div class="when">Tocá para ver el detalle</div>`);
+      return;
+    }
+    for (const n of fresh) {
+      const d = dropInfo(n);
+      pop(`<div class="p-top">Baja automática</div><div class="p-name">${d ? `${esc(d.name)} <span style="font-weight:500;color:var(--muted)">${esc(d.weapon)}</span>` : esc(n.text)}</div>${n.old_price != null ? priceLine(n) : ""}`);
+    }
+  }
   async function loadAlerts() {
-    try { alerts = await api().notifications(); renderBell(); } catch (e) { /* sin conexión con el backend */ }
+    try {
+      alerts = await api().notifications(); renderBell();
+      const top = alerts.items.reduce((m, n) => Math.max(m, n.id), 0);
+      if (lastAlertId !== null && top > lastAlertId) announce(alerts.items.filter((n) => n.id > lastAlertId && !n.read_at).reverse());
+      lastAlertId = top;
+    } catch (e) { /* sin conexión con el backend */ }
   }
   async function openSummary(aid) {
     $("#sum-title").textContent = "Cargando…";
@@ -1714,7 +1828,7 @@
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.act === "open") { $("#alerts-dialog").close(); openSummary(b.dataset.aid); }
     if (b.dataset.act === "revert") {
-      if (!confirm("Volver al precio anterior. Además se apaga la baja automática de este riven. ¿Seguro?")) return;
+      if (!await askConfirm("Revertir baja", "Vuelve al precio anterior en warframe.market y se apaga la baja automática de este riven.", "Revertir")) return;
       const r = await api().revert_drop(Number(b.dataset.drop));
       if (r.error) { toast(r.error, true); return; }
       alerts = r; renderBell(); renderAlerts(); toast("Baja revertida; baja automática apagada para ese riven.");
@@ -1725,7 +1839,7 @@
     const t = e.target.closest("[data-act=summary]");
     if (t) openSummary(t.closest("tr").dataset.id);
   });
-  setInterval(loadAlerts, 60000);
+  setInterval(loadAlerts, 15000);
 
   window.addEventListener("pywebviewready", async () => {
     try {
