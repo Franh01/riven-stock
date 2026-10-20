@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+### Cambiado
+- Versión de prueba del flujo de actualización automática.
+
 ## [0.1.1] - 2026-10-20
 
 ### Corregido
