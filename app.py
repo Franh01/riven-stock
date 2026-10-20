@@ -230,7 +230,7 @@ class Api:
 
     def _finish_close(self):
         try:
-            self.window.evaluate_js("showClosing()")
+            self._window.evaluate_js("showClosing()")
         except Exception:
             pass
         try:
@@ -240,7 +240,7 @@ class Api:
         except Exception:
             pass   # si falla, el estado vence solo
         self._close_ok = True
-        self.window.destroy()
+        self._window.destroy()
 
     def search(self, weapon, n=7):
         """Precio de referencia: las `n` ventas directas más baratas del arma (cualquier stat)
@@ -527,7 +527,7 @@ def main():
         TITLE, str(ROOT / "ui" / "index.html"), js_api=api,
         width=1180, height=780, min_size=(860, 580), background_color="#0c0518",
     )
-    api.window = window
+    api._window = window
     window.events.shown += set_window_icon
     window.events.closing += api.on_closing
     webview.start()
