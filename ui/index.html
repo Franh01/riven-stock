@@ -69,6 +69,11 @@
   button.solid-sold { background: linear-gradient(180deg, #5fd497, #2f9e66); box-shadow: 0 4px 16px #2f9e6655; }
   button.icon { background: none; box-shadow: none; padding: 4px 10px; color: var(--muted); font-size: 20px; line-height: 1; }
   button.icon:hover { color: var(--text); }
+  /* Cerrar de los modales: grande y sin recuadro de foco al abrir (showModal enfoca el primer botón). */
+  .dlg-head button.icon { font-size: 28px; padding: 6px 14px; border-radius: 8px; }
+  .dlg-head button.icon:hover { background: var(--panel-2); }
+  dialog button:focus:not(:focus-visible) { outline: none; }
+  .dlg-head button.icon:focus { outline: none; box-shadow: none; }
 
   table { width: 100%; border-collapse: collapse; }
   th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -613,6 +618,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// Global: al abrir cualquier modal, no dejar el foco (y su marcado) en el botón de cerrar.
+{ const _sm = HTMLDialogElement.prototype.showModal;
+  HTMLDialogElement.prototype.showModal = function () { _sm.call(this); const f = document.activeElement; if (f && f.classList && f.classList.contains('icon')) f.blur(); }; }
   let catalog = { weapons: [], stats: [], bases: {} };
   const statBySlug = {}, weaponBySlug = {};
   let mine = [];        // contratos abiertos (API)
