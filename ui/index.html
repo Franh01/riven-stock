@@ -199,6 +199,15 @@
   .bell .count[hidden] { display: none; }
   #alerts-dialog { width: min(640px, 92vw); max-height: 88vh; }
   #sum-dialog { width: min(1080px, 95vw); max-height: 90vh; }
+  #sum-dialog button:focus, #sum-dialog button:focus-visible, #alerts-dialog button:focus { outline: none; box-shadow: none; }
+  #sum-dialog .dlg-head h3.sum-title { font-size: 24px; font-weight: 700; flex: 1; }
+  .sum-meta { display: flex; gap: 8px; margin-right: 16px; }
+  .sum-meta b { font-size: 14px; padding: 5px 12px; border-radius: 99px; background: #a066f633; color: var(--accent-2); border: 1px solid var(--accent); }
+  .sum-orders td, .sum-orders th { vertical-align: middle; }
+  .sum-orders .seller { text-align: center; max-width: 150px; }
+  .sum-orders .seller > span.nm { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sum-orders .seller small { margin-top: 3px; }
+  .ord-price { white-space: nowrap; }
   .sum-grid { display: grid; grid-template-columns: 330px 1fr; gap: 24px; align-items: start; }
   .sum-side { display: grid; gap: 16px; }
   .sum-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
@@ -483,7 +492,7 @@
 </dialog>
 
 <dialog id="sum-dialog">
-  <div class="dlg-head"><h3 id="sum-title">Riven</h3><button class="icon" id="sum-x" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3 id="sum-title" class="sum-title">Riven</h3><span id="sum-meta" class="sum-meta"></span><button class="icon" id="sum-x" title="Cerrar">×</button></div>
   <div class="dlg-body" id="sum-body" style="overflow:auto;max-height:76vh"></div>
 </dialog>
 
@@ -1621,18 +1630,18 @@
     $("#sum-title").textContent = `${weaponName(a.weapon)} ${a.name}`;
     const SRC = { auto: "Automática", manual: "Manual", seen: "Detectado", revert: "Revertida" };
     const hist = r.history.slice().reverse().map((x) => `<div><span class="muted">${esc(when(x.at))}</span><b>${x.price}p</b><span class="src ${esc(x.source)}">${esc(SRC[x.source] || x.source)}</span></div>`).join("") || `<span class="muted">Sin historial.</span>`;
-    const delta = (p) => p === a.price ? `<small class="muted">igual</small>` : p < a.price ? `<small class="below">${a.price - p}p menos</small>` : `<small class="above">+${p - a.price}p</small>`;
+    const delta = (p) => p === a.price ? `<small class="muted"> igual</small>` : p < a.price ? `<small class="below">${a.price - p}p menos</small>` : `<small class="above">+${p - a.price}p</small>`;
     const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<table class="sum-orders"><thead><tr><th>Vendedor</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
-      o.orders.map((x) => `<tr><td class="seller">${esc(x.seller)}<small><span class="st ${esc(x.status)}">${x.status === "ingame" ? "En juego" : "Online"}</span></small></td><td class="ord-price">${x.price}p${delta(x.price)}</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>`;
+      o.orders.map((x) => `<tr><td class="seller"><span class="nm" title="${esc(x.seller)}">${esc(x.seller)}</span><small><span class="st ${esc(x.status)}">${x.status === "ingame" ? "En juego" : "Online"}</span></small></td><td class="ord-price">${x.price}p${delta(x.price)}</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>`;
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
+    $("#sum-meta").innerHTML = `<b>${a.rolls} rolls</b><b>MR ${a.mr}</b>`;
     $("#sum-body").innerHTML = `<div class="sum-grid">
       <div class="sum-side">
         <div class="sum-card"><div class="kpis">
           <div class="kpi"><b class="accent">${a.price}p</b><span>Tu precio</span></div>
           <div class="kpi"><b>${h ? h.hours.toFixed(1) : "—"}</b><span>Horas online</span></div>
           <div class="kpi"><b>${o.orders ? cheaper : "—"}</b><span>Más baratos</span></div>
-        </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div>
-        <div class="muted" style="margin-top:8px;font-size:12px">${a.rolls} rolls · MR ${a.mr}</div></div>
+        </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div></div>
         <div class="sum-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
         <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>
@@ -1642,6 +1651,7 @@
   }
   $("#bell").addEventListener("click", async () => { await loadAlerts(); renderAlerts(); $("#alerts-dialog").showModal(); });
   $("#al-x").addEventListener("click", () => $("#alerts-dialog").close());
+  for (const id of ["#sum-dialog", "#alerts-dialog"]) $(id).addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $("#sum-x").addEventListener("click", () => $("#sum-dialog").close());
   $("#al-readall").addEventListener("click", async () => { alerts = await api().mark_read(); renderBell(); renderAlerts(); });
   $("#al-list").addEventListener("click", async (e) => {
