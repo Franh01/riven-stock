@@ -4,6 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+### Cambiado
+- El aviso de versión nueva aparece solo al abrir la app, en un modal con las novedades y el botón Actualizar a la derecha.
+- Novedades ordenadas por versión, sin texto de relleno.
+- Al actualizar se muestra un aviso de que la app se reinicia.
+
 ## [0.1.2] - 2026-10-20
 
 ### Cambiado

@@ -533,8 +533,15 @@
 <dialog id="news-dialog">
   <div class="dlg-head"><h3>Novedades</h3><button class="icon" id="news-x" title="Cerrar">×</button></div>
   <div class="dlg-body">
-    <div class="sum-card" id="upd-box" hidden></div>
     <div id="news-body" class="news"></div>
+  </div>
+</dialog>
+<dialog id="upd-dialog">
+  <div class="dlg-head"><h3 id="upd-title">Hay una versión nueva</h3><button class="icon" id="upd-x" title="Cerrar">×</button></div>
+  <div class="dlg-body">
+    <div id="upd-notes" class="news upd-notes"></div>
+    <p class="muted" id="upd-hint" style="margin:0">Al actualizar, Riven Stock se va a reiniciar. Tus datos no se tocan.</p>
+    <div class="upd-actions"><button class="ghost" id="upd-later">Más tarde</button><button id="upd-go">Actualizar ahora</button></div>
   </div>
 </dialog>
 <dialog id="cfg-dialog">
@@ -546,6 +553,12 @@
   .bell.ver .count{position:static;margin-left:6px}
   .news h4{margin:14px 0 4px}.news h5{margin:8px 0 2px;color:var(--muted,#a99)}
   .news ul{margin:2px 0 2px 18px;padding:0}.news li{margin:2px 0}
+  .news .ver-h{display:flex;align-items:baseline;gap:10px;margin:18px 0 6px;font-size:15px;font-weight:700}
+  .news .ver-h:first-child{margin-top:0}
+  .news .ver-h small{font-weight:400;color:var(--muted);font-size:12px}
+  .upd-notes{max-height:40vh;overflow:auto;padding-right:6px}
+  .upd-actions{display:flex;justify-content:flex-end;gap:10px}
+  #upd-dialog{max-width:520px;width:92vw}
 </style>
 <dialog id="confirm-dialog">
   <div class="dlg-head"><h3 id="cf-title">Confirmar</h3></div>
@@ -1877,42 +1890,76 @@
     if (t) openSummary(t.closest("tr").dataset.id);
   });
   // ---- Versión, novedades y actualización ----
-  let updInfo = null;
+  let updInfo = null, updShown = null;
+  const escH = x => x.replace(/&/g, "&amp;").replace(/</g, "&lt;");
   function mdLite(t) {
-    const esc = x => x.replace(/&/g, "&amp;").replace(/</g, "&lt;");
     let out = "", open = false;
     for (const l of t.split(/\r?\n/)) {
-      if (/^- /.test(l)) { if (!open) { out += "<ul>"; open = true; } out += "<li>" + esc(l.slice(2)) + "</li>"; continue; }
+      if (/^- /.test(l)) { if (!open) { out += "<ul>"; open = true; } out += "<li>" + escH(l.slice(2)) + "</li>"; continue; }
       if (open) { out += "</ul>"; open = false; }
-      if (/^### /.test(l)) out += "<h5>" + esc(l.slice(4)) + "</h5>";
-      else if (/^## /.test(l)) out += "<h4>" + esc(l.slice(3)) + "</h4>";
+      if (/^### /.test(l)) out += "<h5>" + escH(l.slice(4)) + "</h5>";
+      else if (/^## /.test(l)) out += "<h4>" + escH(l.slice(3)) + "</h4>";
       else if (/^# /.test(l)) continue;
-      else if (l.trim()) out += "<p>" + esc(l) + "</p>";
+      else if (l.trim()) out += "<p>" + escH(l) + "</p>";
     }
     return out + (open ? "</ul>" : "");
   }
+  // Changelog -> una sección por versión, sin el encabezado ni las secciones vacías.
+  function renderChangelog(t) {
+    const partes = t.split(/^## /m).slice(1);
+    let out = "";
+    for (const sec of partes) {
+      const nl = sec.indexOf("\n");
+      const tit = (nl < 0 ? sec : sec.slice(0, nl)).trim();
+      const cuerpo = nl < 0 ? "" : sec.slice(nl + 1);
+      if (!cuerpo.trim()) continue;
+      const m = tit.match(/^\[([^\]]+)\](?:\s*-\s*(.+))?$/);
+      if (!m || !/^\d/.test(m[1])) continue;
+      out += `<div class="ver-h">Versión ${escH(m[1])}${m[2] ? `<small>${escH(m[2])}</small>` : ""}</div>` + mdLite(cuerpo);
+    }
+    return out || "<p class=\"muted\">Sin novedades.</p>";
+  }
+  function showUpdate() {
+    if (!updInfo) return;
+    $("#upd-title").textContent = "Hay una versión nueva: " + updInfo.version;
+    $("#upd-notes").innerHTML = mdLite(updInfo.notas);
+    $("#upd-go").disabled = false; $("#upd-go").textContent = "Actualizar ahora";
+    $("#upd-later").hidden = false; $("#upd-x").hidden = false;
+    $("#upd-hint").textContent = "Al actualizar, Riven Stock se va a reiniciar. Tus datos no se tocan.";
+    updShown = updInfo.version;
+    if (!$("#upd-dialog").open) $("#upd-dialog").showModal();
+  }
   async function checkUpdate(manual) {
-    const r = await api().check_update();
-    const box = $("#upd-box");
-    if (r.error) { if (manual) { box.hidden = false; box.textContent = r.error; } return; }
+    let r;
+    try { r = await api().check_update(); } catch (e) { r = { error: String(e) }; }
+    if (r.error) { console.warn(r.error); if (manual) toast(r.error); return; }
     updInfo = r.version ? r : null;
     $("#ver-dot").hidden = !updInfo;
-    if (updInfo) {
-      box.hidden = false;
-      box.innerHTML = `<b>Hay una versión nueva: ${updInfo.version}</b><div style="margin:6px 0">${mdLite(updInfo.notas)}</div>
-        <button id="upd-go">Actualizar ahora</button> <small>La app se cierra y vuelve a abrir sola. Tus datos no se tocan.</small>`;
-      $("#upd-go").addEventListener("click", async () => {
-        $("#upd-go").disabled = true; $("#upd-go").textContent = "Descargando…";
-        const x = await api().install_update();
-        if (x.error) { box.textContent = x.error; }
-      });
-    } else if (manual) { box.hidden = false; box.textContent = "Ya tenés la última versión."; }
-    else box.hidden = true;
+    if (updInfo && (manual || updShown !== updInfo.version)) showUpdate();
+    else if (!updInfo && manual) toast("Ya tenés la última versión.");
   }
+  $("#upd-go").addEventListener("click", async () => {
+    $("#upd-go").disabled = true; $("#upd-go").textContent = "Descargando…";
+    $("#upd-later").hidden = true; $("#upd-x").hidden = true;
+    $("#upd-title").textContent = "Actualizando…";
+    $("#upd-hint").textContent = "Se está descargando la versión nueva. Cuando termine, Riven Stock se reinicia solo; esperá unos segundos.";
+    const x = await api().install_update();
+    if (x && x.error) {
+      $("#upd-title").textContent = "No se pudo actualizar";
+      $("#upd-hint").textContent = x.error;
+      $("#upd-go").disabled = false; $("#upd-go").textContent = "Reintentar";
+      $("#upd-later").hidden = false; $("#upd-x").hidden = false;
+    } else {
+      $("#upd-title").textContent = "Reiniciando…";
+      $("#upd-hint").textContent = "Riven Stock se va a cerrar y volver a abrir en unos segundos.";
+    }
+  });
+  $("#upd-later").addEventListener("click", () => $("#upd-dialog").close());
+  $("#upd-x").addEventListener("click", () => $("#upd-dialog").close());
   $("#ver").addEventListener("click", async () => {
-    $("#news-body").innerHTML = mdLite(await api().get_changelog());
+    if (updInfo) { showUpdate(); return; }
+    $("#news-body").innerHTML = renderChangelog(await api().get_changelog());
     $("#news-dialog").showModal();
-    checkUpdate(true);
   });
   $("#news-x").addEventListener("click", () => $("#news-dialog").close());
 
@@ -1934,7 +1981,7 @@
     loadMine();
     loadAlerts();
     api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; });
-    setTimeout(() => checkUpdate(false), 5000);
+    setTimeout(() => checkUpdate(false), 1500);
     setInterval(() => checkUpdate(false), 6 * 3600 * 1000);
     // Al abrir: En juego por 4 h (se desactiva desde el menú del estado).
     if (autoIngame()) changeStatus("ingame", 240).then(() => { if (!myStatus) loadStatus(); }); else loadStatus();
