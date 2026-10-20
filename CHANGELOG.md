@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.1.5] - 2026-10-20
+
 ### Cambiado
 - La app busca actualizaciones cada 1 hora, no solo al abrir.
 - Los modales se cierran al hacer click fuera de ellos.
