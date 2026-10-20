@@ -156,6 +156,53 @@ class Api:
                             "reputation": a["owner"].get("reputation")} for a in e["orders"][:7]],
                 "age_s": int(time.time() - e["at"])}
 
+    def notifications(self):
+        with store.connect() as conn:
+            items = store.notifications(conn)
+        return {"items": items, "unread": sum(1 for n in items if not n["read_at"])}
+
+    def mark_read(self, notification_id=None):
+        with store.connect() as conn:
+            store.mark_read(conn, notification_id)
+        return self.notifications()
+
+    def revert_drop(self, drop_id):
+        """Vuelve al precio anterior a la baja y apaga la baja automática de ese riven."""
+        with store.connect() as conn:
+            d = store.get_drop(conn, drop_id)
+        if not d or d["reverted_at"]:
+            return {"error": "Esa baja ya no se puede revertir."}
+        aid = d["auction_id"]
+        try:
+            cur = self._current(aid)
+            new = self.client.update_auction(
+                aid, price=d["old_price"], visible=cur["visible"], note=cur.get("note_raw", ""),
+                minimal_reputation=cur.get("minimal_reputation", 0))
+        except (WFMError, requests.RequestException) as e:
+            return {"error": str(e)}
+        self._seen[aid] = new
+        with store.connect() as conn:
+            store.log_event(conn, new, "update")
+            store.add_price(conn, aid, new["buyout_price"], "revert")
+            store.mark_reverted(conn, drop_id, aid)
+        return {"auction": auction_view(new), **self.notifications()}
+
+    def set_autodrop(self, auction_id, on):
+        with store.connect() as conn:
+            store.set_autodrop(conn, auction_id, on)
+        return {"ok": True}
+
+    def riven_summary(self, auction_id):
+        """Resumen de un riven: historial de precios, horas y órdenes online más baratas del caché."""
+        a = self._seen.get(auction_id)
+        if not a:
+            return {"error": "Riven no encontrado."}
+        with store.connect() as conn:
+            hist = store.price_history(conn, auction_id)
+            h = store.riven_hours(conn).get(auction_id)
+        return {"auction": auction_view(a), "history": hist, "hours": h,
+                "orders": self.weapon_orders(a["item"]["weapon_url_name"])}
+
     def _drop_loop(self):
         while not self._stop.wait(self.DROP_PASS_S):
             try:

@@ -326,6 +326,40 @@ def add_drop(conn, auction_id, old_price, new_price, text):
     return cur.lastrowid
 
 
+def notifications(conn, limit=100):
+    return [dict(r) for r in conn.execute(
+        "SELECT n.*, d.old_price, d.new_price, d.reverted_at FROM notifications n "
+        "LEFT JOIN price_drops d ON d.id = n.drop_id ORDER BY n.id DESC LIMIT ?", (limit,))]
+
+
+def mark_read(conn, notification_id=None):
+    q = "UPDATE notifications SET read_at = ? WHERE read_at IS NULL"
+    if notification_id is None:
+        conn.execute(q, (now_iso(),))
+    else:
+        conn.execute(q + " AND id = ?", (now_iso(), notification_id))
+    conn.commit()
+
+
+def get_drop(conn, drop_id):
+    r = conn.execute("SELECT * FROM price_drops WHERE id = ?", (drop_id,)).fetchone()
+    return dict(r) if r else None
+
+
+def mark_reverted(conn, drop_id, auction_id):
+    """Marca la baja como revertida, apaga el interruptor de ese riven y deja leídos sus avisos."""
+    at = now_iso()
+    conn.execute("UPDATE price_drops SET reverted_at = ? WHERE id = ?", (at, drop_id))
+    conn.execute("UPDATE riven_online_hours SET autodrop_on = 0 WHERE auction_id = ?", (auction_id,))
+    conn.execute("UPDATE notifications SET read_at = ? WHERE drop_id = ? AND read_at IS NULL", (at, drop_id))
+    conn.commit()
+
+
+def set_autodrop(conn, auction_id, on):
+    conn.execute("UPDATE riven_online_hours SET autodrop_on = ? WHERE auction_id = ?", (1 if on else 0, auction_id))
+    conn.commit()
+
+
 # ---- Preferencias ------------------------------------------------------------
 
 def settings(conn):
