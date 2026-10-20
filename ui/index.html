@@ -1990,7 +1990,7 @@
     loadAlerts();
     api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; });
     setTimeout(() => checkUpdate(false), 1500);
-    setInterval(() => checkUpdate(false), 6 * 3600 * 1000);
+    setInterval(() => checkUpdate(false), 3600 * 1000);
     // Al abrir: En juego por 4 h (se desactiva desde el menú del estado).
     if (autoIngame()) changeStatus("ingame", 240).then(() => { if (!myStatus) loadStatus(); }); else loadStatus();
   });
