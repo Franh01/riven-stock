@@ -118,14 +118,28 @@ class Api:
             return {"hours": store.online_seconds(conn) / 3600}
 
     def on_closing(self):
-        """Al cerrar la app: Invisible, salvo que el usuario lo haya desactivado."""
+        """Al cerrar la app: Invisible, salvo que el usuario lo haya desactivado.
+        Cancela el cierre, muestra "Cerrando…" y cierra de verdad cuando termina."""
+        if getattr(self, "_closing", False):
+            return getattr(self, "_close_ok", False)
+        self._closing = True
         self.stop_counter()
+        try:
+            self.window.evaluate_js("showClosing()")
+        except Exception:
+            pass
+        threading.Thread(target=self._finish_close, daemon=True).start()
+        return False
+
+    def _finish_close(self):
         try:
             with store.connect() as conn:
                 if store.settings(conn).get("invisible_on_close", True):
                     self.client.set_status("invisible", 60)
         except Exception:
             pass   # si falla, el estado vence solo
+        self._close_ok = True
+        self.window.destroy()
 
     def search(self, weapon, n=7):
         """Precio de referencia: las `n` ventas directas más baratas del arma (cualquier stat)
@@ -412,6 +426,7 @@ def main():
         TITLE, str(ROOT / "ui" / "index.html"), js_api=api,
         width=1180, height=780, min_size=(860, 580), background_color="#0c0518",
     )
+    api.window = window
     window.events.shown += set_window_icon
     window.events.closing += api.on_closing
     webview.start()

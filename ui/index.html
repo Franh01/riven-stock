@@ -1542,5 +1542,16 @@
     if (autoIngame()) changeStatus("ingame", 240).then(() => { if (!myStatus) loadStatus(); }); else loadStatus();
   });
 </script>
+<div id="closing" hidden><div class="box"><div class="spin"></div><div>Cerrando…</div></div></div>
+<style>
+  #closing { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
+    background: rgba(12,5,24,.55); backdrop-filter: blur(6px); color: #fff; font-size: 1.1rem; }
+  #closing[hidden] { display: none; }
+  #closing .box { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  #closing .spin { width: 38px; height: 38px; border-radius: 50%; border: 4px solid rgba(255,255,255,.25);
+    border-top-color: #fff; animation: closing-spin .8s linear infinite; }
+  @keyframes closing-spin { to { transform: rotate(360deg); } }
+</style>
+<script>function showClosing() { document.getElementById("closing").hidden = false; }</script>
 </body>
 </html>
