@@ -124,14 +124,15 @@ class Api:
             return getattr(self, "_close_ok", False)
         self._closing = True
         self.stop_counter()
-        try:
-            self.window.evaluate_js("showClosing()")
-        except Exception:
-            pass
+        # El evento corre en el hilo de la interfaz: evaluar JS acá se bloquea a sí mismo.
         threading.Thread(target=self._finish_close, daemon=True).start()
         return False
 
     def _finish_close(self):
+        try:
+            self.window.evaluate_js("showClosing()")
+        except Exception:
+            pass
         try:
             with store.connect() as conn:
                 if store.settings(conn).get("invisible_on_close", True):
