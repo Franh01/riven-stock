@@ -1881,8 +1881,7 @@
   function mdLite(t) {
     const esc = x => x.replace(/&/g, "&amp;").replace(/</g, "&lt;");
     let out = "", open = false;
-    for (const l of t.split(/?
-/)) {
+    for (const l of t.split(/\r?\n/)) {
       if (/^- /.test(l)) { if (!open) { out += "<ul>"; open = true; } out += "<li>" + esc(l.slice(2)) + "</li>"; continue; }
       if (open) { out += "</ul>"; open = false; }
       if (/^### /.test(l)) out += "<h5>" + esc(l.slice(4)) + "</h5>";
