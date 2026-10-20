@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+### Corregido
+- La interfaz no cargaba en 0.1.0 (quedaba en "Cargando...").
+
 ## [0.1.0] - 2026-10-20
 ### Agregado
 - Baja automática de precio de tus rivens, con horas en línea, monto y piso mínimo, global y por riven.
