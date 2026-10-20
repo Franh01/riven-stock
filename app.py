@@ -29,7 +29,7 @@ class Api:
         self.client = WFMClient()
         self._seen = {}  # id -> último contrato propio leído de la API (crudo)
         self._online = False   # lo mantiene el hilo contador
-        self._cache = OrderCache(self.client, self._wanted_weapons)
+        self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"))
 
     def catalog(self):
         weapons = [

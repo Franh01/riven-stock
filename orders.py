@@ -1,5 +1,7 @@
 """Caché de órdenes por arma: se llena cuando la app está en idle, para no pedir todo de golpe."""
 
+import json
+import os
 import threading
 import time
 
@@ -23,13 +25,40 @@ class OrderCache:
     PAUSE_S = 3        # descanso entre armas (además del _throttle del cliente)
     BACKOFF_S = 60     # espera tras un error (429, red)
 
-    def __init__(self, client, wanted_fn):
+    def __init__(self, client, wanted_fn, path=None):
         self.client = client
         self.wanted_fn = wanted_fn      # () -> armas en orden de prioridad
         self._data = {}                 # arma -> {"at": epoch, "orders": [contratos crudos]}
         self._lock = threading.Lock()
         self._active = time.monotonic()
         self._stop = threading.Event()
+        self.path = path
+        self._restore()
+
+    def _restore(self):
+        """Recupera el caché del disco (sobrevive a cerrar y abrir la app)."""
+        if not self.path or not os.path.exists(self.path):
+            return
+        try:
+            with open(self.path, encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                self._data = {k: v for k, v in data.items() if isinstance(v, dict) and "at" in v and "orders" in v}
+        except Exception:
+            self._data = {}
+
+    def _persist(self):
+        if not self.path:
+            return
+        try:
+            with self._lock:
+                blob = json.dumps(self._data)
+            tmp = self.path + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                f.write(blob)
+            os.replace(tmp, self.path)
+        except Exception:
+            pass
 
     def touch(self):
         self._active = time.monotonic()
@@ -49,6 +78,7 @@ class OrderCache:
         e = {"at": time.time(), "orders": cheapest_online(found)}
         with self._lock:
             self._data[weapon] = e
+        self._persist()
         return e
 
     def start(self):
