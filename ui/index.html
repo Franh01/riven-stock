@@ -663,7 +663,7 @@
     const st = myStatus?.status;
     pill.className = `status-pill ${st ? `st-${st}` : ""}`;
     $("#status-label").textContent = st ? STATUS_LABEL[st] ?? st : "Estado…";
-    const until = myStatus?.statusUntil;
+    const until = st === "invisible" ? null : myStatus?.statusUntil;
     $("#status-until").innerHTML = statusBusy ? spinner : until ? `· hasta ${esc(hhmm(until))}` : "";
     pill.title = until ? `Tu estado en warframe.market · vence a las ${hhmm(until)} (en ${remaining(until)})` : "Tu estado en warframe.market";
   }
@@ -692,7 +692,7 @@
     myStatus = { ...myStatus, ...res.status };
     if (!myStatus.statusUntil) myStatus.statusUntil = until;
     renderStatus();
-    toast(`Estado: ${STATUS_LABEL[status]} hasta las ${hhmm(myStatus.statusUntil)}`);
+    toast(status === "invisible" ? "Estado: Invisible" : `Estado: ${STATUS_LABEL[status]} hasta las ${hhmm(myStatus.statusUntil)}`);
   }
 
   const statusMenu = $("#status-menu");
@@ -701,7 +701,8 @@
     statusMenu.innerHTML = ["ingame", "online", "invisible"].map((s) => `
       <div class="status-row st-${s} ${myStatus?.status === s ? "current" : ""}">
         <span class="name"><span class="dot"></span>${STATUS_LABEL[s]}</span>
-        ${DURATIONS.map(([m, label]) => `<button data-status="${s}" data-min="${m}" title="${STATUS_LABEL[s]} por ${label}">${label}</button>`).join("")}
+        ${s === "invisible" ? `<button style="grid-column: span 4" data-status="invisible" data-min="240" title="Ponerte invisible">Ponerme invisible</button>`
+          : DURATIONS.map(([m, label]) => `<button data-status="${s}" data-min="${m}" title="${STATUS_LABEL[s]} por ${label}">${label}</button>`).join("")}
       </div>`).join("") +
       `<label class="auto-row"><input type="checkbox" id="auto-ingame" ${autoIngame() ? "checked" : ""}> Al abrir la app, ponerme <b>En juego</b> por 4 h</label>` +
       `<label class="auto-row"><input type="checkbox" id="invisible-close" ${settings.invisible_on_close !== false ? "checked" : ""}> Al cerrar la app, ponerme <b>Invisible</b></label>` +
