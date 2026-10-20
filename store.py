@@ -60,6 +60,28 @@ CREATE TABLE IF NOT EXISTS online_hours_log (
     updated_at  TEXT NOT NULL
 );
 
+-- Horas online efectivas de cada riven publicado (una fila por riven, se actualiza en el lugar).
+-- Los *_override en NULL usan el valor global.
+CREATE TABLE IF NOT EXISTS riven_online_hours (
+    auction_id      TEXT PRIMARY KEY,
+    seconds         REAL NOT NULL DEFAULT 0,
+    counting_since  TEXT NOT NULL,
+    autodrop_on     INTEGER NOT NULL DEFAULT 1,
+    hours_override  REAL,
+    amount_override INTEGER,
+    floor_override  INTEGER
+);
+
+-- Historial de precios: una fila por cambio de precio (source: seen, publish, manual, auto, revert).
+CREATE TABLE IF NOT EXISTS price_history (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    auction_id  TEXT NOT NULL,
+    price       INTEGER NOT NULL,
+    source      TEXT NOT NULL,
+    at          TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_price_history ON price_history (auction_id, at);
+
 -- Preferencias de la interfaz (pywebview corre en modo privado: localStorage no persiste).
 CREATE TABLE IF NOT EXISTS settings (
     key         TEXT PRIMARY KEY,
@@ -203,6 +225,71 @@ def add_online_seconds(conn, seconds):
 def online_seconds(conn):
     row = conn.execute("SELECT seconds FROM online_hours_log WHERE id = 1").fetchone()
     return row["seconds"] if row else 0.0
+
+
+# ---- Horas por riven e historial de precios ---------------------------------------
+
+def sync_rivens(conn, auctions):
+    """Alinea riven_online_hours con los contratos abiertos: los nuevos empiezan en cero
+    (con su primer precio en el historial) y los que ya no existen se borran."""
+    ids = {a["id"] for a in auctions}
+    known = {r["auction_id"] for r in conn.execute("SELECT auction_id FROM riven_online_hours")}
+    now = now_iso()
+    for a in auctions:
+        if a["id"] not in known:
+            conn.execute("INSERT INTO riven_online_hours (auction_id, counting_since) VALUES (?, ?)", (a["id"], now))
+        last = last_price(conn, a["id"])
+        if last is None:
+            add_price(conn, a["id"], a["buyout_price"], "seen", commit=False)
+    for gone in known - ids:
+        conn.execute("DELETE FROM riven_online_hours WHERE auction_id = ?", (gone,))
+    conn.commit()
+
+
+def last_price(conn, auction_id):
+    row = conn.execute("SELECT price FROM price_history WHERE auction_id = ? ORDER BY id DESC LIMIT 1",
+                       (auction_id,)).fetchone()
+    return row["price"] if row else None
+
+
+def add_price(conn, auction_id, price, source, commit=True):
+    """Registra el precio solo si cambió respecto del último guardado."""
+    if last_price(conn, auction_id) == price:
+        return
+    conn.execute("INSERT INTO price_history (auction_id, price, source, at) VALUES (?, ?, ?, ?)",
+                 (auction_id, int(price), source, now_iso()))
+    if commit:
+        conn.commit()
+
+
+def price_history(conn, auction_id):
+    return [dict(r) for r in conn.execute(
+        "SELECT price, source, at FROM price_history WHERE auction_id = ? ORDER BY id", (auction_id,))]
+
+
+def add_riven_seconds(conn, auction_ids, seconds):
+    """Suma el tiempo efectivo a los rivens dados, en una sola sentencia."""
+    ids = list(auction_ids)
+    if not ids:
+        return
+    marks = ",".join("?" * len(ids))
+    conn.execute(f"UPDATE riven_online_hours SET seconds = seconds + ? WHERE auction_id IN ({marks})",
+                 [float(seconds), *ids])
+    conn.commit()
+
+
+def riven_hours(conn):
+    return {r["auction_id"]: {"hours": r["seconds"] / 3600, "since": r["counting_since"],
+                              "autodrop_on": bool(r["autodrop_on"]),
+                              "hours_override": r["hours_override"], "amount_override": r["amount_override"],
+                              "floor_override": r["floor_override"]}
+            for r in conn.execute("SELECT * FROM riven_online_hours")}
+
+
+def reset_riven_hours(conn, auction_id):
+    conn.execute("UPDATE riven_online_hours SET seconds = 0, counting_since = ? WHERE auction_id = ?",
+                 (now_iso(), auction_id))
+    conn.commit()
 
 
 # ---- Preferencias ------------------------------------------------------------

@@ -468,6 +468,7 @@
   const statBySlug = {}, weaponBySlug = {};
   let mine = [];        // contratos abiertos (API)
   let closed = [];      // cerrados desde la app (local)
+  let hours = {};       // auction_id -> {hours, autodrop_on, ...} (local)
   let costs = {};       // auction_id -> {cost, lot_id} (local)
   let lots = [];        // stock unveiled (local)
   let invested = 0;
@@ -515,6 +516,7 @@
   function applyLocal(data) {
     if (data.closed) closed = [...closed.filter((c) => c.pending), ...data.closed];
     if (data.costs) costs = data.costs;
+    if (data.hours) hours = data.hours;
     if (data.lots) lots = data.lots;
     if (data.invested !== undefined) invested = data.invested;
   }
@@ -718,7 +720,7 @@
     if (!mine.length) { $("#mine").innerHTML = `<div class="state">No tenés ventas directas publicadas.</div>`; return; }
     if (!rows.length) { $("#mine").innerHTML = `<div class="state">Ningún contrato coincide con “${esc($("#search").value.trim())}”.</div>`; return; }
     $("#mine").innerHTML = `<table>
-      <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Costo</th>${sortHeader("price", "Precio")}${sortHeader("updated", "Actualizado")}<th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Costo</th>${sortHeader("price", "Precio")}<th title="Horas online efectivas desde la publicación o la última baja">Horas</th>${sortHeader("updated", "Actualizado")}<th>Estado</th><th></th></tr></thead>
       <tbody>${rows.map((a) => {
         const busy = pending.has(a.id);
         const cost = costs[a.id]?.cost;
@@ -729,6 +731,7 @@
         <td>${esc(a.mr)}</td>
         <td class="nowrap"><span class="editable ${cost === undefined ? "muted" : ""}" data-act="edit-cost" title="Click para cargar lo que te costó">${cost === undefined ? "—" : fmtP(cost)}</span></td>
         <td class="price"><span class="editable" ${busy ? "" : `data-act="edit-price"`} title="Click para editar">${a.price}p</span></td>
+        <td class="nowrap muted" title="Horas online efectivas con el riven publicado">${hours[a.id] ? hours[a.id].hours.toFixed(1) + " h" : "—"}</td>
         <td class="nowrap muted" title="${esc(fullDate(a.updated))}">${esc(ago(a.updated))}</td>
         <td><span class="badge ${a.visible ? "on" : "off"}">${a.visible ? "Visible" : "Oculto"}</span>${busy ? spinner : ""}</td>
         <td class="actions"><button class="more" data-act="menu" title="Acciones" ${busy ? "disabled" : ""}>${DOTS}</button></td>

@@ -106,6 +106,8 @@ class Api:
                 if st and st.get("status") in ("online", "ingame") and left > 0:
                     with store.connect() as conn:
                         store.add_online_seconds(conn, elapsed)
+                        # solo cuentan los rivens visibles: uno oculto no está a la venta
+                        store.add_riven_seconds(conn, [i for i, a in list(self._seen.items()) if a.get("visible", True)], elapsed)
                     if left < self.RENEW_BEFORE_S:   # el servidor corta a las 4 h: renovar mientras la app esté abierta
                         st, st_at = self.client.set_status(st["status"], 240 * 60), now
             except Exception:
@@ -154,6 +156,8 @@ class Api:
             return {"error": str(e)}
         auctions.sort(key=lambda a: (not a["visible"], a["item"]["weapon_url_name"]))
         self._seen = {a["id"]: a for a in auctions}
+        with store.connect() as conn:
+            store.sync_rivens(conn, auctions)
         return {"auctions": [auction_view(a) for a in auctions], **self.local()}
 
     def local(self):
@@ -165,6 +169,7 @@ class Api:
                 "costs": store.costs(conn),
                 "lots": store.lots(conn),
                 "invested": store.invested(conn),
+                "hours": store.riven_hours(conn),
             }
 
     # ---- Costos y stock unveiled (solo local) ----------------------------
@@ -263,7 +268,12 @@ class Api:
         self._seen[auction_id] = new
         with store.connect() as conn:
             store.log_event(conn, new, "update")
+            store.add_price(conn, auction_id, new["buyout_price"], "manual")
         return {"auction": auction_view(new)}
+
+    def price_history(self, auction_id):
+        with store.connect() as conn:
+            return {"history": store.price_history(conn, auction_id)}
 
     def repolarize(self, auction_id, polarity, price=None, visible=None, note=None):
         """La API no deja cambiar la polaridad de un contrato publicado: se publica uno igual con
@@ -298,6 +308,8 @@ class Api:
             warning = f"Se publicó la nueva pero no se pudo cerrar la vieja: {e}"
         with store.connect() as conn:
             store.log_event(conn, new, "create")
+            store.sync_rivens(conn, [new])
+            store.add_price(conn, new["id"], new["buyout_price"], "publish")
             if warning is None:
                 conn.execute("UPDATE riven_costs SET auction_id = ? WHERE auction_id = ?", (new["id"], auction_id))
                 conn.execute("UPDATE lot_openings SET auction_id = ? WHERE auction_id = ?", (new["id"], auction_id))
