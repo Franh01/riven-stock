@@ -163,6 +163,7 @@ class Api:
     # ---- Caché de órdenes y baja automática ---------------------------------
 
     DROP_PASS_S = 300      # cada cuánto corre el motor de baja
+    VIEW_MAX_AGE_S = 600   # al abrir un riven, si los datos son más viejos se vuelven a pedir
     CACHE_MAX_AGE_S = 900  # el motor no decide con órdenes más viejas que esto
 
     def activity(self):
@@ -188,7 +189,7 @@ class Api:
     def weapon_orders(self, weapon):
         """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta)."""
         try:
-            e = self._cache.get(weapon) or self._cache.load(weapon)
+            e = self._cache.get(weapon, self.VIEW_MAX_AGE_S) or self._cache.load(weapon)
         except (WFMError, requests.RequestException) as ex:
             return {"error": str(ex)}
         return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],

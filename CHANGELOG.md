@@ -4,6 +4,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+### Cambiado
+- Al abrir un riven, las órdenes se vuelven a pedir si los datos tienen más de 10 minutos.
+- Botón de cerrar de los modales más grande y sin recuadro de foco al abrir.
+
 ## [0.1.3] - 2026-10-20
 
 ### Cambiado
