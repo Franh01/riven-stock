@@ -197,13 +197,47 @@
   .bell { position: relative; background: none; box-shadow: none; padding: 6px 10px; color: var(--muted); }
   .bell .count { position: absolute; top: -2px; right: -2px; background: #e5546b; color: #fff; border-radius: 9px; font-size: 11px; padding: 0 5px; }
   .bell .count[hidden] { display: none; }
-  #alerts-dialog, #sum-dialog { width: min(640px, 92vw); max-height: 88vh; }
+  #alerts-dialog { width: min(640px, 92vw); max-height: 88vh; }
+  #sum-dialog { width: min(1080px, 95vw); max-height: 90vh; }
+  .sum-grid { display: grid; grid-template-columns: 330px 1fr; gap: 24px; align-items: start; }
+  .sum-side { display: grid; gap: 16px; }
+  .sum-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .sum-card h4, .sum-main h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
+  .kpi b { display: block; font-size: 22px; color: var(--text); }
+  .kpi b.accent { color: var(--accent-2); }
+  .kpi span { font-size: 11px; color: var(--muted); }
+  .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
+  .switch-row small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .switch { position: relative; width: 42px; height: 24px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .switch i { position: absolute; inset: 0; background: #3a2766; border-radius: 99px; transition: background .15s; }
+  .switch i::after { content: ""; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; }
+  .switch input:checked + i { background: var(--accent); }
+  .switch input:checked + i::after { transform: translateX(18px); }
+  .hist { display: grid; gap: 6px; font-size: 13px; max-height: 190px; overflow: auto; }
+  .hist div { display: flex; justify-content: space-between; gap: 8px; }
+  .hist .src { font-size: 11px; padding: 1px 8px; border-radius: 99px; background: #9a8cba22; color: var(--muted); }
+  .hist .src.auto { background: #a066f633; color: var(--accent-2); }
+  .hist .src.revert { background: #ffc86b22; color: #ffc86b; }
+  .st { font-size: 12px; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+  .st.ingame { background: #7ee2a81f; color: var(--pos); }
+  .st.online { background: #ffc86b22; color: #ffc86b; }
+  .ord-price { font-weight: 700; font-size: 15px; }
+  .ord-price small { font-weight: 500; font-size: 11px; margin-left: 4px; }
+  .below { color: var(--neg); } .above { color: var(--pos); }
+  .sum-orders { width: 100%; border-collapse: collapse; }
+  .sum-orders th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  .sum-orders tbody tr { border-top: 1px solid var(--line); }
+  .sum-orders td { vertical-align: top; }
+  .sum-orders .seller { font-weight: 600; }
+  .sum-orders .seller small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
   .alert-item { padding: 12px 14px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
   .alert-item.unread { background: #a05cf61a; }
   .alert-item .when { color: var(--muted); font-size: 12px; }
   .riven-name.link, .riven-weapon.link { cursor: pointer; }
   .riven-weapon.link:hover { text-decoration: underline; }
-  .sum-orders td, .sum-orders th { padding: 5px 8px; text-align: left; }
+  .sum-orders td, .sum-orders th { padding: 8px 8px; text-align: left; }
 
   #close-dialog { width: min(460px, 90vw); }
   #tm-dialog { width: min(620px, 92vw); }
@@ -450,7 +484,7 @@
 
 <dialog id="sum-dialog">
   <div class="dlg-head"><h3 id="sum-title">Riven</h3><button class="icon" id="sum-x" title="Cerrar">×</button></div>
-  <div class="dlg-body" id="sum-body"></div>
+  <div class="dlg-body" id="sum-body" style="overflow:auto;max-height:76vh"></div>
 </dialog>
 
 <dialog id="close-dialog">
@@ -1585,15 +1619,25 @@
     if (r.error) { $("#sum-body").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
     const a = r.auction, h = r.hours, o = r.orders;
     $("#sum-title").textContent = `${weaponName(a.weapon)} ${a.name}`;
-    const hist = r.history.map((x) => `${esc(when(x.at))}: ${x.price}p (${esc(x.source)})`).join("<br>") || "Sin historial.";
-    const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<table class="sum-orders"><thead><tr><th>Vendedor</th><th>Estado</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
-      o.orders.map((x) => `<tr><td>${esc(x.seller)}</td><td>${esc(x.status)}</td><td>${x.price}p</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>
-      <div class="muted">Datos de hace ${Math.round(o.age_s / 60)} min.</div>`;
-    $("#sum-body").innerHTML = `
-      <div><b>${a.price}p</b> · ${h ? h.hours.toFixed(1) + " h online" : "sin horas"} · ${a.rolls} rolls · MR ${a.mr}</div>
-      <label class="auto-row"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}> Baja automática para este riven</label>
-      <div><h4>Órdenes online más baratas</h4>${orders}</div>
-      <div><h4>Historial de precios</h4><div class="muted">${hist}</div></div>`;
+    const SRC = { auto: "Automática", manual: "Manual", seen: "Detectado", revert: "Revertida" };
+    const hist = r.history.slice().reverse().map((x) => `<div><span class="muted">${esc(when(x.at))}</span><b>${x.price}p</b><span class="src ${esc(x.source)}">${esc(SRC[x.source] || x.source)}</span></div>`).join("") || `<span class="muted">Sin historial.</span>`;
+    const delta = (p) => p === a.price ? `<small class="muted">igual</small>` : p < a.price ? `<small class="below">${a.price - p}p menos</small>` : `<small class="above">+${p - a.price}p</small>`;
+    const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<table class="sum-orders"><thead><tr><th>Vendedor</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
+      o.orders.map((x) => `<tr><td class="seller">${esc(x.seller)}<small><span class="st ${esc(x.status)}">${x.status === "ingame" ? "En juego" : "Online"}</span></small></td><td class="ord-price">${x.price}p${delta(x.price)}</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>`;
+    const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
+    $("#sum-body").innerHTML = `<div class="sum-grid">
+      <div class="sum-side">
+        <div class="sum-card"><div class="kpis">
+          <div class="kpi"><b class="accent">${a.price}p</b><span>Tu precio</span></div>
+          <div class="kpi"><b>${h ? h.hours.toFixed(1) : "—"}</b><span>Horas online</span></div>
+          <div class="kpi"><b>${o.orders ? cheaper : "—"}</b><span>Más baratos</span></div>
+        </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div>
+        <div class="muted" style="margin-top:8px;font-size:12px">${a.rolls} rolls · MR ${a.mr}</div></div>
+        <div class="sum-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
+          <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
+        <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>
+      </div>
+      <div class="sum-main"><h4>Órdenes online más baratas${o.age_s != null ? ` · datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min` : ""}</h4>${orders}</div></div>`;
     $("#sum-auto").addEventListener("change", (e) => api().set_autodrop(aid, e.target.checked).then(loadMine));
   }
   $("#bell").addEventListener("click", async () => { await loadAlerts(); renderAlerts(); $("#alerts-dialog").showModal(); });
