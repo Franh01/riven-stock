@@ -197,6 +197,15 @@
   .bell { position: relative; background: none; box-shadow: none; padding: 6px 10px; color: var(--muted); }
   .bell .count { position: absolute; top: -2px; right: -2px; background: #e5546b; color: #fff; border-radius: 9px; font-size: 11px; padding: 0 5px; }
   .bell .count[hidden] { display: none; }
+  #cfg-dialog { width: min(560px, 92vw); }
+  .cfg-grid { display: grid; gap: 14px; }
+  .cfg-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; }
+  .cfg-row small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .cfg-row .val { font-weight: 700; font-size: 18px; color: var(--accent-2); min-width: 64px; text-align: right; }
+  .cfg-row input[type=range] { grid-column: 1 / -1; accent-color: var(--accent); width: 100%; }
+  .cfg-row input[type=number] { width: 80px; }
+  .cfg-off { opacity: .45; pointer-events: none; }
+  #cfg-dialog button:focus { outline: none; box-shadow: none; }
   #alerts-dialog { width: min(640px, 92vw); max-height: 88vh; }
   #sum-dialog { width: min(1080px, 95vw); max-height: 90vh; }
   #sum-dialog button:focus, #sum-dialog button:focus-visible, #alerts-dialog button:focus { outline: none; box-shadow: none; }
@@ -367,6 +376,9 @@
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11c0-3.1-1.6-5.6-4.5-6.3V4a1.5 1.5 0 0 0-3 0v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
     <span class="count" id="bell-count" hidden></span>
   </button>
+  <button class="bell" id="gear" title="Configuración de la baja automática">
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>
+  </button>
   <div class="totals" id="totals"></div>
 </header>
 
@@ -485,6 +497,10 @@
   </div>
 </dialog>
 
+<dialog id="cfg-dialog">
+  <div class="dlg-head"><h3>Baja automática</h3><button class="icon" id="cfg-x" title="Cerrar">×</button></div>
+  <div class="dlg-body" id="cfg-body"></div>
+</dialog>
 <dialog id="alerts-dialog">
   <div class="dlg-head"><h3>Alertas</h3>
     <span><button class="ghost" id="al-readall">Marcar todas leídas</button> <button class="icon" id="al-x" title="Cerrar">×</button></span></div>
@@ -1652,6 +1668,46 @@
   $("#bell").addEventListener("click", async () => { await loadAlerts(); renderAlerts(); $("#alerts-dialog").showModal(); });
   $("#al-x").addEventListener("click", () => $("#alerts-dialog").close());
   for (const id of ["#sum-dialog", "#alerts-dialog"]) $(id).addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+  // ---- Configuración de la baja automática ----
+  const CFG_DEF = { autodrop_enabled: false, autodrop_hours: 10, autodrop_amount: 5, autodrop_floor: 10, invisible_on_close: true };
+  const cfgVal = (k) => (settings[k] === undefined || settings[k] === null ? CFG_DEF[k] : settings[k]);
+  const sw = (id, on) => `<span class="switch"><input type="checkbox" id="${id}" ${on ? "checked" : ""}><i></i></span>`;
+  async function openConfig() {
+    $("#cfg-body").innerHTML = `<div class="state">Cargando…</div>`;
+    $("#cfg-dialog").showModal();
+    const oh = await api().online_hours();
+    const total = oh && oh.hours != null ? oh.hours : 0;
+    const on = cfgVal("autodrop_enabled");
+    $("#cfg-body").innerHTML = `<div class="cfg-grid">
+      <div class="sum-card"><label class="switch-row"><span><b>Baja automática</b><small>Interruptor general. Cada riven además tiene el suyo en su resumen.</small></span>${sw("cfg-enabled", on)}</label></div>
+      <div class="sum-card ${on ? "" : "cfg-off"}" id="cfg-params"><div class="cfg-grid">
+        <div class="cfg-row"><span>Horas online antes de bajar<small>Se cuentan solo las horas con tu estado Online o En juego.</small></span><span class="val" id="v-hours">${cfgVal("autodrop_hours")} h</span>
+          <input type="range" id="cfg-hours" min="1" max="72" value="${cfgVal("autodrop_hours")}"></div>
+        <div class="cfg-row"><span>Cuánto baja cada vez</span><span class="val" id="v-amount">${cfgVal("autodrop_amount")}p</span>
+          <input type="range" id="cfg-amount" min="1" max="50" value="${cfgVal("autodrop_amount")}"></div>
+        <div class="cfg-row"><span>Piso mínimo<small>Nunca baja por debajo de este precio.</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
+      </div></div>
+      <div class="sum-card"><label class="switch-row"><span>Invisible al cerrar la app${""}<small>Al cerrar, tu estado pasa a Invisible.</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
+      <div class="muted" style="font-size:12px">Horas online acumuladas en total: <b>${total.toFixed(1)} h</b></div>
+    </div>`;
+  }
+  const saveCfg = (k, v) => { settings[k] = v; api().set_setting(k, v); };
+  $("#gear").addEventListener("click", openConfig);
+  $("#cfg-x").addEventListener("click", () => $("#cfg-dialog").close());
+  $("#cfg-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+  $("#cfg-body").addEventListener("input", (e) => {
+    if (e.target.id === "cfg-hours") $("#v-hours").textContent = e.target.value + " h";
+    if (e.target.id === "cfg-amount") $("#v-amount").textContent = e.target.value + "p";
+  });
+  $("#cfg-body").addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(t.checked ? "Baja automática activada" : "Baja automática desactivada"); }
+    else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
+    else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
+    else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
+    else if (t.id === "cfg-invis") saveCfg("invisible_on_close", t.checked);
+  });
+
   $("#sum-x").addEventListener("click", () => $("#sum-dialog").close());
   $("#al-readall").addEventListener("click", async () => { alerts = await api().mark_read(); renderBell(); renderAlerts(); });
   $("#al-list").addEventListener("click", async (e) => {
