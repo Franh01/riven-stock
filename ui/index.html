@@ -1916,9 +1916,6 @@
     checkUpdate(true);
   });
   $("#news-x").addEventListener("click", () => $("#news-dialog").close());
-  api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; });
-  setTimeout(() => checkUpdate(false), 5000);
-  setInterval(() => checkUpdate(false), 6 * 3600 * 1000);
 
   setInterval(loadAlerts, 15000);
 
@@ -1937,6 +1934,9 @@
     if (settings.mine_sort) sort = settings.mine_sort;
     loadMine();
     loadAlerts();
+    api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; });
+    setTimeout(() => checkUpdate(false), 5000);
+    setInterval(() => checkUpdate(false), 6 * 3600 * 1000);
     // Al abrir: En juego por 4 h (se desactiva desde el menú del estado).
     if (autoIngame()) changeStatus("ingame", 240).then(() => { if (!myStatus) loadStatus(); }); else loadStatus();
   });
