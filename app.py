@@ -4,6 +4,7 @@ import ctypes
 import json
 import sys
 import threading
+import traceback
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -206,10 +207,18 @@ class Api:
     def _drop_loop(self):
         while not self._stop.wait(self.DROP_PASS_S):
             try:
-                if self._online:
-                    self.autodrop_pass()
+                r = self.autodrop_pass() if self._online else "offline"
+                self._log_pass(r)
             except Exception:
-                pass
+                self._log_pass(traceback.format_exc())
+
+    def _log_pass(self, result):
+        try:
+            p = store.DB_PATH.parent / "cache" / "autodrop.log"
+            with open(p, "a", encoding="utf-8") as f:
+                f.write(f"{store.now_iso()} {result}" + chr(10))
+        except Exception:
+            pass
 
     def autodrop_pass(self):
         """Una pasada: baja como mucho UN riven. Decide solo con órdenes del caché."""
