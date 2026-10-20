@@ -408,6 +408,7 @@
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11c0-3.1-1.6-5.6-4.5-6.3V4a1.5 1.5 0 0 0-3 0v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
     <span class="count" id="bell-count" hidden></span>
   </button>
+  <button class="bell ver" id="ver" title="Novedades y actualizaciones"><span id="ver-txt">v</span><span class="count" id="ver-dot" hidden>!</span></button>
   <button class="bell" id="gear" title="Configuración de la baja automática">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>
   </button>
@@ -529,10 +530,23 @@
   </div>
 </dialog>
 
+<dialog id="news-dialog">
+  <div class="dlg-head"><h3>Novedades</h3><button class="icon" id="news-x" title="Cerrar">×</button></div>
+  <div class="dlg-body">
+    <div class="sum-card" id="upd-box" hidden></div>
+    <div id="news-body" class="news"></div>
+  </div>
+</dialog>
 <dialog id="cfg-dialog">
   <div class="dlg-head"><h3>Baja automática</h3><button class="icon" id="cfg-x" title="Cerrar">×</button></div>
   <div class="dlg-body" id="cfg-body"></div>
 </dialog>
+<style>
+  .bell.ver{width:auto;padding:0 10px;font-size:12px}
+  .bell.ver .count{position:static;margin-left:6px}
+  .news h4{margin:14px 0 4px}.news h5{margin:8px 0 2px;color:var(--muted,#a99)}
+  .news ul{margin:2px 0 2px 18px;padding:0}.news li{margin:2px 0}
+</style>
 <dialog id="confirm-dialog">
   <div class="dlg-head"><h3 id="cf-title">Confirmar</h3></div>
   <div class="dlg-body"><p id="cf-text"></p></div>
@@ -1862,6 +1876,50 @@
     const t = e.target.closest("[data-act=summary]");
     if (t) openSummary(t.closest("tr").dataset.id);
   });
+  // ---- Versión, novedades y actualización ----
+  let updInfo = null;
+  function mdLite(t) {
+    const esc = x => x.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    let out = "", open = false;
+    for (const l of t.split(/?
+/)) {
+      if (/^- /.test(l)) { if (!open) { out += "<ul>"; open = true; } out += "<li>" + esc(l.slice(2)) + "</li>"; continue; }
+      if (open) { out += "</ul>"; open = false; }
+      if (/^### /.test(l)) out += "<h5>" + esc(l.slice(4)) + "</h5>";
+      else if (/^## /.test(l)) out += "<h4>" + esc(l.slice(3)) + "</h4>";
+      else if (/^# /.test(l)) continue;
+      else if (l.trim()) out += "<p>" + esc(l) + "</p>";
+    }
+    return out + (open ? "</ul>" : "");
+  }
+  async function checkUpdate(manual) {
+    const r = await api().check_update();
+    const box = $("#upd-box");
+    if (r.error) { if (manual) { box.hidden = false; box.textContent = r.error; } return; }
+    updInfo = r.version ? r : null;
+    $("#ver-dot").hidden = !updInfo;
+    if (updInfo) {
+      box.hidden = false;
+      box.innerHTML = `<b>Hay una versión nueva: ${updInfo.version}</b><div style="margin:6px 0">${mdLite(updInfo.notas)}</div>
+        <button id="upd-go">Actualizar ahora</button> <small>La app se cierra y vuelve a abrir sola. Tus datos no se tocan.</small>`;
+      $("#upd-go").addEventListener("click", async () => {
+        $("#upd-go").disabled = true; $("#upd-go").textContent = "Descargando…";
+        const x = await api().install_update();
+        if (x.error) { box.textContent = x.error; }
+      });
+    } else if (manual) { box.hidden = false; box.textContent = "Ya tenés la última versión."; }
+    else box.hidden = true;
+  }
+  $("#ver").addEventListener("click", async () => {
+    $("#news-body").innerHTML = mdLite(await api().get_changelog());
+    $("#news-dialog").showModal();
+    checkUpdate(true);
+  });
+  $("#news-x").addEventListener("click", () => $("#news-dialog").close());
+  api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; });
+  setTimeout(() => checkUpdate(false), 5000);
+  setInterval(() => checkUpdate(false), 6 * 3600 * 1000);
+
   setInterval(loadAlerts, 15000);
 
   window.addEventListener("pywebviewready", async () => {

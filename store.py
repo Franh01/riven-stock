@@ -7,6 +7,7 @@
 """
 
 import json
+import shutil
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -121,16 +122,38 @@ def connect(path=DB_PATH):
         conn.execute("PRAGMA journal_mode=WAL")   # la UI no espera al hilo de fondo
         conn.execute("PRAGMA busy_timeout=5000")
         conn.executescript(SCHEMA)
-        _migrate(conn)
+        _migrate(conn, path)
         yield conn
     finally:
         conn.close()
 
 
-def _migrate(conn):
+def _m1_from_transmute(conn):
     cols = {r["name"] for r in conn.execute("PRAGMA table_info(stock_lots)")}
     if "from_transmute" not in cols:
         conn.execute("ALTER TABLE stock_lots ADD COLUMN from_transmute INTEGER NOT NULL DEFAULT 0")
+
+
+# Migraciones en orden: la posición + 1 es la versión del esquema (PRAGMA user_version).
+# Solo se agregan al final, nunca se reordenan ni se editan las ya publicadas.
+MIGRATIONS = [_m1_from_transmute]
+
+
+def _migrate(conn, path=DB_PATH):
+    actual = conn.execute("PRAGMA user_version").fetchone()[0]
+    if actual >= len(MIGRATIONS):
+        return
+    if actual > 0 and str(path) != ":memory:":
+        # Backup previo: solo si ya había datos con un esquema anterior.
+        try:
+            conn.commit()
+            conn.execute("PRAGMA wal_checkpoint(FULL)")
+            shutil.copy2(path, f"{path}.pre-v{actual}.bak")
+        except OSError:
+            pass
+    for i in range(actual, len(MIGRATIONS)):
+        MIGRATIONS[i](conn)
+        conn.execute(f"PRAGMA user_version = {i + 1}")
         conn.commit()
 
 

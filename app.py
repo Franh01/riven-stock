@@ -14,6 +14,7 @@ import websocket
 import webview
 
 import store
+import updater
 from orders import OrderCache
 from wfm_client import SEARCH_CAP, WFMClient, WFMError, cheapest_ingame
 
@@ -55,6 +56,38 @@ class Api:
 
     SETTING_KEYS = {"auto_ingame", "mine_sort", "invisible_on_close",
                     "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor"}
+
+    # ---- Actualizaciones ----
+    def get_version(self):
+        return updater.version_actual()
+
+    def get_changelog(self):
+        try:
+            return (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        except OSError:
+            return ""
+
+    def check_update(self):
+        """{version, notas} si hay una versión nueva; {} si no; {error} si no se pudo consultar."""
+        try:
+            info = updater.buscar_actualizacion()
+        except Exception as e:
+            return {"error": f"No se pudo buscar actualizaciones: {e}"}
+        self._update_info = info
+        return {"version": info["version"], "notas": info["notas"]} if info else {}
+
+    def install_update(self):
+        info = getattr(self, "_update_info", None)
+        if not info:
+            return {"error": "No hay una actualización pendiente."}
+        try:
+            staging, nuevo = updater.preparar(info)
+            updater.lanzar_aplicador(staging, nuevo)
+        except Exception as e:
+            return {"error": str(e)}
+        # Cierra por el camino normal (queda Invisible); el aplicador espera y reemplaza.
+        threading.Timer(1.0, lambda: self._window.destroy()).start()
+        return {"ok": True}
 
     def get_settings(self):
         with store.connect() as conn:

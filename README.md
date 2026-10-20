@@ -81,3 +81,9 @@ powershell -ExecutionPolicy Bypass -File tools\create_shortcut.ps1
 - `tools/derive_riven_bases.py`: regenera `data/riven_bases.json` (los valores base de los stats, sacados del export público de Digital Extremes) si el juego cambia los rivens.
 
 La API de escritura de warframe.market no está documentada oficialmente y puede cambiar.
+
+## Actualizaciones
+
+La app busca versiones nuevas en GitHub Releases al iniciar y cada 6 horas. Si hay una, aparece un aviso en el botón de versión (arriba a la derecha), con las novedades y un botón **Actualizar ahora**. Se descarga, se verifica el sha256, la app se cierra, se reemplazan los archivos (tus datos, el token y el entorno no se tocan) y se vuelve a abrir sola. Si algo falla, se restaura la versión anterior (`_backup/`). Antes de migrar la base de datos se guarda una copia `.bak`.
+
+Para publicar una versión (mantenedor): anotá los cambios en `CHANGELOG.md` bajo `[Sin publicar]` y ejecutá `python tools/release.py X.Y.Z`.

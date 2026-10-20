@@ -11,3 +11,6 @@ HARs/
 # Notas de trabajo (locales, no se publican)
 INDEX.md
 CLAUDE.md
+_backup/
+*.bak
+dist/
