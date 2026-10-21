@@ -2133,6 +2133,7 @@ document.addEventListener('mousedown', (e) => {
           <div class="kpi"><b>${o.orders ? cheaper : "—"}</b><span>Más baratos</span></div>
         </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div></div>
         ${estCard}
+        <div class="sum-card" id="trend-card"><h4>Tendencia del arma</h4><small class="muted">Cargando…</small></div>
         ${mk ? "" : `<div class="sum-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
         <div class="sum-card"><h4>Ajustes de este riven</h4><div class="ovr">
@@ -2145,6 +2146,18 @@ document.addEventListener('mousedown', (e) => {
       <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
     document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
+    api().market_trend(a.weapon, 90).then((t) => {
+      const c = $("#trend-card"); if (!c) return;
+      const pts = (t.points || []).filter((x) => x.median != null);
+      if (pts.length < 2) { c.innerHTML = `<h4>Tendencia del arma</h4><small class="muted">${pts.length ? "Hay 1 día registrado: la tendencia aparece desde el segundo." : "Todavía sin datos: se registra una foto por día."}</small>`; return; }
+      const W = 260, H = 70, vals = pts.flatMap((x) => [x.median, x.min_price]), lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
+      const xy = (i, v) => `${(i / (pts.length - 1) * W).toFixed(1)},${(H - 4 - (v - lo) / span * (H - 8)).toFixed(1)}`;
+      const line = (k, col) => `<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" points="${pts.map((x, i) => xy(i, x[k])).join(" ")}"/>`;
+      const first = pts[0].median, last = pts[pts.length - 1].median, pct = first ? Math.round((last - first) / first * 100) : 0;
+      c.innerHTML = `<h4>Tendencia del arma</h4><div style="display:flex;align-items:baseline;gap:10px"><b class="accent" style="font-size:24px">${last}p</b><span class="${pct > 0 ? "below" : pct < 0 ? "above" : "muted"}">${pct > 0 ? "+" : ""}${pct}% en ${pts.length} días</span></div>
+        <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="margin-top:8px">${line("min_price", "var(--accent-2)")}${line("median", "var(--accent)")}</svg>
+        <small class="muted">Mediana (violeta fuerte) y mínimo · ${pts[pts.length - 1].n_online} online de ${pts[pts.length - 1].n_orders}</small>`;
+    }).catch(() => {});
     const resize = (fn) => {   // cambio de alto suave y corto: mide antes y después
       const d = $("#sum-dialog"), from = d.offsetHeight;
       d.style.height = ""; fn();
