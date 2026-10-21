@@ -2641,13 +2641,17 @@ document.addEventListener('mousedown', (e) => {
   }
   const stTxt = (s) => tr(s === "ingame" || s === "online" ? "st." + s : "st.offline");
   let mkRows = [];
+  let mkSort = { k: "price", d: 1 };
+  const stRank = { ingame: 0, online: 1, offline: 2 };
   function renderMarket() {
     const st = $("#mkf-status").value, mp = +$("#mkf-price").value, mr = $("#mkf-rolls").value, ng = $("#mkf-neg").value;
     const rows = mkRows.filter((a) => (st === "all" || (st === "ingame" ? a.status === "ingame" : a.status === "ingame" || a.status === "online"))
       && (!mp || a.price <= mp) && (mr === "" || (a.rolls ?? 0) <= +mr)
       && (ng === "any" || (ng === "has") === a.stats.some((x) => !x.positive)));
+    rows.sort((a, b) => mkSort.d * (mkSort.k === "status" ? (stRank[a.status] ?? 3) - (stRank[b.status] ?? 3) || a.price - b.price : a.price - b.price));
+    const arrow = (k) => (mkSort.k === k ? (mkSort.d > 0 ? " ▲" : " ▼") : "");
     $("#mk-info").textContent = tr("mkt.info", { n: rows.length, t: mkRows.length });
-    $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>${tr("mkt.seller")}</th><th>${tr("th.price")}</th></tr></thead><tbody>${
+    $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th class="mk-sort" data-k="status" style="cursor:pointer">${tr("mkt.seller")}${arrow("status")}</th><th class="mk-sort" data-k="price" style="cursor:pointer">${tr("th.price")}${arrow("price")}</th></tr></thead><tbody>${
       rows.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
         <td><div class="stats">${a.stats.map((s) => formatStat(s)).join("")}</div></td><td>${a.rolls ?? "—"}</td>
         <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${stTxt(a.status)}</span></small></td>
@@ -2670,6 +2674,10 @@ document.addEventListener('mousedown', (e) => {
     }
   }
   $("#mk-go").addEventListener("click", runMarket);
+  $("#mk-results").addEventListener("click", (e) => {
+    const h = e.target.closest(".mk-sort");
+    if (h) { mkSort = mkSort.k === h.dataset.k ? { k: mkSort.k, d: -mkSort.d } : { k: h.dataset.k, d: 1 }; renderMarket(); return; }
+  });
   $("#mk-results").addEventListener("click", (e) => { const tr = e.target.closest(".mk-row"); if (tr) openSummary(tr.dataset.id); });
   $("#views").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
