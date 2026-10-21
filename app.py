@@ -879,14 +879,13 @@ class Api:
 
     def market_search(self, weapon, stats=(), n=150):
         """Pestaña Mercado: ventas directas de un arma (con esos stats positivos, si hay), de las
-        más baratas a las más caras; vendedores en juego/online primero en el desempate."""
+        más baratas a las más caras (todos los vendedores, con su estado)."""
         stats = [s for s in stats if s]
         try:
             found = self.client.search_direct(weapon, stats)
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
         rows = [a for a in found if a.get("visible", True) and not a.get("closed") and not a.get("private")]
-        rows = [a for a in rows if a["owner"].get("status") in ("ingame", "online")] or rows
         rows.sort(key=lambda a: a["buyout_price"])
         rows = rows[:n]
         for a in rows:
