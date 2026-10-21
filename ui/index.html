@@ -479,10 +479,9 @@
   .dd-btn::after { content: ""; flex: none; width: 7px; height: 7px; border: solid var(--muted); border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(45deg); transition: transform .15s; }
   .dd.open .dd-btn::after { transform: translateY(1px) rotate(-135deg); border-color: var(--accent-2); }
   .dd-list {
-    position: absolute; z-index: 40; left: 0; min-width: 100%; top: calc(100% + 4px); max-height: 264px; overflow: auto; padding: 4px;
+    position: fixed; z-index: 100; max-height: 264px; overflow: auto; padding: 4px;
     background: #1b0e33; border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 12px 34px #000b;
   }
-  .dd.up .dd-list { top: auto; bottom: calc(100% + 4px); }
   .dd-item { padding: 7px 10px; border-radius: 7px; cursor: pointer; color: var(--text); font-size: 13px; white-space: nowrap; }
   .dd-item.active { background: #a066f633; }
   .dd-item.selected { color: var(--accent-2); font-weight: 600; }
@@ -1479,8 +1478,11 @@ document.addEventListener('mousedown', (e) => {
       list.innerHTML = opts().map((o, i) => `<div class="dd-item ${o.selected ? "selected" : ""}" data-i="${i}">${esc(o.textContent)}</div>`).join("");
       active = Math.max(0, sel.selectedIndex);
       list.hidden = false; wrap.classList.add("open");
-      const r = wrap.getBoundingClientRect();
-      if (innerHeight - r.bottom < Math.min(list.scrollHeight, 270) + 12 && r.top > innerHeight - r.bottom) wrap.classList.add("up");
+      // fixed: así la lista no agranda el scroll del diálogo o de la página
+      const r = btn.getBoundingClientRect(), h = Math.min(list.scrollHeight, 266);
+      const up = innerHeight - r.bottom < h + 12 && r.top > innerHeight - r.bottom;
+      list.style.minWidth = r.width + "px"; list.style.left = r.left + "px";
+      list.style.top = up ? "" : r.bottom + 4 + "px"; list.style.bottom = up ? innerHeight - r.top + 4 + "px" : "";
       paint(); list.children[active]?.scrollIntoView({ block: "nearest" });
     };
     btn.addEventListener("click", () => (list.hidden ? open() : close()));
@@ -1488,6 +1490,7 @@ document.addEventListener('mousedown', (e) => {
     list.addEventListener("click", (e) => { const it = e.target.closest(".dd-item"); if (it) pick(+it.dataset.i); });
     list.addEventListener("mousemove", (e) => { const it = e.target.closest(".dd-item"); if (it && +it.dataset.i !== active) { active = +it.dataset.i; paint(); } });
     btn.addEventListener("blur", close);
+    addEventListener("resize", close); addEventListener("scroll", () => { if (!list.hidden) close(); }, true);
     btn.addEventListener("keydown", (e) => {
       const n = opts().length;
       if (list.hidden) {
