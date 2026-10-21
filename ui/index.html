@@ -2843,7 +2843,7 @@ document.addEventListener('mousedown', (e) => {
   }
   // Notas bilingües: bloques "#### Español" y "#### English"; sin marcas = solo español. Cae al español si falta el idioma.
   function pickLang(t) {
-    const parts = t.split(/^#### (Español|English)[ 	]*?$/m);
+    const parts = t.split(/^#### (Español|English)[ \t]*\r?$/m);
     if (parts.length < 3) return t;
     const by = {};
     for (let i = 1; i < parts.length; i += 2) by[parts[i] === "English" ? "en" : "es"] = parts[i + 1];

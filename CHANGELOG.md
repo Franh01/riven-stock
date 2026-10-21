@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
+- Arreglo: en algunas instalaciones la app no cargaba (pantalla en blanco) por un error en el lector de las notas de versión.
+
+#### English
+- Fix: on some installs the app did not load (blank screen) because of an error in the release notes reader.
+
+#### Español
 - El diálogo de "Nuevo riven" es más simple: origen, MR, rango y rolls quedan plegados en "Más detalles", y costo, visibilidad y nota en "Opciones" al publicar.
 
 #### English
