@@ -354,7 +354,7 @@ window.LANGS.en = {
   "opp.rmTip": "Remove",
   "cfg.invisSub": "On close, your status becomes Invisible.",
   "cfg.showReq": "Show warframe.market requests",
-  "cfg.showReqSub": "Shows the last 3 requests the app makes in the bottom-right corner, with a short name.",
+  "cfg.showReqSub": "Shows the last 3 requests the app makes in the top-left corner, with a short name.",
   "req.retry": "retry",
   "cfg.autoIn": "In game when opening the app",
   "cfg.autoInSub": "On open, your status becomes In game for 4 h.",
