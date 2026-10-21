@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Actualizador: si una actualización falla y vuelve atrás, también borra los archivos que la versión nueva había agregado.
+
 ## [0.5.0] - 2026-10-21
 
 - Copias de seguridad: los datos pasan a la carpeta del usuario (%APPDATA%\RivenStock), así reinstalar no los borra (la base actual se copia sola la primera vez). Copia automática diaria y al cerrar, y en Configuración: copiar ahora, exportar, importar y abrir carpeta.

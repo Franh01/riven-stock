@@ -117,15 +117,19 @@ def _esperar_pid(pid, limite=60):
         k32.CloseHandle(h)
 
 
-def _copiar_arbol(origen, destino):
+def _copiar_arbol(origen, destino, creados=None):
     for item in origen.iterdir():
         if item.name in PRESERVAR:
             continue
         d = destino / item.name
         if item.is_dir():
+            if creados is not None and not d.exists():
+                creados.append(d)
             d.mkdir(exist_ok=True)
-            _copiar_arbol(item, d)
+            _copiar_arbol(item, d, creados)
         else:
+            if creados is not None and not d.exists():
+                creados.append(d)
             shutil.copy2(item, d)
 
 
@@ -165,12 +169,13 @@ def aplicar(pid, nuevo, app_dir):
     _esperar_pid(int(pid))
     time.sleep(1)
     backup = app_dir / "_backup"
+    creados = []
     vieja = version_actual(app_dir)
     reqs_viejos = (app_dir / "requirements.txt").read_text(encoding="utf-8") \
         if (app_dir / "requirements.txt").exists() else ""
     try:
         _respaldar(app_dir, backup)
-        _copiar_arbol(nuevo, app_dir)
+        _copiar_arbol(nuevo, app_dir, creados)
         reqs_nuevos = (app_dir / "requirements.txt").read_text(encoding="utf-8") \
             if (app_dir / "requirements.txt").exists() else ""
         py = app_dir / ".venv" / "Scripts" / "python.exe"
@@ -185,6 +190,12 @@ def aplicar(pid, nuevo, app_dir):
         anotar(f"Falló la actualización ({e}); se restaura la versión {vieja}")
         try:
             _restaurar(app_dir, backup)
+            # Lo que la version nueva agrego y la vieja no tenia se quita (los mas profundos primero).
+            for c in sorted(creados, key=lambda x: len(x.parts), reverse=True):
+                if c.is_dir():
+                    shutil.rmtree(c, ignore_errors=True)
+                else:
+                    c.unlink(missing_ok=True)
         except Exception as e2:
             anotar(f"Falló el rollback: {e2}")
     pyw = app_dir / ".venv" / "Scripts" / "pythonw.exe"
