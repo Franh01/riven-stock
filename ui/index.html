@@ -1760,7 +1760,7 @@ document.addEventListener('mousedown', (e) => {
     if (!chip) return;
     usePrice(chip.dataset.price);
     $("#confirm").hidden = true;
-    if (typeof tour !== "undefined" && tour && TOURS[tour.id].steps[tour.i].el === "#ref-section") setTimeout(() => tour && tourStep(tour.i + 1), 700);   // en el recorrido, usar un precio lleva al paso siguiente (donde se ve cargado)
+    if (typeof tour !== "undefined" && tour && TOURS[tour.id].steps[tour.i].el === "#ref-section") setTimeout(() => tour && tourStep(tour.i + 1), 0);   // en el recorrido, usar un precio lleva al paso siguiente (donde se ve cargado)
   });
   $("#ref-go").addEventListener("click", runReference);
 
