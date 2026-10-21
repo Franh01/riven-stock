@@ -2415,6 +2415,7 @@ document.addEventListener('mousedown', (e) => {
       $("#f-price").value = d.price;
       refreshSlots();
       editing = d; demoReference(); editing = null;
+      document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value, .pol-btn").forEach((el) => (el.disabled = true));   // datos fijos de ejemplo
     }
     demoOpen = mode;
     $("#f-weapon").blur(); document.querySelectorAll("#riven-dialog .combo-list").forEach((l) => (l.hidden = true));   // openRiven enfoca el arma y abre su lista; el recorrido no la quiere
