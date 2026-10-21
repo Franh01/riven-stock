@@ -51,13 +51,15 @@
   .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
   h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
   label { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
-  input, select, button { font: inherit; color: var(--text); }
-  input, select {
+  input, select, textarea, button { font: inherit; color: var(--text); }
+  input, select, textarea {
     background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px;
     padding: 9px 11px; outline: none; width: 100%;
   }
-  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #a066f633; }
-  input:disabled, select:disabled { opacity: .5; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #a066f633; }
+  input:disabled, select:disabled, textarea:disabled { opacity: .5; }
+  textarea { resize: vertical; font-family: Consolas, monospace; font-size: 12px; line-height: 1.4; box-sizing: border-box; }
+  textarea::placeholder { color: var(--muted); opacity: .7; }
   input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   button {
