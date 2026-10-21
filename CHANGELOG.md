@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.4] - 2026-10-21
+
 #### Español
 - Al editar un riven, el estimado ya no cuenta tu propia publicación como comparable.
 - La confirmación de edición muestra los stats antes y después, con el aviso de republicación arriba en naranja y botones simétricos.
