@@ -213,7 +213,7 @@ window.LANGS.en = {
   "rd.seeOrders": "See the {n} orders",
   "rd.rep": "rep",
   "rd.estRunning": "Calculating… may take a while",
-  "rd.estNone": "Not enough comparables.",
+  "rd.estNone": "Not enough comparables. Check the values match the game (2% instead of ~170% resembles nothing) and the rank.",
   "rd.estNeed": "Enter at least 2 positive stats to estimate.",
   "rd.estimated": "Estimate",
   "rd.range": "Range",

@@ -213,7 +213,7 @@ window.LANGS.es = {
   "rd.seeOrders": "Ver las {n} órdenes",
   "rd.rep": "rep",
   "rd.estRunning": "Calculando… puede tardar",
-  "rd.estNone": "Sin comparables suficientes.",
+  "rd.estNone": "Sin comparables suficientes. Revisá que los valores sean los del juego (un 2% en vez de ~170% no se parece a nada) y el rango.",
   "rd.estNeed": "Cargá al menos 2 stats positivos para estimar.",
   "rd.estimated": "Estimado",
   "rd.range": "Rango",
