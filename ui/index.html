@@ -417,6 +417,9 @@
   .chip b { display: block; font-size: 20px; font-weight: 600; color: var(--accent-2); }
   .chip span { color: var(--muted); font-size: 12px; }
   button.chip:hover { border-color: var(--accent); filter: none; }
+  details.orders > summary { cursor: pointer; color: var(--muted); font-size: 12px; padding: 6px 0; user-select: none; }
+  details.orders > summary:hover { color: var(--text); }
+  details.orders[open] > summary { margin-bottom: 4px; }
   .ref-table td { padding: 7px 10px; font-size: 13px; }
   .ref-table td.price { font-size: 14px; }
   .ref-table td:nth-child(2), .ref-table td:nth-child(4), .ref-table td:nth-child(5) { white-space: nowrap; }
@@ -1740,14 +1743,14 @@ document.addEventListener('mousedown', (e) => {
     $("#summary").innerHTML = [["Mínimo", prices[0]], ["Mediana", median], ["Promedio", avg]]
       .map(([k, v]) => `<button class="chip" data-price="${v}" title="Usar como precio"><b>${v}p</b><span>${k} · usar</span></button>`).join("") +
       `<div class="chip"><b>${rows.length}</b><span>Comparables</span></div>`;
-    $("#results").innerHTML = `<table class="ref-table">
+    $("#results").innerHTML = `<details class="orders"><summary>Ver las ${rows.length} órdenes</summary><table class="ref-table">
       <tbody>${rows.map((r) => `<tr>
         <td class="price">${r.price}p</td>
         <td><a class="riven-name" style="font-size:13px" href="https://warframe.market/auction/${esc(r.id)}" target="_blank">${esc(r.name)}</a></td>
         <td><div class="stats">${r.stats.map(formatStat).join("")}</div></td>
         <td class="muted">${esc(r.rolls)} rolls · MR${esc(r.mr)}</td>
         <td>${esc(r.seller)} <span class="muted">· rep ${esc(r.reputation)}</span></td>
-      </tr>`).join("")}</tbody></table>`;
+      </tr>`).join("")}</tbody></table></details>`;
   }
 
   function usePrice(v) {   // pone el precio, baja hasta el campo y lo hace parpadear
@@ -1768,23 +1771,36 @@ document.addEventListener('mousedown', (e) => {
 
   async function runEstimate() {
     if (!editing) return;
+    if (editing.id === "demo") return demoEstimate();
     const btn = $("#est-go"); btn.disabled = true; btn.textContent = "Calculando… puede tardar";
     $("#est-section").hidden = false; $("#est-summary").innerHTML = ""; $("#est-results").innerHTML = skelRows(4);
     try {
       const r = await api().riven_summary(editing.id), es = r.estimate;
       if (r.error) { $("#est-results").innerHTML = `<div class="state error">${esc(r.error)}</div>`; return; }
       if (!es) { $("#est-results").innerHTML = `<div class="state">Sin comparables suficientes.</div>`; return; }
-      $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="Usar como precio"><b>${es.price}p</b><span>Estimado · usar</span></button>` +
-        `<div class="chip"><b>${es.low}–${es.high}p</b><span>Rango</span></div><div class="chip"><b>${es.n}</b><span>Comparables · ${esc(es.confidence)}</span></div>` +
-        (es.partial ? `<div class="state error">Incompleto: warframe.market limitó los pedidos. Probá de nuevo en un minuto.</div>` : "");
-      $("#est-results").innerHTML = `<table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
-        <td class="price">${x.price}p</td>
-        <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
-        <td class="muted">${esc(x.rolls ?? "?")} rolls · ${Math.round(x.sim * 100)}% parecido</td>
-        <td>${esc(x.seller)}</td></tr>`).join("")}</tbody></table>`;
+      renderEstimate(es);
     } finally {
       btn.disabled = false; btn.textContent = "Calcular estimado con comparables";
     }
+  }
+  function renderEstimate(es) {
+    {
+      $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="Usar como precio"><b>${es.price}p</b><span>Estimado · usar</span></button>` +
+        `<div class="chip"><b>${es.low}–${es.high}p</b><span>Rango</span></div><div class="chip"><b>${es.n}</b><span>Comparables · ${esc(es.confidence)}</span></div>` +
+        (es.partial ? `<div class="state error">Incompleto: warframe.market limitó los pedidos. Probá de nuevo en un minuto.</div>` : "");
+      $("#est-results").innerHTML = `<details class="orders"><summary>Ver los ${es.comps.length} comparables</summary><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
+        <td class="price">${x.price}p</td>
+        <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
+        <td class="muted">${esc(x.rolls ?? "?")} rolls · ${Math.round(x.sim * 100)}% parecido</td>
+        <td>${esc(x.seller)}</td></tr>`).join("")}</tbody></table></details>`;
+    }
+  }
+  function demoEstimate() {   // estimado de mentira para el tutorial, sin red
+    $("#est-section").hidden = false;
+    const st = demoRiven().stats;
+    renderEstimate({ price: 95, low: 80, high: 110, n: 5, confidence: "media", partial: false,
+      comps: [[80, 14, .92, "caiwan7"], [90, 6, .88, "syalsim"], [95, 2, .85, "Kibbleray"], [100, 0, .8, "Souza"], [110, 41, .76, "Biker27893"]]
+        .map(([price, rolls, sim, seller]) => ({ price, rolls, sim, seller, stats: st })) });
   }
   $("#est-go").addEventListener("click", runEstimate);
   $("#est-summary").addEventListener("click", (e) => {
@@ -2376,12 +2392,14 @@ document.addEventListener('mousedown', (e) => {
       { el: ".grid-riven", demo: "new", t: "Arma y datos", x: "Elegís el arma, la polaridad, MR, rango y rolls. Los cargué de ejemplo." },
       { el: "#stat-slots", demo: "new", t: "Stats", x: "Hasta tres stats positivos y uno negativo, con sus valores tal como figuran en el juego." },
       { el: "#name-chips", demo: "new", t: "Nombre", x: "El nombre sale de los stats; elegís entre las combinaciones posibles." },
-      { el: "#ref-section", demo: "new", t: "Precio de referencia", x: "Compara con las más baratas en venta del arma (acá son datos de ejemplo). Tocá Mínimo, Mediana o Promedio para usarlo como precio y pasamos al siguiente paso." },
+      { el: "#ref-section", demo: "new", t: "Precio de referencia", x: "Compara con las más baratas en venta del arma (acá son datos de ejemplo). Las órdenes están plegadas: se abren con Ver las órdenes. Tocá Mínimo, Mediana o Promedio para usarlo como precio y pasamos al siguiente paso." },
       { el: "#publish-section", demo: "new", t: "Publicar", x: "Precio, costo (solo se guarda en la app), visibilidad y nota. Publicar te pide confirmación. En el recorrido está desactivado." },
       { el: '#mine tr[data-id="demo"] button.more', demo: "list", click: true, t: "Menú de acciones", x: "Así aparece en tu lista el riven que acabamos de crear (de ejemplo). Cada fila tiene un menú de tres puntos a la derecha: tocalo." },
       { el: '#row-menu [data-menu="edit"]', demo: "menu", click: true, t: "Editar", x: "Desde acá editás, ocultás o mostrás, y marcás como vendido o cerrado. Tocá Editar para ver el editor." },
       { el: ".grid-riven", demo: "edit", t: "Editar uno publicado", x: "Así queda el mismo riven ya publicado. Arma, stats, MR, rango y rolls quedan fijos; solo podés cambiar la polaridad." },
       { el: "#rd-auto", demo: "edit", t: "Baja automática", x: "El switch activa la [[Baja automática]] solo para este riven; los campos de al lado pisan los valores globales." },
+      { el: "#est-go", demo: "edit", click: true, t: "Estimado con comparables", x: "Busca rivens parecidos al tuyo (mismos stats) y calcula un precio. Tarda porque hace varias búsquedas. Tocalo: te muestro un ejemplo." },
+      { el: "#est-section", demo: "edit", pre: demoEstimate, t: "Estimado", x: "Te da un precio y un rango. Tocá el estimado para usarlo como precio, o abrí la lista para ver los comparables." },
       { el: "#publish-section", demo: "edit", t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
       { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
     ] },
@@ -2434,7 +2452,7 @@ document.addEventListener('mousedown', (e) => {
     }
     demoOpen = mode;
     $("#f-weapon").blur(); document.querySelectorAll("#riven-dialog .combo-list").forEach((l) => (l.hidden = true));   // openRiven enfoca el arma y abre su lista; el recorrido no la quiere
-    $("#publish-go").disabled = true; $("#est-go").disabled = true;
+    $("#publish-go").disabled = true; $("#est-go").disabled = mode === "new";   // en la edicion de ejemplo el estimado si se puede tocar (muestra datos falsos)
   }
   let tour = null;
   const tourState = () => settings.tutorials || { done: {}, off: false };
@@ -2452,6 +2470,7 @@ document.addEventListener('mousedown', (e) => {
     const T = TOURS[tour.id], st = T.steps[i];
     if (st.demo) openDemo(st.demo); else closeDemo();
     document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.demo && d.id === "riven-dialog")) d.close(); });
+    if (st.pre) st.pre();
     const el = document.querySelector(st.el);
     if (!el || !el.getClientRects().length) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
     tour.i = i;
