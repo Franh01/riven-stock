@@ -627,7 +627,7 @@
   </section>
 
   <section class="card view-report" id="report-card">
-    <div class="card-head"><h2 data-i18n="rp.title">Reporte de ventas</h2></div>
+    <div class="card-head"><h2 data-i18n="rp.title">Reporte de ventas</h2><button class="ghost" id="report-help" title="Recorrido guiado de este panel" data-i18n-title="stock.tourTip" style="padding:6px 11px">?</button></div>
     <div id="report"></div>
   </section>
 
@@ -2359,6 +2359,7 @@ document.addEventListener('mousedown', (e) => {
     const b = e.target.closest("button"); if (!b) return;
     document.querySelector("main").dataset.view = b.dataset.view;
     document.querySelectorAll("#views button").forEach((x) => x.classList.toggle("on", x === b));
+    if (b.dataset.view === "report") { const ts = tourState(); if (!ts.off && !ts.done.reporte) setTimeout(() => startTour("reporte"), 300); }
   });
 
   const growFrom = (from) => {   // anima el alto de la ventana desde `from` hasta el que tiene ahora
@@ -2672,6 +2673,12 @@ document.addEventListener('mousedown', (e) => {
 
   // ---- Tutoriales guiados ----
   const TOURS = {
+    reporte: { title: "tour.reporte.title", steps: [
+      { el: "#report .rp-filters", t: "tour.reporte.1.t", x: "tour.reporte.1.x" },
+      { el: "#report .rp-kpis", t: "tour.reporte.2.t", x: "tour.reporte.2.x" },
+      { el: "#report .rp-chart", t: "tour.reporte.3.t", x: "tour.reporte.3.x" },
+      { el: "#report .rp-rank", t: "tour.reporte.4.t", x: "tour.reporte.4.x" },
+    ] },
     stock: { title: "tour.stock.title", steps: [
       { el: "#stock-card .card-head", t: "tour.stock.1.t", x: "tour.stock.1.x" },
       { el: "#lot-form", t: "tour.stock.2.t", x: "tour.stock.2.x" },
@@ -2942,13 +2949,14 @@ document.addEventListener('mousedown', (e) => {
   const HELP_N = 9;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
-      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button>`;
+      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button>`;
       for (let k = 1; k <= HELP_N; k++) h += `<div class="hsec"><h4>${tr("help." + k + ".t")}</h4><p>${tr("help." + k + ".x")}</p></div>`;
       document.getElementById("help-body").innerHTML = h;
       document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
     };
     renderHelp(); document.addEventListener("langchange", renderHelp);
     document.getElementById("stock-help").addEventListener("click", () => startTour("stock"));
+    document.getElementById("report-help").addEventListener("click", () => startTour("reporte"));
     document.getElementById("help-btn").addEventListener("click", () => document.getElementById("help-dialog").showModal());
     document.getElementById("help-x").addEventListener("click", () => document.getElementById("help-dialog").close());
     document.getElementById("help-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
