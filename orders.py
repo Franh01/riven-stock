@@ -30,6 +30,7 @@ class OrderCache:
     def __init__(self, client, wanted_fn, path=None):
         self.client = client
         self.wanted_fn = wanted_fn      # () -> armas en orden de prioridad
+        self._targeted = {}             # (arma, stats) -> (epoch, [slim]); consultas filtradas por stats
         self._data = {}                 # arma -> {"at": epoch, "orders": [contratos crudos]}
         self._lock = threading.Lock()
         self._active = time.monotonic()
@@ -84,6 +85,18 @@ class OrderCache:
             self._data[weapon] = e
         self._persist()
         return e
+
+    def targeted(self, weapon, stats):
+        """Publicaciones del arma que tienen todos esos stats positivos (filtra el servidor, por eso
+        no se pierden las caras: la búsqueda general corta en ~500 y se queda con las más baratas)."""
+        key = (weapon, tuple(sorted(stats)))
+        hit = self._targeted.get(key)
+        if hit and time.time() - hit[0] <= self.TTL_S:
+            return hit[1]
+        found = self.client.search_direct(weapon, list(stats))
+        rows = [slim(a) for a in found if a.get("visible", True) and not a.get("closed") and not a.get("private")]
+        self._targeted[key] = (time.time(), rows)
+        return rows
 
     def start(self):
         threading.Thread(target=self._loop, daemon=True).start()

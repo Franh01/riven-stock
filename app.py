@@ -254,9 +254,22 @@ class Api:
         with store.connect() as conn:
             hist = store.price_history(conn, auction_id)
             h = store.riven_hours(conn).get(auction_id)
-        orders = self.weapon_orders(a["item"]["weapon_url_name"])
+        weapon = a["item"]["weapon_url_name"]
+        orders = self.weapon_orders(weapon)
         view = auction_view(a)
-        est = estimate(view, orders.pop("market", []), exclude_id=auction_id)
+        pool = {o["id"]: o for o in orders.pop("market", [])}
+        positives = [s["slug"] for s in view["stats"] if s["positive"]]
+        # Consultas por stats: todos juntos y cada par; así entran las publicaciones que de verdad se parecen.
+        combos = [positives] if len(positives) >= 2 else []
+        if len(positives) == 3:
+            combos += [[x, y] for i, x in enumerate(positives) for y in positives[i + 1:]]
+        for c in combos:
+            try:
+                for o in self._cache.targeted(weapon, c):
+                    pool[o["id"]] = o
+            except (WFMError, requests.RequestException):
+                pass
+        est = estimate(view, list(pool.values()), exclude_id=auction_id)
         return {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
 
     def _drop_loop(self):
