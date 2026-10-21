@@ -390,6 +390,15 @@
   .skel.row { height: 40px; margin: 8px 0; }
   .skel.card { height: 90px; margin-bottom: 10px; }
   @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  .views { display: flex; gap: 6px; padding: 10px 28px 0; border-bottom: 1px solid var(--line); }
+  .views button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); padding: 8px 16px; cursor: pointer; font-weight: 600; border-radius: 0; }
+  .views button:hover { color: var(--text); }
+  .views button.on { color: var(--accent-2); border-bottom-color: var(--accent-2); }
+  main[data-view="market"] > .view-mine { display: none; }
+  main[data-view="mine"] > .view-market { display: none; }
+  .mk-filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+  .mk-row { cursor: pointer; }
+  .mk-row:hover td { background: #a066f614; }
   tr.busy td:not(.actions) { opacity: .7; }
   tr.busy .editable { cursor: default; }
   tr.busy .editable:hover { background: none; }
@@ -429,8 +438,26 @@
   <div class="totals" id="totals"></div>
 </header>
 
-<main>
-  <section class="card">
+<nav class="views" id="views">
+  <button class="on" data-view="mine">Mis ventas</button>
+  <button data-view="market">Mercado</button>
+</nav>
+
+<main data-view="mine">
+  <section class="card view-market">
+    <div class="card-head"><h2>Buscar rivens en el mercado</h2></div>
+    <div class="mk-filters">
+      <label>Arma <input id="mk-weapon" placeholder="Escribí el arma…"></label>
+      <label>Stat positivo <input class="mk-stat" placeholder="Cualquiera"></label>
+      <label>Stat positivo <input class="mk-stat" placeholder="Cualquiera"></label>
+      <label>Stat positivo <input class="mk-stat" placeholder="Cualquiera"></label>
+      <button id="mk-go">Buscar</button>
+    </div>
+    <div class="hint" id="mk-info" style="margin:10px 0 4px">Elegí un arma y buscá. Tocá un riven para ver su precio estimado y si está barato.</div>
+    <div id="mk-results"></div>
+  </section>
+
+  <section class="card view-mine">
     <div class="card-head">
       <h2 id="mine-title">Mis ventas directas</h2>
       <div class="head-tools">
@@ -447,7 +474,7 @@
     <div id="mine"><div style="padding:6px 0"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div></div>
   </section>
 
-  <section class="card">
+  <section class="card view-mine">
     <div class="card-head">
       <h2 id="stock-title">Stock unveiled</h2>
       <div class="head-tools">
@@ -468,7 +495,7 @@
     <div id="lots"></div>
   </section>
 
-  <section class="card" id="closed-card" hidden>
+  <section class="card view-mine" id="closed-card" hidden>
     <div class="card-head"><h2 id="closed-title">Cerrados desde la app</h2></div>
     <div id="closed"></div>
   </section>
@@ -1824,6 +1851,50 @@ document.addEventListener('mousedown', (e) => {
       lastAlertId = top;
     } catch (e) { /* sin conexión con el backend */ }
   }
+  // ---- Pestaña Mercado ----
+  const mkWeapon = new Combo($("#mk-weapon"), () => refreshMkStats());
+  const mkStats = [...document.querySelectorAll(".mk-stat")].map((el) => new Combo(el, () => refreshMkStats()));
+  function refreshMkWeapons() {
+    mkWeapon.setOptions(catalog.weapons.map((w) => ({ value: w.slug, label: w.name, hint: w.type })));
+  }
+  function refreshMkStats() {
+    const type = weaponBySlug[mkWeapon.value]?.type;
+    mkStats.forEach((combo, i) => {
+      const taken = new Set(mkStats.filter((_, j) => j !== i).map((c) => c.value).filter(Boolean));
+      combo.setOptions(catalog.stats
+        .filter((s) => (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type)) && !taken.has(s.slug))
+        .map((s) => ({ value: s.slug, label: s.name, hint: UNIT[s.unit] })));
+    });
+  }
+  const STATUS_TXT = { ingame: "En juego", online: "Online" };
+  async function runMarket() {
+    if (!mkWeapon.value) { toast("Elegí un arma de la lista", true); $("#mk-weapon").focus(); return; }
+    $("#mk-go").disabled = true; $("#mk-go").textContent = "Buscando…";
+    $("#mk-results").innerHTML = `<div style="padding:6px 0"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div>`;
+    try {
+      const r = await api().market_search(mkWeapon.value, mkStats.map((c) => c.value).filter(Boolean));
+      if (r.error) { $("#mk-results").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
+      if (!r.results.length) { $("#mk-results").innerHTML = `<div class="state">No hay ventas directas con esos filtros.</div>`; return; }
+      $("#mk-info").textContent = `${r.results.length} de ${r.total} publicaciones, de la más barata a la más cara. Tocá una para ver el estimado.`;
+      $("#mk-results").innerHTML = `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>Vendedor</th><th>Precio</th></tr></thead><tbody>${
+        r.results.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
+          <td><div class="stats">${a.stats.map((st) => formatStat(st)).join("")}</div></td><td>${a.rolls ?? "—"}</td>
+          <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${STATUS_TXT[a.status] || "Offline"}</span></small></td>
+          <td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>`;
+    } catch (e) {
+      $("#mk-results").innerHTML = `<div class="state">${esc(e.message || String(e))}</div>`;
+    } finally {
+      $("#mk-go").disabled = false; $("#mk-go").textContent = "Buscar";
+    }
+  }
+  $("#mk-go").addEventListener("click", runMarket);
+  $("#mk-results").addEventListener("click", (e) => { const tr = e.target.closest(".mk-row"); if (tr) openSummary(tr.dataset.id); });
+  $("#views").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    document.querySelector("main").dataset.view = b.dataset.view;
+    document.querySelectorAll("#views button").forEach((x) => x.classList.toggle("on", x === b));
+  });
+
   async function openSummary(aid) {
     $("#sum-title").textContent = "Cargando…";
     $("#sum-body").innerHTML = skelSummary();
@@ -1838,8 +1909,10 @@ document.addEventListener('mousedown', (e) => {
     const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<table class="sum-orders"><thead><tr><th>Vendedor</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
       o.orders.map((x) => `<tr><td class="seller"><span class="nm" title="${esc(x.seller)}">${esc(x.seller)}</span><small><span class="st ${esc(x.status)}">${x.status === "ingame" ? "En juego" : "Online"}</span></small></td><td class="ord-price">${x.price}p${delta(x.price)}</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>`;
     const es = r.estimate;
+    const mk = r.market;
     const diff = es ? es.price - a.price : 0;
-    const verdict = !es ? "" : Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">Tu precio está en línea</span>`
+    const verdict = !es ? "" : mk ? (Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">Precio de mercado</span>`
+        : diff > 0 ? `<span class="below">Barato: vale ~${diff}p más (${Math.round(diff / es.price * 100)}%)</span>` : `<span class="above">Caro: ~${-diff}p sobre el estimado</span>`) : Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">Tu precio está en línea</span>`
       : diff > 0 ? `<span class="below">Podrías pedir ~${diff}p más</span>` : `<span class="above">Estás ~${-diff}p por encima</span>`;
     const estCard = es ? `<div class="sum-card est-link" id="est-card" title="Ver los comparables usados"><h4>Precio estimado</h4>
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b class="accent" style="font-size:30px;line-height:1">${es.price}p</b>
@@ -1854,19 +1927,19 @@ document.addEventListener('mousedown', (e) => {
     $("#sum-body").innerHTML = `<div class="sum-grid">
       <div class="sum-side">
         <div class="sum-card"><div class="kpis">
-          <div class="kpi"><b class="accent">${a.price}p</b><span>Tu precio</span></div>
-          <div class="kpi"><b>${h ? h.hours.toFixed(1) : "—"}</b><span>Horas online</span></div>
+          <div class="kpi"><b class="accent">${a.price}p</b><span>${mk ? "Precio" : "Tu precio"}</span></div>
+          ${mk ? `<div class="kpi"><b>${esc(mk.seller)}</b><span>${STATUS_TXT[mk.status] || "Offline"}</span></div>` : `<div class="kpi"><b>${h ? h.hours.toFixed(1) : "—"}</b><span>Horas online</span></div>`}
           <div class="kpi"><b>${o.orders ? cheaper : "—"}</b><span>Más baratos</span></div>
         </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div></div>
         ${estCard}
-        <div class="sum-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
+        ${mk ? "" : `<div class="sum-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
         <div class="sum-card"><h4>Ajustes de este riven</h4><div class="ovr">
           <label>Horas<input type="number" id="ov-h" min="1" step="1" placeholder="${cfgVal("autodrop_hours")}" value="${h && h.hours_override ? h.hours_override : ""}"></label>
           <label>Baja (p)<input type="number" id="ov-a" min="1" step="1" placeholder="${cfgVal("autodrop_amount")}" value="${h && h.amount_override ? h.amount_override : ""}"></label>
           <label>Piso (p)<input type="number" id="ov-f" min="1" step="1" placeholder="${cfgVal("autodrop_floor")}" value="${h && h.floor_override ? h.floor_override : ""}"></label>
         </div><small class="muted">Vacío = usa el valor global.</small></div>
-        <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>
+        <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>`}
       </div>
       <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     const showTab = (t) => {
@@ -1875,6 +1948,7 @@ document.addEventListener('mousedown', (e) => {
     };
     document.querySelectorAll(".sum-tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
     $("#est-card")?.addEventListener("click", () => showTab("comps"));
+    if (mk) return;
     $("#sum-auto").addEventListener("change", (e) => api().set_autodrop(aid, e.target.checked).then(loadMine));
     for (const id of ["#ov-h", "#ov-a", "#ov-f"]) $(id).addEventListener("change", () => api().set_overrides(aid, $("#ov-h").value, $("#ov-a").value, $("#ov-f").value).then(loadMine));
   }
@@ -2024,6 +2098,8 @@ document.addEventListener('mousedown', (e) => {
     catalog.weapons.forEach((w) => (weaponBySlug[w.slug] = w));
     refreshWeapons();
     refreshSlots();
+    refreshMkWeapons();
+    refreshMkStats();
     renderTotals();
     settings = await api().get_settings();
     if (settings.mine_sort) sort = settings.mine_sort;

@@ -31,6 +31,7 @@ class Api:
     def __init__(self):
         self.client = WFMClient()
         self._seen = {}  # id -> último contrato propio leído de la API (crudo)
+        self._market = {}  # id -> contrato ajeno visto en la pestaña Mercado (crudo)
         self._online = False   # lo mantiene el hilo contador
         self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"))
 
@@ -252,11 +253,17 @@ class Api:
     def riven_summary(self, auction_id):
         """Resumen de un riven: historial de precios, horas y órdenes online más baratas del caché."""
         a = self._seen.get(auction_id)
+        foreign = a is None
+        if foreign:
+            a = self._market.get(auction_id)
         if not a:
             return {"error": "Riven no encontrado."}
-        with store.connect() as conn:
-            hist = store.price_history(conn, auction_id)
-            h = store.riven_hours(conn).get(auction_id)
+        if foreign:
+            hist, h = [], None
+        else:
+            with store.connect() as conn:
+                hist = store.price_history(conn, auction_id)
+                h = store.riven_hours(conn).get(auction_id)
         weapon = a["item"]["weapon_url_name"]
         orders = self.weapon_orders(weapon)
         view = auction_view(a)
@@ -277,7 +284,11 @@ class Api:
         except (WFMError, requests.RequestException):
             rtype = None
         est = estimate(view, list(pool.values()), exclude_id=auction_id, rtype=rtype)
-        return {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
+        out = {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
+        if foreign:
+            out["market"] = {"seller": a["owner"]["ingame_name"], "status": a["owner"].get("status"),
+                             "reputation": a["owner"].get("reputation")}
+        return out
 
     def _drop_loop(self):
         while not self._stop.wait(self.DROP_PASS_S):
@@ -390,6 +401,25 @@ class Api:
             # Si la búsqueda llegó al corte y no hubo `n` in game, puede haber más fuera del corte.
             "maybe_incomplete": len(found) >= SEARCH_CAP - 10 and len(top) < n,
         }
+
+    def market_search(self, weapon, stats=(), n=150):
+        """Pestaña Mercado: ventas directas de un arma (con esos stats positivos, si hay), de las
+        más baratas a las más caras; vendedores en juego/online primero en el desempate."""
+        stats = [s for s in stats if s]
+        try:
+            found = self.client.search_direct(weapon, stats)
+        except (WFMError, requests.RequestException) as e:
+            return {"error": str(e)}
+        rows = [a for a in found if a.get("visible", True) and not a.get("closed") and not a.get("private")]
+        rows = [a for a in rows if a["owner"].get("status") in ("ingame", "online")] or rows
+        rows.sort(key=lambda a: a["buyout_price"])
+        rows = rows[:n]
+        for a in rows:
+            self._market[a["id"]] = a
+        return {"results": [{**auction_view(a), "seller": a["owner"]["ingame_name"],
+                             "status": a["owner"].get("status"), "reputation": a["owner"].get("reputation")}
+                            for a in rows],
+                "total": len(found)}
 
     # ---- Mis contratos ----------------------------------------------
 
