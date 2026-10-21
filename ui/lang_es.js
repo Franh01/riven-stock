@@ -691,6 +691,7 @@ window.LANGS.es = {
   "opp.gainSub": "Diferencia mínima en platino.",
   "opp.weapons": "Armas vigiladas (además de las de tu stock)",
   "opp.weaponsSub": "Se buscan en segundo plano con los datos que la app ya descarga.",
+  "opp.limit": "Límite alcanzado: quitá alguna para agregar otra",
   "opp.noWeapons": "Ninguna",
   "opp.addPh": "Agregar arma…",
   "opp.on": "Alertas de oportunidad activadas",

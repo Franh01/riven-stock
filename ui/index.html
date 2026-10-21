@@ -2781,9 +2781,12 @@ document.addEventListener('mousedown', (e) => {
   const oppVal = (k) => (settings[k] == null ? OPP_DEF[k] : settings[k]);
   function renderOppChips() {
     if (oppCombo) oppCombo.setOptions(weaponCombo.options.filter((o) => !(settings.opp_weapons || []).includes(o.value)));
-    const l = settings.opp_weapons || [];
+    const l = settings.opp_weapons || [], full = l.length >= OPP_MAX;
+    $("#opp-count").textContent = `(${l.length}/${OPP_MAX})`;
+    $("#opp-add").disabled = full; $("#opp-add").placeholder = tr(full ? "opp.limit" : "opp.addPh");
     $("#opp-chips").innerHTML = l.length ? l.map((w) => `<span class="wtag">${esc(weaponBySlug[w]?.name || w)}<a href="#" data-rm="${esc(w)}" title="${tr("opp.rmTip")}">×</a></span>`).join("") : `<span class="muted" style="font-size:12px">${tr("opp.noWeapons")}</span>`;
   }
+  const OPP_MAX = 12;
   let oppCombo = null;
   function setupOpp() {
     renderOppChips();
@@ -2793,7 +2796,7 @@ document.addEventListener('mousedown', (e) => {
     });
     oppCombo = new Combo($("#opp-add"), (v) => {
       if (!v) return;
-      const l = new Set(settings.opp_weapons || []); l.add(v); saveCfg("opp_weapons", [...l].slice(0, 12)); renderOppChips(); oppCombo.set("");
+      const l = new Set(settings.opp_weapons || []); l.add(v); saveCfg("opp_weapons", [...l].slice(0, OPP_MAX)); renderOppChips(); oppCombo.set("");
     });
     renderOppChips();
   }
@@ -2843,8 +2846,8 @@ document.addEventListener('mousedown', (e) => {
         <div id="opp-params" class="${settings.opp_enabled ? "" : "cfg-off"}" style="margin-top:10px">
           <div class="cfg-row" id="opp-thr-row"><span>${tr("opp.thr")}<small>${tr("opp.thrSub")}</small></span><span><input type="number" id="opp-thr" min="5" max="90" value="${oppVal("opp_threshold")}"> %</span></div>
           <div class="cfg-row"><span>${tr("opp.gain")}<small>${tr("opp.gainSub")}</small></span><span><input type="number" id="opp-gain" min="1" value="${oppVal("opp_min_gain")}"> p</span></div>
-          <div id="opp-wp" style="margin-top:8px"><span class="muted" style="font-size:12px">${tr("opp.weapons")}</span>
-            <div id="opp-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"></div>
+          <div id="opp-wp" style="margin-top:8px"><span class="muted" style="font-size:12px">${tr("opp.weapons")} <b id="opp-count"></b></span>
+            <div id="opp-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;max-height:104px;overflow-y:auto"></div>
             <input id="opp-add" type="text" placeholder="${tr("opp.addPh")}" style="max-width:260px">
             <small class="muted" style="display:block;margin-top:6px">${tr("opp.weaponsSub")}</small></div>
         </div></div>

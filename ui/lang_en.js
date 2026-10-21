@@ -691,6 +691,7 @@ window.LANGS.en = {
   "opp.gainSub": "Minimum difference in platinum.",
   "opp.weapons": "Watched weapons (besides your stock)",
   "opp.weaponsSub": "Searched in the background using data the app already downloads.",
+  "opp.limit": "Limit reached: remove one to add another",
   "opp.noWeapons": "None",
   "opp.addPh": "Add weapon…",
   "opp.on": "Opportunity alerts on",
