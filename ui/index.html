@@ -1226,22 +1226,22 @@ document.addEventListener('mousedown', (e) => {
     const left = lots.reduce((s, l) => s + l.remaining, 0);
     $("#stock-title").textContent = tr("stock.titleN", { n: left });
     if (!lots.length) {
-      $("#lots").innerHTML = `<div class="hint">Cargá un lote de rivens sin abrir (ej. 6 melee por 50p). Después, "Abrir" te lleva a cargar el riven con su costo ya puesto.</div>`;
+      $("#lots").innerHTML = `<div class="hint">${tr("lots.empty")}</div>`;
       return;
     }
     $("#lots").innerHTML = `<table>
-      <thead><tr><th>Tipo</th><th>Sin abrir</th><th>Costo c/u</th><th>Total</th><th>Nota</th><th>Cargado</th><th></th></tr></thead>
+      <thead><tr><th>${tr("lot.type")}</th><th>${tr("lots.unopened")}</th><th>${tr("lots.unitCost")}</th><th>${tr("lots.total")}</th><th>${tr("lots.note")}</th><th>${tr("lots.added")}</th><th></th></tr></thead>
       <tbody>${lots.map((l) => `<tr data-lot="${l.id}" class="${l.remaining ? "" : "hidden-row"}">
         <td class="lot-type">${esc(l.riven_type)}</td>
-        <td class="nowrap"><span class="remaining">${l.remaining}</span> <span class="muted">de ${l.quantity}</span></td>
+        <td class="nowrap"><span class="remaining">${l.remaining}</span> <span class="muted">${tr("lots.of", { n: l.quantity })}</span></td>
         <td class="nowrap">${fmtP(l.unit_cost)}</td>
         <td class="nowrap">${fmtP(l.total_cost)}</td>
         <td class="muted">${esc(l.note)}</td>
         <td class="nowrap muted" title="${esc(fullDate(l.created_at))}">${esc(ago(l.created_at))}</td>
         <td class="actions">
-          ${l.remaining ? `<button class="small" data-lot-act="open" title="Cargar el riven que salió y publicarlo">Abrir</button>
-          <button class="ghost" data-lot-act="discard" title="Abrí uno y no lo voy a publicar">−1</button>` : ""}
-          ${l.opened ? "" : `<button class="ghost" data-lot-act="delete" title="Borrar el lote (solo si no abriste ninguno)">Borrar</button>`}
+          ${l.remaining ? `<button class="small" data-lot-act="open" title="${tr("lots.openTip")}">${tr("lots.open")}</button>
+          <button class="ghost" data-lot-act="discard" title="${tr("lots.discardTip")}">−1</button>` : ""}
+          ${l.opened ? "" : `<button class="ghost" data-lot-act="delete" title="${tr("lots.deleteTip")}">${tr("lots.delete")}</button>`}
         </td>
       </tr>`).join("")}</tbody></table>`;
   }
@@ -1250,12 +1250,12 @@ document.addEventListener('mousedown', (e) => {
     e.preventDefault();
     const qty = parseInt($("#lot-qty").value, 10);
     const cost = $("#lot-cost").value.trim();
-    if (!qty || qty < 1) { toast("Poné la cantidad", true); return; }
-    if (cost === "") { toast("Poné el costo (0 si fue gratis)", true); return; }
+    if (!qty || qty < 1) { toast(tr("lots.needQty"), true); return; }
+    if (cost === "") { toast(tr("lots.needCost"), true); return; }
     const res = await api().add_lot($("#lot-type").value, qty, cost, $("#lot-cost-mode").value === "total", $("#lot-note").value);
     if (res.error) { toast(res.error, true); return; }
     applyLocal(res); renderLots(); renderTotals();
-    toast(`Agregado: ${qty} ${$("#lot-type").value}`);
+    toast(tr("lots.addedToast", { q: qty, t: $("#lot-type").value }));
     $("#lot-qty").value = 1; $("#lot-cost").value = ""; $("#lot-note").value = "";
   });
 
@@ -1265,7 +1265,7 @@ document.addEventListener('mousedown', (e) => {
   const tmChecked = () => [...tmPicked];
   function tmRefresh() {
     const n = tmPicked.size;
-    $("#tm-count").textContent = `${n}/4 elegidos`;
+    $("#tm-count").textContent = tr("tm.picked", { n });
     $("#tm-ok").disabled = n !== 4;
     document.querySelectorAll("#tm-list input").forEach((i) => { i.checked = tmPicked.has(i.value); i.disabled = !i.checked && n >= 4; });
     document.querySelectorAll("#tm-list tr[data-id]").forEach((r) => r.classList.toggle("picked", tmPicked.has(r.dataset.id)));
@@ -1277,18 +1277,18 @@ document.addEventListener('mousedown', (e) => {
       const on = tmSort.key === key;
       return `<th class="sortable ${on ? "sorted" : ""} ${cls}" data-sort="${key}">${label}<span class="arrow">${on ? (tmSort.dir > 0 ? "↑" : "↓") : ""}</span></th>`;
     };
-    $("#tm-list").innerHTML = `<table><thead><tr><th></th><th>Riven</th>${th("cost", "Costo", "num")}${th("price", "Precio", "num")}${th("updated", "Actualizado", "num")}</tr></thead><tbody>` +
+    $("#tm-list").innerHTML = `<table><thead><tr><th></th><th>Riven</th>${th("cost", tr("th.cost"), "num")}${th("price", tr("th.price"), "num")}${th("updated", tr("th.updated"), "num")}</tr></thead><tbody>` +
       rows.map((a) => {
         const c = costs[a.id]?.cost;
         return `<tr data-id="${esc(a.id)}"><td><input type="checkbox" value="${esc(a.id)}"></td>
-          <td>${rivenLabel(a)}${a.visible ? "" : ` <span class="muted">(oculto)</span>`}</td>
+          <td>${rivenLabel(a)}${a.visible ? "" : ` <span class="muted">(${tr("tm.hiddenTag")})</span>`}</td>
           <td class="num">${c == null ? "—" : c + "p"}</td><td class="num">${a.price}p</td>
-          <td class="num muted">${a.updated ? new Date(a.updated).toLocaleDateString() : "—"}</td></tr>`;
+          <td class="num muted">${a.updated ? new Date(a.updated).toLocaleDateString(I18N.locale) : "—"}</td></tr>`;
       }).join("") + `</tbody></table>`;
     tmRefresh();
   }
   $("#tm-open").addEventListener("click", () => {
-    if (mine.length < 4) return toast("Necesitás al menos 4 rivens publicados", true);
+    if (mine.length < 4) return toast(tr("tm.need4"), true);
     tmPicked = new Set();
     tmRender();
     const dlg = $("#tm-dialog");
@@ -1298,17 +1298,17 @@ document.addEventListener('mousedown', (e) => {
       if (dlg.returnValue !== "ok") return;
       const ids = tmChecked(), type = $("#tm-type").value;
       const btn = $("#tm-open");
-      btn.disabled = true; btn.textContent = "Transmutando…";
+      btn.disabled = true; btn.textContent = tr("tm.running");
       const res = await api().transmute(ids, type);
-      btn.disabled = false; btn.textContent = "Transmutar";
+      btn.disabled = false; btn.textContent = tr("stock.tm");
       if (res.error) {
-        toast(`No se pudo transmutar: ${res.error}`, true);
+        toast(tr("tm.fail", { e: res.error }), true);
         if (res.transmuted?.length) { const fresh = await api().my_auctions(); if (!fresh.error) { mine = fresh.auctions; applyLocal(fresh); renderAll(); } }
         return;
       }
       mine = mine.filter((a) => !res.transmuted.includes(a.id));
       applyLocal(res); renderAll();
-      toast(`Transmutado: 1 ${type} sin abrir en el stock`);
+      toast(tr("tm.done", { t: type }));
     };
   });
   $("#tm-list").addEventListener("click", (e) => {
@@ -1335,7 +1335,7 @@ document.addEventListener('mousedown', (e) => {
     const res = act === "discard" ? await api().discard_from_lot(lot.id) : await api().delete_lot(lot.id);
     if (res.error) { toast(res.error, true); return; }
     applyLocal(res); renderLots(); renderTotals();
-    toast(act === "discard" ? `Descontado 1 ${lot.riven_type}` : "Lote borrado");
+    toast(act === "discard" ? tr("lots.discarded", { t: lot.riven_type }) : tr("lots.deleted"));
   });
 
   // ---- Cerrados -------------------------------------------------------------
@@ -1343,10 +1343,10 @@ document.addEventListener('mousedown', (e) => {
   function renderClosed() {
     $("#closed-card").hidden = !closed.length;
     const rows = closed.filter(matchesQuery);
-    $("#closed-title").textContent = "Cerrados desde la app" + (queryTokens.length ? ` · ${rows.length} de ${closed.length} coinciden` : "");
-    if (!rows.length) { $("#closed").innerHTML = `<div class="state">Ningún cerrado coincide con la búsqueda.</div>`; return; }
+    $("#closed-title").textContent = tr("closed.title") + (queryTokens.length ? ` · ${tr("closed.matches", { n: rows.length, t: closed.length })}` : "");
+    if (!rows.length) { $("#closed").innerHTML = `<div class="state">${tr("closed.noMatch")}</div>`; return; }
     $("#closed").innerHTML = `<table>
-      <thead><tr><th>Riven</th><th>Stats</th><th>Último precio</th><th>Vendido</th><th>Costo</th><th>Ganancia</th><th>Cerrado</th></tr></thead>
+      <thead><tr><th>Riven</th><th>Stats</th><th>${tr("closed.lastPrice")}</th><th>${tr("tot.sold")}</th><th>${tr("th.cost")}</th><th>${tr("closed.profit")}</th><th>${tr("closed.closedAt")}</th></tr></thead>
       <tbody>${rows.map((a) => {
         const cost = costs[a.id]?.cost;
         const profit = a.sold_price && cost !== undefined ? a.sold_price - cost : null;
@@ -1354,10 +1354,10 @@ document.addEventListener('mousedown', (e) => {
         <td><div class="riven-weapon">${hl(weaponName(a.weapon))}</div><div class="riven-name">${hl(a.name)}</div></td>
         <td><div class="stats">${a.stats.map(formatStatHl).join("")}</div></td>
         <td>${a.price}p</td>
-        <td>${a.sold_price ? `<b class="pos-txt">${a.sold_price}p</b>` : `<span class="muted">No</span>`}</td>
+        <td>${a.sold_price ? `<b class="pos-txt">${a.sold_price}p</b>` : `<span class="muted">${tr("common.no")}</span>`}</td>
         <td class="nowrap">${cost === undefined ? `<span class="muted">—</span>` : fmtP(cost)}</td>
         <td class="nowrap">${profit === null ? `<span class="muted">—</span>` : `<b class="${profit >= 0 ? "pos-txt" : "neg-txt"}">${profit > 0 ? "+" : ""}${fmtP(profit)}</b>`}</td>
-        <td class="muted nowrap">${a.pending ? `${spinner} Cerrando…` : esc(fullDate(a.closed_at))}</td>
+        <td class="muted nowrap">${a.pending ? `${spinner} ${tr("closed.closing")}` : esc(fullDate(a.closed_at))}</td>
       </tr>`;
       }).join("")}</tbody></table>`;
   }
@@ -1365,15 +1365,15 @@ document.addEventListener('mousedown', (e) => {
   // ---- Modal: riven → referencia → publicar / editar ------------------------
 
   const SLOTS = [
-    { label: "Positivo 1", positive: true }, { label: "Positivo 2", positive: true },
-    { label: "Positivo 3 (opcional)", positive: true }, { label: "Negativo (opcional)", positive: false },
+    { label: "slot.pos1", positive: true }, { label: "slot.pos2", positive: true },
+    { label: "slot.pos3", positive: true }, { label: "slot.neg", positive: false },
   ];
   $("#stat-slots").innerHTML = SLOTS.map((s, i) => `
     <div class="stat-slot" data-i="${i}">
-      <span class="tag ${s.positive ? "" : "neg"}">${s.label}</span>
+      <span class="tag ${s.positive ? "" : "neg"}" data-i18n="${s.label}">${tr(s.label)}</span>
       <div class="row">
-        <input class="slot-stat" placeholder="Escribí un stat…">
-        <div class="unit" data-unit=""><input class="slot-value" type="number" step="0.1" placeholder="valor"></div>
+        <input class="slot-stat" placeholder="${tr("slot.statPh")}" data-i18n-placeholder="slot.statPh">
+        <div class="unit" data-unit=""><input class="slot-value" type="number" step="0.1" placeholder="${tr("slot.valuePh")}" data-i18n-placeholder="slot.valuePh"></div>
       </div>
     </div>`).join("");
   const slotEls = [...document.querySelectorAll(".stat-slot")];
