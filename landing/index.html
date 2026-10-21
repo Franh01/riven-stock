@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Riven Stock - descarga</title>
+<meta name="description" content="Riven Stock: app de Windows para manejar tu stock de rivens y tus ventas en warframe.market.">
+<link rel="icon" href="icon.png">
+<style>
+  :root { --bg:#0a0c12; --bg2:#0f121a; --card:#141824; --line:#232a3a; --text:#eef0f6; --muted:#97a1b5; --accent:#8b6bff; --accent2:#b8a8ff; --ok:#4ade80; --warn:#f0b64a; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.65 Inter,system-ui,"Segoe UI",sans-serif; -webkit-font-smoothing:antialiased; }
+  body::before { content:""; position:fixed; inset:0; z-index:-1; background:
+    radial-gradient(800px 420px at 80% -5%, rgba(139,107,255,.22), transparent 70%),
+    radial-gradient(600px 400px at 0% 10%, rgba(80,120,255,.12), transparent 70%); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  nav { display:flex; align-items:center; justify-content:space-between; padding: 22px 0; }
+  .brand { display:flex; align-items:center; gap:12px; font-weight:700; font-size:19px; letter-spacing:.2px; }
+  .brand img { width:38px; height:38px; filter: drop-shadow(0 0 12px rgba(139,107,255,.6)); }
+  .nav-r { display:flex; align-items:center; gap:22px; font-size:14px; }
+  .nav-r a { color:var(--muted); text-decoration:none; } .nav-r a:hover { color:var(--text); }
+  .lang { display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .lang button { background:none; border:0; color:var(--muted); padding:5px 12px; cursor:pointer; font:inherit; font-size:13px; }
+  .lang button.on { background:var(--card); color:var(--text); }
+
+  .hero { display:grid; grid-template-columns: 1.05fr 1fr; gap:48px; align-items:center; padding: 56px 0 72px; }
+  .pill { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--accent2); border:1px solid rgba(139,107,255,.35); background:rgba(139,107,255,.1); padding:4px 14px; border-radius:99px; }
+  .pill i { width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 8px var(--ok); }
+  h1 { font-size: clamp(34px, 5vw, 54px); line-height:1.1; margin: 20px 0 18px; letter-spacing:-1px; }
+  h1 em { font-style:normal; background:linear-gradient(90deg,#b8a8ff,#6fa0ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead { color:#b9c1d3; font-size:18px; max-width:520px; margin:0 0 28px; }
+  .btn { display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,#8b6bff,#6a4df0); color:#fff; text-decoration:none; padding:15px 30px; border-radius:14px; font-weight:700; font-size:17px; box-shadow:0 10px 30px -8px rgba(139,107,255,.7), inset 0 1px 0 rgba(255,255,255,.25); transition:transform .15s, box-shadow .15s; }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 16px 36px -8px rgba(139,107,255,.85), inset 0 1px 0 rgba(255,255,255,.25); }
+  .btn svg { width:20px; height:20px; }
+  .meta { margin-top:14px; color:var(--muted); font-size:13.5px; display:flex; gap:16px; flex-wrap:wrap; }
+  .meta span::before { content:"✓ "; color:var(--ok); }
+
+  .mock { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 30px 80px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.03); overflow:hidden; transform:perspective(1200px) rotateY(-6deg) rotateX(2deg); }
+  .mock-bar { display:flex; gap:7px; padding:12px 14px; background:var(--bg2); border-bottom:1px solid var(--line); }
+  .mock-bar b { width:11px; height:11px; border-radius:50%; background:#2b3345; }
+  .mock-body { padding:16px; display:grid; gap:10px; }
+  .row { display:grid; grid-template-columns: 1.6fr .8fr .6fr; gap:10px; align-items:center; background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-size:13px; }
+  .row small { color:var(--muted); display:block; font-size:11.5px; }
+  .row .pr { font-weight:700; color:var(--accent2); text-align:right; }
+  .tag { font-size:11px; padding:2px 9px; border-radius:99px; text-align:center; background:rgba(74,222,128,.12); color:var(--ok); }
+  .tag.w { background:rgba(240,182,74,.12); color:var(--warn); }
+
+  section { padding: 40px 0; }
+  .eyebrow { color:var(--accent2); font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+  h2 { font-size: clamp(26px, 3.4vw, 36px); line-height:1.2; margin: 10px 0 14px; letter-spacing:-.5px; }
+  .sub { color:#b9c1d3; max-width:640px; margin:0 0 28px; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .feat { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; transition:border-color .2s, transform .2s; }
+  .feat:hover { border-color:rgba(139,107,255,.5); transform:translateY(-3px); }
+  .ico { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:rgba(139,107,255,.14); font-size:20px; margin-bottom:12px; }
+  .feat h3 { margin:0 0 6px; font-size:17px; } .feat p { margin:0; color:var(--muted); font-size:14.5px; }
+
+  .steps { counter-reset:s; display:grid; gap:12px; padding:0; margin:0; list-style:none; }
+  .steps li { counter-increment:s; position:relative; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px 16px 62px; color:#cfd5e2; }
+  .steps li::before { content:counter(s); position:absolute; left:16px; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:14px; background:linear-gradient(135deg,#8b6bff,#6a4df0); color:#fff; }
+  code, kbd { background:#0a0c12; border:1px solid var(--line); border-radius:6px; padding:1px 7px; font:13.5px ui-monospace,Consolas,monospace; color:var(--accent2); }
+  a { color:var(--accent2); }
+  .note { color:var(--muted); font-size:14px; margin-top:16px; }
+  .warn { margin-top:18px; border:1px solid rgba(240,182,74,.35); background:rgba(240,182,74,.07); border-radius:14px; padding:14px 18px; color:#f3dcae; }
+
+  .trust { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .t { text-align:center; padding:20px 12px; background:var(--card); border:1px solid var(--line); border-radius:14px; }
+  .t b { display:block; font-size:22px; margin-bottom:2px; } .t span { color:var(--muted); font-size:13.5px; }
+
+  footer { margin:50px 0 40px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  @media (max-width: 860px) { .hero { grid-template-columns:1fr; } .mock { transform:none; } .grid3, .trust { grid-template-columns:1fr 1fr; } }
+  @media (max-width: 560px) { .grid3, .trust { grid-template-columns:1fr; } .nav-r a { display:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="brand"><img src="icon.png" alt=""> Riven Stock</div>
+    <div class="nav-r">
+      <a href="#como" data-i18n="nav.inst"></a>
+      <a href="#token" data-i18n="nav.token"></a>
+      <a href="https://github.com/Franh01/riven-stock" target="_blank" rel="noopener">GitHub</a>
+      <div class="lang"><button id="l-es">ES</button><button id="l-en">EN</button></div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <span class="pill"><i></i><span data-i18n="pill"></span></span>
+      <h1 data-i18n-html="h1"></h1>
+      <p class="lead" data-i18n="lead"></p>
+      <a class="btn" id="dl" href="https://github.com/Franh01/riven-stock/releases/latest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+        <span data-i18n="dl"></span>
+      </a>
+      <div class="meta"><span id="dl-info"></span><span data-i18n="m.free"></span><span data-i18n="m.noadmin"></span></div>
+    </div>
+    <div class="mock" aria-hidden="true">
+      <div class="mock-bar"><b></b><b></b><b></b></div>
+      <div class="mock-body">
+        <div class="row"><div>Soma Vectis<small>Crit Dmg · Toxin · Sin Zoom</small></div><span class="tag">En venta</span><span class="pr">320 p</span></div>
+        <div class="row"><div>Torid Cronus<small>Multishot · Cold</small></div><span class="tag w">Ajustar</span><span class="pr">180 p</span></div>
+        <div class="row"><div>Rubico Acri<small>Crit Chance · Speed</small></div><span class="tag">En venta</span><span class="pr">95 p</span></div>
+        <div class="row"><div>Kuva Bramma<small>Damage · Status</small></div><span class="tag">Vendido</span><span class="pr">410 p</span></div>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow" data-i18n="f.eye"></div>
+    <h2 data-i18n="f.h"></h2>
+    <div class="grid3">
+      <div class="feat"><div class="ico">📦</div><h3 data-i18n="f1.t"></h3><p data-i18n="f1.p"></p></div>
+      <div class="feat"><div class="ico">💎</div><h3 data-i18n="f2.t"></h3><p data-i18n="f2.p"></p></div>
+      <div class="feat"><div class="ico">⚡</div><h3 data-i18n="f3.t"></h3><p data-i18n="f3.p"></p></div>
+      <div class="feat"><div class="ico">📈</div><h3 data-i18n="f4.t"></h3><p data-i18n="f4.p"></p></div>
+      <div class="feat"><div class="ico">☁️</div><h3 data-i18n="f5.t"></h3><p data-i18n="f5.p"></p></div>
+      <div class="feat"><div class="ico">🌐</div><h3 data-i18n="f6.t"></h3><p data-i18n="f6.p"></p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="trust">
+      <div class="t"><b>100%</b><span data-i18n="t1"></span></div>
+      <div class="t"><b>Open</b><span data-i18n="t2"></span></div>
+      <div class="t"><b>Local</b><span data-i18n="t3"></span></div>
+      <div class="t"><b>SHA-256</b><span data-i18n="t4"></span></div>
+    </div>
+  </section>
+
+  <section id="como">
+    <div class="eyebrow" data-i18n="inst.eye"></div>
+    <h2 data-i18n="inst.h"></h2>
+    <ol class="steps" data-i18n-html="inst.ol"></ol>
+
+    <h2 style="margin-top:44px;font-size:24px" data-i18n="ss.h"></h2>
+    <p class="sub" data-i18n="ss.p"></p>
+    <ol class="steps" data-i18n-html="ss.ol"></ol>
+    <p class="note" data-i18n="ss.n"></p>
+  </section>
+
+  <section id="token">
+    <div class="eyebrow" data-i18n="tk.eye"></div>
+    <h2 data-i18n="tk.h"></h2>
+    <p class="sub" data-i18n="tk.p"></p>
+    <ol class="steps" data-i18n-html="tk.ol"></ol>
+    <div class="warn" data-i18n="tk.w"></div>
+  </section>
+
+  <footer>
+    <span data-i18n="ft"></span>
+    <a href="https://github.com/Franh01/riven-stock" target="_blank" rel="noopener">GitHub</a>
+  </footer>
+</div>
+
+<script>
+const T = {
+  es: {
+    "nav.inst":"Instalación","nav.token":"Token",
+    pill:"App gratuita para Windows",
+    h1:"Tu stock de rivens y tus ventas, <em>en un solo lugar</em>",
+    lead:"Manejá los rivens que vendés en warframe.market: stock, precios sugeridos, ajuste automático y reportes de ganancias.",
+    dl:"Descargar para Windows",
+    "m.free":"Gratis","m.noadmin":"Sin permisos de administrador",
+    "f.eye":"Qué hace","f.h":"Todo lo que necesitás para vender rivens",
+    "f1.t":"Stock ordenado","f1.p":"Tus rivens con stats, estado y precio, siempre a mano y sincronizados con tu cuenta.",
+    "f2.t":"Precios sugeridos","f2.p":"Mirá cuánto se está pagando por rivens parecidos y publicá con confianza.",
+    "f3.t":"Ajuste automático","f3.p":"Mantené tus precios al día sin entrar a cada publicación a mano.",
+    "f4.t":"Reportes de ganancias","f4.p":"Ventas, platino ganado y tendencias del mercado en un vistazo.",
+    "f5.t":"Copia de seguridad","f5.p":"Respaldo cifrado de tus datos, con un código de recuperación que solo vos tenés.",
+    "f6.t":"Español e inglés","f6.p":"Interfaz completa en los dos idiomas, con tutorial y ayuda integrados.",
+    t1:"gratis",t2:"código público en GitHub",t3:"tus datos quedan en tu PC",t4:"del instalador, verificable",
+    "inst.eye":"Instalación","inst.h":"Listo en menos de un minuto",
+    "inst.ol":"<li>Descargá el instalador (<code>RivenStock-...-Setup.exe</code>).</li><li>Abrilo y seguí los pasos. No pide permisos de administrador.</li><li>Al terminar se abre Riven Stock. La próxima vez la encontrás en el menú Inicio.</li><li>Las actualizaciones las ofrece la app sola, y tus datos no se tocan.</li>",
+    "ss.h":"Si Windows muestra \"Windows protegió su PC\"",
+    "ss.p":"La app todavía no está firmada digitalmente (la firma cuesta cientos de dólares al año), así que Windows SmartScreen avisa con cualquier programa nuevo. No significa que haya un virus. Para seguir:",
+    "ss.ol":"<li>En el cartel azul tocá <b>Más información</b>.</li><li>Después tocá <b>Ejecutar de todas formas</b>.</li>",
+    "ss.n":"Si tu antivirus bloquea el archivo, es un falso positivo común en programas sin firmar. El código es público en GitHub y podés comprobar el sha256 del instalador, que figura junto a la descarga.",
+    "tk.eye":"Primer uso","tk.h":"Cómo obtener tu token (JWT) de warframe.market",
+    "tk.p":"La primera vez, Riven Stock te pide un token para conectarse a tu cuenta. Se saca desde el navegador en menos de un minuto:",
+    "tk.ol":"<li>Entrá a <a href=\"https://warframe.market\" target=\"_blank\" rel=\"noopener\">warframe.market</a> e iniciá sesión con tu cuenta.</li><li>Apretá <kbd>F12</kbd> para abrir las herramientas de desarrollador (Chrome, Edge o Brave).</li><li>Arriba elegí la pestaña <b>Application</b> (o <b>Aplicación</b>). Si no la ves, tocá <kbd>&gt;&gt;</kbd> para ver más pestañas. En Firefox se llama <b>Almacenamiento</b>.</li><li>A la izquierda abrí <b>Cookies</b> y elegí <code>https://warframe.market</code>.</li><li>Buscá la fila llamada <code>JWT</code>, hacé clic y copiá el contenido completo de <b>Value</b> (un texto largo que empieza con <code>eyJ</code>).</li><li>En Riven Stock tocá el botón de la llave (arriba), pegá el token y guardalo.</li>",
+    "tk.w":"Tratá el token como una contraseña: no lo compartas ni lo publiques. Se guarda solo en tu PC y la app únicamente lo manda a warframe.market. Si algún día deja de funcionar, venció: repetí estos pasos y pegá uno nuevo.",
+    ft:"Proyecto personal, sin relación oficial con Digital Extremes ni warframe.market.",
+    info:"Versión {v} · Windows 10 / 11", info0:"Windows 10 / 11"
+  },
+  en: {
+    "nav.inst":"Install","nav.token":"Token",
+    pill:"Free app for Windows",
+    h1:"Your riven stock and sales, <em>in one place</em>",
+    lead:"Manage the rivens you sell on warframe.market: stock, suggested prices, automatic price adjustment and profit reports.",
+    dl:"Download for Windows",
+    "m.free":"Free","m.noadmin":"No admin rights needed",
+    "f.eye":"What it does","f.h":"Everything you need to sell rivens",
+    "f1.t":"Organized stock","f1.p":"Your rivens with stats, status and price, always at hand and in sync with your account.",
+    "f2.t":"Suggested prices","f2.p":"See what similar rivens are selling for and list with confidence.",
+    "f3.t":"Automatic adjustment","f3.p":"Keep your prices up to date without opening every listing by hand.",
+    "f4.t":"Profit reports","f4.p":"Sales, platinum earned and market trends at a glance.",
+    "f5.t":"Backups","f5.p":"Encrypted backup of your data, with a recovery code only you have.",
+    "f6.t":"English and Spanish","f6.p":"Fully translated interface, with built-in tutorial and help.",
+    t1:"free",t2:"public code on GitHub",t3:"your data stays on your PC",t4:"of the installer, verifiable",
+    "inst.eye":"Install","inst.h":"Ready in under a minute",
+    "inst.ol":"<li>Download the installer (<code>RivenStock-...-Setup.exe</code>).</li><li>Open it and follow the steps. It doesn't ask for administrator rights.</li><li>When it finishes, Riven Stock opens. Next time, find it in the Start menu.</li><li>The app offers updates by itself, and your data is never touched.</li>",
+    "ss.h":"If Windows shows \"Windows protected your PC\"",
+    "ss.p":"The app isn't digitally signed yet (signing costs hundreds of dollars a year), so Windows SmartScreen warns about any new program. It doesn't mean there is a virus. To continue:",
+    "ss.ol":"<li>On the blue screen click <b>More info</b>.</li><li>Then click <b>Run anyway</b>.</li>",
+    "ss.n":"If your antivirus blocks the file, it is a common false positive for unsigned programs. The code is public on GitHub and you can check the installer's sha256, listed next to the download.",
+    "tk.eye":"First run","tk.h":"How to get your warframe.market token (JWT)",
+    "tk.p":"The first time, Riven Stock asks for a token to connect to your account. You can get it from your browser in under a minute:",
+    "tk.ol":"<li>Go to <a href=\"https://warframe.market\" target=\"_blank\" rel=\"noopener\">warframe.market</a> and log in.</li><li>Press <kbd>F12</kbd> to open the developer tools (Chrome, Edge or Brave).</li><li>At the top choose the <b>Application</b> tab. If you don't see it, click <kbd>&gt;&gt;</kbd> for more tabs. In Firefox it is called <b>Storage</b>.</li><li>On the left open <b>Cookies</b> and pick <code>https://warframe.market</code>.</li><li>Find the row named <code>JWT</code>, click it and copy the full <b>Value</b> (a long text starting with <code>eyJ</code>).</li><li>In Riven Stock press the key button (top bar), paste the token and save it.</li>",
+    "tk.w":"Treat the token like a password: don't share or publish it. It is stored only on your PC and the app sends it only to warframe.market. If it ever stops working it has expired: repeat these steps and paste a new one.",
+    ft:"Personal project, not officially related to Digital Extremes or warframe.market.",
+    info:"Version {v} · Windows 10 / 11", info0:"Windows 10 / 11"
+  }
+};
+let lang = localStorage.getItem("lang") || ((navigator.language || "es").slice(0, 2) === "en" ? "en" : "es");
+let ver = "";
+function apply() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(e => e.textContent = T[lang][e.dataset.i18n]);
+  document.querySelectorAll("[data-i18n-html]").forEach(e => e.innerHTML = T[lang][e.dataset.i18nHtml]);
+  document.getElementById("l-es").classList.toggle("on", lang === "es");
+  document.getElementById("l-en").classList.toggle("on", lang === "en");
+  document.getElementById("dl-info").textContent = ver ? T[lang].info.replace("{v}", ver) : T[lang].info0;
+}
+document.getElementById("l-es").onclick = () => { lang = "es"; localStorage.setItem("lang", lang); apply(); };
+document.getElementById("l-en").onclick = () => { lang = "en"; localStorage.setItem("lang", lang); apply(); };
+apply();
+// Link directo al instalador de la última versión; sin release todavía queda la página de releases.
+fetch("https://api.github.com/repos/Franh01/riven-stock/releases/latest").then(r => r.json()).then(rel => {
+  const a = (rel.assets || []).find(x => x.name.endsWith("-Setup.exe"));
+  if (a) { document.getElementById("dl").href = a.browser_download_url; ver = rel.tag_name.replace(/^v/, ""); apply(); }
+}).catch(() => {});
+</script>
+</body>
+</html>
