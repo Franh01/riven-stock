@@ -2407,7 +2407,7 @@ document.addEventListener('mousedown', (e) => {
       { el: "#est-section", demo: "edit", pre: demoEstimate, t: "Estimado", x: "Te da un precio y un rango. Tocá el estimado para usarlo como precio, o abrí la lista para ver los comparables." },
       { el: "#publish-section", demo: "edit", t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
       { el: '#mine tr[data-id="demo"] .riven-weapon', demo: "list", click: true, t: "Detalle de un riven", x: "Después de guardar, volvés a la lista. Tocá el nombre del arma (o el del riven, justo abajo) para ver su detalle." },
-      { el: "#sum-dialog .kpis", demo: "summary", t: "Resumen", x: "Tu precio, las horas que lleva online y cuántas publicaciones del arma están más baratas que la tuya. Abajo, los stats." },
+      { el: "#sum-dialog .sum-side .sum-card", demo: "summary", t: "Resumen", x: "Tu precio, las horas que lleva online y cuántas publicaciones del arma están más baratas que la tuya. Abajo, los stats." },
       { el: "#est-card", demo: "summary", t: "Precio estimado", x: "Compara con rivens parecidos y dice si estás barato o caro. Tocalo para ver los comparables que usó." },
       { el: "#trend-card", demo: "summary", t: "Tendencia del arma", x: "Mediana y mínimo de los últimos días. La estrella sigue el arma aunque no la tengas; las de tu stock se siguen solas." },
       { el: "#sum-dialog .switch-row", demo: "summary", t: "Baja automática", x: "Activa o desactiva la [[Baja automática]] de este riven. Más abajo están sus ajustes propios (horas, baja y piso) y el historial de precios." },
@@ -2520,6 +2520,7 @@ document.addEventListener('mousedown', (e) => {
     tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 160), innerWidth - 336) + "px";
     tip.querySelectorAll(".hlink").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openHelp(a.dataset.help); }));
     requestAnimationFrame(() => requestAnimationFrame(() => { r = place(); const h2 = tip.offsetHeight; tip.style.top = Math.max(8, r.bottom + 14 + h2 < innerHeight ? r.bottom + 14 : r.top - h2 - 14) + "px"; }));
+    if (st.demo === "summary") [150, 500].forEach((ms) => setTimeout(() => { if (tour && tour.i === i && tour.place === place) { r = place(); const h2 = tip.offsetHeight; tip.style.top = Math.max(8, r.bottom + 14 + h2 < innerHeight ? r.bottom + 14 : r.top - h2 - 14) + "px"; } }, ms));   // el detalle termina de acomodarse tras abrir
     if (tour.clickOff) tour.clickOff();
     tour.clickOff = null;
     if (st.click) {   // el paso pide tocar el elemento: se intercepta el clic y se avanza en vez de abrir el formulario de verdad
