@@ -2226,11 +2226,26 @@ document.addEventListener('mousedown', (e) => {
       btn.disabled = false; btn.textContent = tr("rd.estGo");
     }
   }
+  // Velocidad de venta propia: horas online que tardaron tus ventas cerradas (de esta arma; si hay pocas, de todas) a precios altos y bajos.
+  function sellSpeedHtml(es) {
+    let weapon = null;
+    try { weapon = readForm().item?.weapon_url_name; } catch (e) {}
+    const med = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.length ? s[Math.floor((s.length - 1) / 2)] : null; };
+    const withH = (list) => list.filter((c) => !c.pending && c.sold_price && c.hours_online != null);
+    let pool = withH(closed.filter((c) => c.weapon === weapon)), scope = "w";
+    if (pool.length < 3) { pool = withH(closed); scope = "a"; }
+    if (pool.length < 3) return `<div class="muted" style="font-size:12px;flex-basis:100%">${tr("rd.speedNone")}</div>`;
+    const fmtH = (h) => h < 10 ? h.toFixed(1) : Math.round(h);
+    const lo = pool.filter((c) => c.sold_price <= es.price).map((c) => c.hours_online), hi = pool.filter((c) => c.sold_price > es.price).map((c) => c.hours_online);
+    let txt = tr(scope === "w" ? "rd.speedW" : "rd.speedA", { n: pool.length, h: fmtH(med(pool.map((c) => c.hours_online))) });
+    if (lo.length >= 2 && hi.length >= 2) txt += " " + tr("rd.speedSplit", { p: es.price, a: fmtH(med(lo)), b: fmtH(med(hi)) });
+    return `<div class="muted" style="font-size:12px;flex-basis:100%">${txt}</div>`;
+  }
   function renderEstimate(es) {
     {
       $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
-        `<div class="chip"><b>${es.low}–${es.high}p</b><span>${tr("rd.range")}</span></div><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>` +
-        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "");
+        `<button class="chip" data-price="${es.low}" title="${tr("rd.useTip")}"><b>${es.low}p</b><span>${tr("rd.fast")} · ${tr("rd.use")}</span></button><button class="chip" data-price="${es.high}" title="${tr("rd.useTip")}"><b>${es.high}p</b><span>${tr("rd.high")} · ${tr("rd.use")}</span></button><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>` +
+        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + sellSpeedHtml(es);
       $("#est-results").innerHTML = `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
         <td class="price">${x.price}p</td>
         <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>

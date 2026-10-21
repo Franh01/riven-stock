@@ -9,10 +9,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 #### Español
 - El precio máximo al publicar o editar es 900000p: el campo lo limita y avisa.
 - El error de datos inválidos de warframe.market ahora se explica en español.
+- El estimado ahora propone tres precios (rápido, estimado, alto) y muestra cuánto tardaron en venderse tus ventas anteriores.
 
 #### English
 - The maximum price when listing or editing is 900000p: the field caps it and warns.
 - warframe.market's invalid-data error is now explained clearly.
+- The estimate now suggests three prices (fast, estimate, high) and shows how long your previous sales took to sell.
 
 ## [0.8.4] - 2026-10-21
 
