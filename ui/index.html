@@ -225,6 +225,10 @@
   .sum-grid { display: grid; grid-template-columns: 330px 1fr; gap: 24px; align-items: start; }
   .sum-side { display: grid; gap: 16px; }
   .sum-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .sum-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .sum-tabs button { background: transparent; border: 1px solid var(--line); color: var(--muted); padding: 5px 12px; border-radius: 99px; font-size: 12px; cursor: pointer; }
+  .sum-tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .est-link { cursor: pointer; }
   .sum-card h4, .sum-main h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
   .kpis { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
   .kpi b { display: block; font-size: 22px; color: var(--text); }
@@ -1826,13 +1830,13 @@ document.addEventListener('mousedown', (e) => {
     const diff = es ? es.price - a.price : 0;
     const verdict = !es ? "" : Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">Tu precio está en línea</span>`
       : diff > 0 ? `<span class="below">Podrías pedir ~${diff}p más</span>` : `<span class="above">Estás ~${-diff}p por encima</span>`;
-    const estCard = es ? `<div class="sum-card"><h4>Precio estimado</h4>
+    const estCard = es ? `<div class="sum-card est-link" id="est-card" title="Ver los comparables usados"><h4>Precio estimado</h4>
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b class="accent" style="font-size:30px;line-height:1">${es.price}p</b>
             <span class="muted" style="white-space:nowrap">rango ${es.low}–${es.high}p</span></div>
           <div style="margin-top:8px;font-size:13px">${verdict}</div>
-          <small class="muted" style="display:block;margin-top:4px">${es.n} comparables · confianza ${esc(es.confidence)}</small></div>`
+          <small class="muted" style="display:block;margin-top:4px">${es.n} comparables · confianza ${esc(es.confidence)} · ver</small></div>`
       : `<div class="sum-card"><h4>Precio estimado</h4><small class="muted">Sin comparables suficientes.</small></div>`;
-    const comps = es ? `<h4 style="margin-top:16px">Comparables más parecidos</h4><table class="sum-orders"><thead><tr><th>Parecido</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
+    const comps = es ? `<table class="sum-orders"><thead><tr><th>Parecido</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
       es.comps.map((x) => `<tr><td>${Math.round(x.sim * 100)}%</td><td class="ord-price">${x.price}p</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>` : "";
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
     $("#sum-meta").innerHTML = `<b>${a.rolls} rolls</b><b>MR ${a.mr}</b>`;
@@ -1853,7 +1857,13 @@ document.addEventListener('mousedown', (e) => {
         </div><small class="muted">Vacío = usa el valor global.</small></div>
         <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>
       </div>
-      <div class="sum-main"><h4>Órdenes online más baratas${o.age_s != null ? ` · datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min` : ""}</h4>${orders}${comps}</div></div>`;
+      <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
+    const showTab = (t) => {
+      $("#tab-orders").hidden = t !== "orders"; $("#tab-comps").hidden = t !== "comps";
+      document.querySelectorAll(".sum-tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
+    };
+    document.querySelectorAll(".sum-tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+    $("#est-card")?.addEventListener("click", () => showTab("comps"));
     $("#sum-auto").addEventListener("change", (e) => api().set_autodrop(aid, e.target.checked).then(loadMine));
     for (const id of ["#ov-h", "#ov-a", "#ov-f"]) $(id).addEventListener("change", () => api().set_overrides(aid, $("#ov-h").value, $("#ov-a").value, $("#ov-f").value).then(loadMine));
   }

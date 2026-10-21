@@ -97,5 +97,5 @@ def estimate(view, market, exclude_id=None):
         "n": len(top), "confidence": conf, "avg_sim": round(avg_sim, 2),
         "comps": [{"price": o["p"], "sim": round(s, 2), "status": o["st"], "rolls": o["r"],
                    "stats": [{"slug": x, "value": v, "positive": p} for x, v, p in o["s"]]}
-                  for s, o in top[:5]],
+                  for s, o in top],
     }
