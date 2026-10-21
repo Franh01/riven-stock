@@ -2534,8 +2534,6 @@ document.addEventListener('mousedown', (e) => {
   async function openConfig() {
     $("#cfg-body").innerHTML = skelForm();
     $("#cfg-dialog").showModal();
-    setTimeout(loadBackupInfo, 0);
-    setTimeout(loadCloud, 0);
     const oh = await api().online_hours();
     const total = oh && oh.hours != null ? oh.hours : 0;
     const on = cfgVal("autodrop_enabled");
@@ -2550,13 +2548,15 @@ document.addEventListener('mousedown', (e) => {
       </div></div>
       <div class="sum-card"><label class="switch-row"><span>${tr("cfg.invis")}<small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row"><span>${tr("lang.label")}<small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
-      <div class="sum-card"><b>${tr("bk.title")}</b><small style="display:block;margin:2px 0 8px" class="muted">${tr("bk.sub")}</small>
+      <div class="sum-card" id="bk-card"><div style="display:flex;justify-content:space-between;align-items:center"><b>${tr("bk.title")}</b><button class="ghost" id="bk-tour" title="${tr("stock.tourTip")}" style="padding:4px 10px">?</button></div><small style="display:block;margin:2px 0 8px" class="muted">${tr("bk.sub")}</small>
         <div id="bk-info" class="muted" style="font-size:12px;margin-bottom:8px"></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="bk-now">${tr("bk.now")}</button><button class="ghost" id="bk-export">${tr("bk.export")}</button><button class="ghost" id="bk-import">${tr("bk.import")}</button><button class="ghost" id="bk-folder">${tr("bk.folder")}</button></div></div>
-      <div class="sum-card"><b>${tr("cl.title")}</b><small style="display:block;margin:2px 0 8px" class="muted">${tr("cl.sub")}</small>
+        <div id="bk-btns" style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="bk-now">${tr("bk.now")}</button><button class="ghost" id="bk-export">${tr("bk.export")}</button><button class="ghost" id="bk-import">${tr("bk.import")}</button><button class="ghost" id="bk-folder">${tr("bk.folder")}</button></div></div>
+      <div class="sum-card" id="cl-card"><b>${tr("cl.title")}</b><small style="display:block;margin:2px 0 8px" class="muted">${tr("cl.sub")}</small>
         <div id="cl-body"></div></div>
       <div class="muted" style="font-size:12px">${tr("cfg.total", { h: "<b>" + total.toFixed(1) + " h</b>" })}</div>
     </div>`;
+    loadBackupInfo(); loadCloud();
+    { const ts = tourState(); if (!ts.off && !ts.done.backup) setTimeout(() => startTour("backup"), 400); }
   }
   async function loadBackupInfo() {
     const el = $("#bk-info"); if (!el) return;
@@ -2581,6 +2581,7 @@ document.addEventListener('mousedown', (e) => {
   }
   $("#cfg-body").addEventListener("click", async (e) => {
     const id = e.target.closest("button")?.id;
+    if (id === "bk-tour") { startTour("backup"); return; }
     if (id && id.startsWith("cl-")) {
       if (id === "cl-on") { const r = await api().cloud_enable(); if (r.error) toast(r.error); else loadCloud(true); }
       else if (id === "cl-now") { const r = await api().cloud_upload(); toast(r.error ? r.error : tr("cl.done")); loadCloud(); }
@@ -2743,6 +2744,14 @@ document.addEventListener('mousedown', (e) => {
 
   // ---- Tutoriales guiados ----
   const TOURS = {
+    backup: { title: "tour.backup.title", steps: [
+      { cfg: true, el: "#bk-card", t: "tour.backup.1.t", x: "tour.backup.1.x" },
+      { cfg: true, el: "#bk-btns", t: "tour.backup.2.t", x: "tour.backup.2.x" },
+      { cfg: true, el: "#cl-card", t: "tour.backup.3.t", x: "tour.backup.3.x" },
+      { cfg: true, el: "#cl-body", t: "tour.backup.4.t", x: "tour.backup.4.x" },
+      { cfg: true, el: "#cl-code", t: "tour.backup.5.t", x: "tour.backup.5.x" },
+      { cfg: true, el: "#cl-card", t: "tour.backup.6.t", x: "tour.backup.6.x" },
+    ] },
     reporte: { title: "tour.reporte.title", steps: [
       { el: "#report .rp-filters", t: "tour.reporte.1.t", x: "tour.reporte.1.x" },
       { el: "#report .rp-kpis", t: "tour.reporte.2.t", x: "tour.reporte.2.x" },
@@ -2877,12 +2886,15 @@ document.addEventListener('mousedown', (e) => {
     if (completed) st.done[tour.id] = true;
     if (never) st.off = true;
     saveTour(st);
+    const wasBackup = tour.id === "backup";
     $("#tour-hole").remove(); $("#tour-tip").remove(); tour = null; closeDemo();
+    if (wasBackup) $("#cfg-dialog").close();
   }
   function tourStep(i) {
     const T = TOURS[tour.id], st = T.steps[i];
+    if (st.cfg && !$("#cfg-dialog").open) { tour.i = i; openConfig().then(() => tour && tourStep(i)); return; }
     if (st.demo) openDemo(st.demo); else closeDemo();
-    document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.demo && d.id === (st.demo.startsWith("summary") ? "sum-dialog" : "riven-dialog"))) d.close(); });
+    document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.cfg && d.id === "cfg-dialog") && !(st.demo && d.id === (st.demo.startsWith("summary") ? "sum-dialog" : "riven-dialog"))) d.close(); });
     if (st.pre) st.pre();
     const el = document.querySelector(st.el);
     if (!el || !el.getClientRects().length) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
@@ -3019,7 +3031,7 @@ document.addEventListener('mousedown', (e) => {
   const HELP_N = 11;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
-      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button>`;
+      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button>`;
       for (let k = 1; k <= HELP_N; k++) h += `<div class="hsec"><h4>${tr("help." + k + ".t")}</h4><p>${tr("help." + k + ".x")}</p></div>`;
       document.getElementById("help-body").innerHTML = h;
       document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
