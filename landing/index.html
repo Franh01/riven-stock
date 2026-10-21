@@ -40,9 +40,15 @@
   .shot img { display:block; width:100%; height:auto; }
   .steps .shot.small { margin:14px 0 2px; }
   .shot.small { max-width:760px; margin:26px 0 12px; }
-  .car { max-width:340px; margin:20px 0; }
-  .car-slide { display:none; } .car-slide.on { display:block; }
+  .car { max-width:340px; margin:20px 0; position:relative; }
+  .car-view { overflow:hidden; border-radius:16px; }
+  .car-track { display:flex; transition:transform .4s ease; }
+  .car-slide { flex:0 0 100%; min-width:0; }
+  .car-slide .shot { box-shadow:none; }
   .car-slide p { margin:10px 0 0; text-align:center; }
+  .car-arrow { position:absolute; top:150px; width:36px; height:36px; border-radius:50%; border:0; background:rgba(0,0,0,.65); color:#fff; font-size:22px; line-height:1; cursor:pointer; z-index:2; }
+  .car-arrow:hover { background:rgba(0,0,0,.9); }
+  .car-prev { left:8px; } .car-next { right:8px; }
   .car-nav { display:flex; gap:10px; justify-content:center; margin-top:8px; }
   .car-nav button { width:12px; height:12px; border-radius:50%; border:0; padding:0; background:var(--line); cursor:pointer; }
   .car-nav button.on { background:#fff; }
@@ -140,8 +146,11 @@
     <h2 data-i18n="ss.h"></h2>
     <p data-i18n="ss.p"></p>
     <div class="car" id="ssCar">
-      <div class="car-slide on"><div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-1.png" alt="" loading="lazy" width="534" height="500"></div><p data-i18n-html="ss.s1"></p></div>
+      <button type="button" class="car-arrow car-prev" aria-label="Anterior">&#8249;</button><button type="button" class="car-arrow car-next" aria-label="Siguiente">&#8250;</button>
+      <div class="car-view"><div class="car-track">
+      <div class="car-slide"><div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-1.png" alt="" loading="lazy" width="534" height="500"></div><p data-i18n-html="ss.s1"></p></div>
       <div class="car-slide"><div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-2.png" alt="" loading="lazy" width="534" height="500"></div><p data-i18n-html="ss.s2"></p></div>
+      </div></div>
       <div class="car-nav"><button type="button" aria-label="1" class="on"></button><button type="button" aria-label="2"></button></div>
     </div>
     <p data-i18n="ss.n"></p>
@@ -168,9 +177,10 @@
 </div>
 
 <script>
-(function(){var c=document.getElementById('ssCar');if(!c)return;var sl=c.querySelectorAll('.car-slide'),bt=c.querySelectorAll('.car-nav button'),i=0;
-function go(n){i=n;sl.forEach(function(e,k){e.classList.toggle('on',k===n)});bt.forEach(function(e,k){e.classList.toggle('on',k===n)})}
-bt.forEach(function(b,k){b.onclick=function(){go(k)}});sl.forEach(function(e){e.querySelector('img').onclick=function(){go((i+1)%sl.length)}});})();
+(function(){var c=document.getElementById('ssCar');if(!c)return;var tr=c.querySelector('.car-track'),n=c.querySelectorAll('.car-slide').length,bt=c.querySelectorAll('.car-nav button'),i=0;
+function go(k){i=(k+n)%n;tr.style.transform='translateX('+(-100*i)+'%)';bt.forEach(function(e,j){e.classList.toggle('on',j===i)})}
+bt.forEach(function(b,k){b.onclick=function(){go(k)}});
+c.querySelector('.car-prev').onclick=function(){go(i-1)};c.querySelector('.car-next').onclick=function(){go(i+1)};go(0);})();
 </script>
 <script>
 const T = {
