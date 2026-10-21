@@ -1952,11 +1952,11 @@ document.addEventListener('mousedown', (e) => {
     const m = /^Bajé (\S+) (.+?) de \d+ a \d+ pt$/.exec(n.text || "");
     return m ? { weapon: m[1].replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), name: m[2] } : null;
   };
-  const fmtPt = (v) => Number(v).toLocaleString("es-AR");
+  const fmtPt = (v) => Number(v).toLocaleString(I18N.locale);
   const priceLine = (n) => `<div class="al-prices"><span class="old">${fmtPt(n.old_price)}</span><span class="arrow">→</span><span class="new">${fmtPt(n.new_price)} pt</span><span class="diff">−${fmtPt(n.old_price - n.new_price)}</span></div>`;
   const agoTxt = (iso) => {
     const m = Math.round((Date.now() - new Date(iso)) / 60000);
-    return m < 1 ? "recién" : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : new Date(iso).toLocaleDateString("es-AR");
+    return m < 1 ? tr("time.now") : m < 60 ? tr("time.minAgo", { n: m }) : m < 1440 ? tr("time.hAgo", { n: Math.round(m / 60) }) : new Date(iso).toLocaleDateString(I18N.locale);
   };
   function groupAlerts(items) {
     const out = [], byAuc = {};
@@ -1974,15 +1974,15 @@ document.addEventListener('mousedown', (e) => {
       const d = n.drop_id && n.old_price != null ? dropInfo(n) : null;
       const unread = n.all.some((x) => !x.read_at);
       const ids = n.all.map((x) => x.id).join(",");
-      const cnt = n.all.length > 1 ? `<span class="tag" style="background:#a05cf622;color:var(--accent)">${n.all.length} bajas</span>` : "";
-      const head = d ? `<div class="al-name">${esc(d.weapon)}<small>${esc(d.name)}</small>${cnt}${n.reverted_at ? `<span class="tag">Revertida</span>` : ""}</div>${priceLine(n)}` : `<div class="al-name">${esc(n.text)}</div>`;
+      const cnt = n.all.length > 1 ? `<span class="tag" style="background:#a05cf622;color:var(--accent)">${tr("al.drops", { n: n.all.length })}</span>` : "";
+      const head = d ? `<div class="al-name">${esc(d.weapon)}<small>${esc(d.name)}</small>${cnt}${n.reverted_at ? `<span class="tag">${tr("src.revert")}</span>` : ""}</div>${priceLine(n)}` : `<div class="al-name">${esc(n.text)}</div>`;
       return `<div class="al-card ${unread ? "unread" : ""} ${n.reverted_at ? "rev" : ""}" data-id="${ids}"><span class="bar"></span>
         <div>${head}<div class="when">${esc(agoTxt(n.created_at))}</div></div>
         <div class="acts">
-          ${n.auction_id && !fake ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">Ver Riven</button>` : ""}
-          ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">Revertir</button>` : ""}
+          ${n.auction_id && !fake ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
+          ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">${tr("al.revert")}</button>` : ""}
         </div></div>`;
-    }).join("") : `<div class="state">Sin alertas.</div>`;
+    }).join("") : `<div class="state">${tr("al.none")}</div>`;
   }
   // Marcar como leída al dejar el mouse un momento sobre la alerta
   let hoverTimer = null;
@@ -2000,7 +2000,7 @@ document.addEventListener('mousedown', (e) => {
   $("#al-list").addEventListener("mouseout", (e) => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".al-card")) clearTimeout(hoverTimer); });
 
   // Confirmación propia (en vez del confirm() del navegador)
-  function askConfirm(title, text, okLabel = "Aceptar") {
+  function askConfirm(title, text, okLabel = tr("common.accept")) {
     return new Promise((resolve) => {
       const dlg = $("#confirm-dialog");
       $("#cf-title").textContent = title; $("#cf-text").textContent = text; $("#cf-yes").textContent = okLabel;
@@ -2258,17 +2258,17 @@ document.addEventListener('mousedown', (e) => {
     const total = oh && oh.hours != null ? oh.hours : 0;
     const on = cfgVal("autodrop_enabled");
     $("#cfg-body").innerHTML = `<div class="cfg-grid">
-      <div class="sum-card"><label class="switch-row"><span><b>Ajuste automático de precio</b><small>Interruptor general. Cada riven además tiene el suyo en su resumen.</small></span>${sw("cfg-enabled", on)}</label></div>
+      <div class="sum-card"><label class="switch-row"><span><b>${tr("sum.auto")}</b><small>${tr("cfg.general")}</small></span>${sw("cfg-enabled", on)}</label></div>
       <div class="sum-card ${on ? "" : "cfg-off"}" id="cfg-params"><div class="cfg-grid">
-        <div class="cfg-row"><span>Horas online antes de bajar<small>Se cuentan solo las horas con tu estado Online o En juego.</small></span><span class="val" id="v-hours">${cfgVal("autodrop_hours")} h</span>
+        <div class="cfg-row"><span>${tr("cfg.hours")}<small>${tr("cfg.hoursSub")}</small></span><span class="val" id="v-hours">${cfgVal("autodrop_hours")} h</span>
           <input type="range" id="cfg-hours" min="1" max="72" value="${cfgVal("autodrop_hours")}"></div>
-        <div class="cfg-row"><span>Cuánto baja cada vez</span><span class="val" id="v-amount">${cfgVal("autodrop_amount")}p</span>
+        <div class="cfg-row"><span>${tr("cfg.amount")}</span><span class="val" id="v-amount">${cfgVal("autodrop_amount")}p</span>
           <input type="range" id="cfg-amount" min="1" max="50" value="${cfgVal("autodrop_amount")}"></div>
-        <div class="cfg-row"><span>Piso mínimo<small>Nunca baja por debajo de este precio.</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
+        <div class="cfg-row"><span>${tr("cfg.floor")}<small>${tr("cfg.floorSub")}</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
-      <div class="sum-card"><label class="switch-row"><span>Invisible al cerrar la app${""}<small>Al cerrar, tu estado pasa a Invisible.</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
+      <div class="sum-card"><label class="switch-row"><span>${tr("cfg.invis")}<small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row"><span>${tr("lang.label")}<small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
-      <div class="muted" style="font-size:12px">Horas online acumuladas en total: <b>${total.toFixed(1)} h</b></div>
+      <div class="muted" style="font-size:12px">${tr("cfg.total", { h: "<b>" + total.toFixed(1) + " h</b>" })}</div>
     </div>`;
   }
   const saveCfg = (k, v) => { settings[k] = v; api().set_setting(k, v); };
@@ -2283,7 +2283,7 @@ document.addEventListener('mousedown', (e) => {
   });
   $("#cfg-body").addEventListener("change", (e) => {
     const t = e.target;
-    if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(t.checked ? "Ajuste automático activado" : "Ajuste automático desactivado"); }
+    if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "cfg.on" : "cfg.off")); }
     else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
     else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
@@ -2297,10 +2297,10 @@ document.addEventListener('mousedown', (e) => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.act === "open") { $("#alerts-dialog").close(); openSummary(b.dataset.aid); }
     if (b.dataset.act === "revert") {
-      if (!await askConfirm("Revertir ajuste", "Vuelve al precio anterior en warframe.market y se apaga el ajuste automático de precio de este riven.", "Revertir")) return;
+      if (!await askConfirm(tr("al.revTitle"), tr("al.revText"), tr("al.revert"))) return;
       const r = await api().revert_drop(Number(b.dataset.drop));
       if (r.error) { toast(r.error, true); return; }
-      alerts = r; renderBell(); renderAlerts(); toast("Ajuste revertido; ajuste automático apagado para ese riven.");
+      alerts = r; renderBell(); renderAlerts(); toast(tr("al.reverted"));
       loadMine();
     }
   });
@@ -2334,17 +2334,17 @@ document.addEventListener('mousedown', (e) => {
       if (!cuerpo.trim()) continue;
       const m = tit.match(/^\[([^\]]+)\](?:\s*-\s*(.+))?$/);
       if (!m || !/^\d/.test(m[1])) continue;
-      out += `<div class="ver-h">Versión ${escH(m[1])}${m[2] ? `<small>${escH(m[2])}</small>` : ""}</div>` + mdLite(cuerpo);
+      out += `<div class="ver-h">${tr("upd.version", { v: escH(m[1]) })}${m[2] ? `<small>${escH(m[2])}</small>` : ""}</div>` + mdLite(cuerpo);
     }
-    return out || "<p class=\"muted\">Sin novedades.</p>";
+    return out || `<p class="muted">${tr("upd.noNews")}</p>`;
   }
   function showUpdate() {
     if (!updInfo) return;
-    $("#upd-title").textContent = "Hay una versión nueva: " + updInfo.version;
+    $("#upd-title").textContent = tr("upd.new", { v: updInfo.version });
     $("#upd-notes").innerHTML = mdLite(updInfo.notas);
-    $("#upd-go").disabled = false; $("#upd-go").textContent = "Actualizar ahora";
+    $("#upd-go").disabled = false; $("#upd-go").textContent = tr("upd.now");
     $("#upd-later").hidden = false; $("#upd-x").hidden = false; $("#upd-dialog").removeAttribute("data-no-backdrop");
-    $("#upd-hint").textContent = "Al actualizar, Riven Stock se va a reiniciar. Tus datos no se tocan.";
+    $("#upd-hint").textContent = tr("upd.restartHint");
     updShown = updInfo.version;
     if (!$("#upd-dialog").open) $("#upd-dialog").showModal();
   }
@@ -2355,22 +2355,22 @@ document.addEventListener('mousedown', (e) => {
     updInfo = r.version ? r : null;
     $("#ver-dot").hidden = !updInfo;
     if (updInfo && (manual || updShown !== updInfo.version)) showUpdate();
-    else if (!updInfo && manual) toast("Ya tenés la última versión.");
+    else if (!updInfo && manual) toast(tr("upd.latest"));
   }
   $("#upd-go").addEventListener("click", async () => {
-    $("#upd-go").disabled = true; $("#upd-go").textContent = "Descargando…";
+    $("#upd-go").disabled = true; $("#upd-go").textContent = tr("upd.downloading");
     $("#upd-later").hidden = true; $("#upd-x").hidden = true; $("#upd-dialog").setAttribute("data-no-backdrop", "");
-    $("#upd-title").textContent = "Actualizando…";
-    $("#upd-hint").textContent = "Se está descargando la versión nueva. Cuando termine, Riven Stock se reinicia solo; esperá unos segundos.";
+    $("#upd-title").textContent = tr("upd.updating");
+    $("#upd-hint").textContent = tr("upd.downHint");
     const x = await api().install_update();
     if (x && x.error) {
-      $("#upd-title").textContent = "No se pudo actualizar";
+      $("#upd-title").textContent = tr("upd.fail");
       $("#upd-hint").textContent = x.error;
-      $("#upd-go").disabled = false; $("#upd-go").textContent = "Reintentar";
+      $("#upd-go").disabled = false; $("#upd-go").textContent = tr("upd.retry");
       $("#upd-later").hidden = false; $("#upd-x").hidden = false; $("#upd-dialog").removeAttribute("data-no-backdrop");
     } else {
-      $("#upd-title").textContent = "Reiniciando…";
-      $("#upd-hint").textContent = "Riven Stock se va a cerrar y volver a abrir en unos segundos.";
+      $("#upd-title").textContent = tr("upd.restarting");
+      $("#upd-hint").textContent = tr("upd.restartingHint");
     }
   });
   $("#upd-later").addEventListener("click", () => $("#upd-dialog").close());
@@ -2380,7 +2380,7 @@ document.addEventListener('mousedown', (e) => {
     $("#news-body").innerHTML = renderChangelog(await api().get_changelog());
     $("#news-dialog").showModal();
   });
-  $("#news-check").addEventListener("click", async () => { const b = $("#news-check"); b.disabled = true; b.textContent = "Buscando…"; await checkUpdate(true); b.disabled = false; b.textContent = "Buscar actualizaciones"; });
+  $("#news-check").addEventListener("click", async () => { const b = $("#news-check"); b.disabled = true; b.textContent = tr("common.searching"); await checkUpdate(true); b.disabled = false; b.textContent = tr("upd.check"); });
   $("#news-x").addEventListener("click", () => $("#news-dialog").close());
 
   setInterval(loadAlerts, 15000);
@@ -2556,7 +2556,7 @@ document.addEventListener('mousedown', (e) => {
     const covered = el.closest("dialog") !== host.closest("dialog") && host !== document.body;
     hole.style.display = covered ? "none" : "";
     const last = i === T.steps.length - 1;
-    tip.innerHTML = `<h5>${st.t}</h5><p>${st.x.replace(/\[\[(.+?)(?:\|(.+?))?\]\]/g, (_, k, l) => `<a href="#" class="hlink" data-help="${k}">${l || k}</a>`)}</p><label><input type="checkbox" id="tour-never"> No volver a mostrar tutoriales</label>
+    tip.innerHTML = `<h5>${st.t}</h5><p>${st.x.replace(/\[\[(.+?)(?:\|(.+?))?\]\]/g, (_, k, l) => `<a href="#" class="hlink" data-help="${k}">${l || k}</a>`)}</p><label><input type="checkbox" id="tour-never"> ${tr("tour.never")}</label>
       <div class="tt-row"><span class="tt-n">${i + 1} de ${T.steps.length}</span><button class="ghost" id="tt-skip">Saltar</button>${i ? `<button class="ghost" id="tt-prev">Atrás</button>` : ""}<button id="tt-next">${last ? "Listo" : "Siguiente"}</button></div>`;
     { const nv = tip.querySelector("#tour-never"); if (nv) { nv.checked = !!tourState().off; nv.addEventListener("change", () => { const t = tourState(); t.off = nv.checked; saveTour(t); }); } }
     const th = tip.offsetHeight, below = r.bottom + 14 + th < innerHeight;
@@ -2614,7 +2614,7 @@ document.addEventListener('mousedown', (e) => {
     try {
       catalog = await api().catalog();
     } catch (e) {
-      toast(`No se pudo cargar el catálogo: ${e.message || e}`, true);
+      toast(tr("catalog.fail", { e: e.message || e }), true);
     }
     catalog.stats.forEach((s) => (statBySlug[s.slug] = s));
     catalog.weapons.forEach((w) => (weaponBySlug[w.slug] = w));
@@ -2687,7 +2687,7 @@ document.addEventListener('mousedown', (e) => {
     ["Límite de pedidos", "warframe.market permite pocos pedidos por segundo. La app los pone en fila para no pasarse, por eso a veces la información tarda en cargar (sobre todo al abrir o al editar). Cuando espera te muestra un aviso con el motivo; solo hay que esperar un momento."],
   ];
   document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("help-body").innerHTML = `<h4>Recorridos guiados</h4><p>Te muestran la app paso a paso.</p><button class="ghost tour-btn" data-tour="inicio">Ver el recorrido inicial</button> <button class="ghost tour-btn" data-tour="stock">Ver el recorrido de Stock unveiled</button>`
+    document.getElementById("help-body").innerHTML = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button>`
       + HELP.map(([t, x]) => `<div class="hsec"><h4>${t}</h4><p>${x}</p></div>`).join("");
     document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
     document.getElementById("stock-help").addEventListener("click", () => startTour("stock"));
