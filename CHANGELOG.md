@@ -3,6 +3,8 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado semántico.
 
 ## [Sin publicar]
+
+## [0.3.0] - 2026-10-21
 - Recorrido guiado inicial (se muestra solo la primera vez, se puede saltar o desactivar, y se repite desde Ayuda): crea un riven de ejemplo, recorre la lista, el menú de acciones, la edición, el estimado y el detalle con las migas de pan, todo con datos de ejemplo.
 - Referencias y comparables plegados en 'Ver las N órdenes' para no saturar la edición.
 - Campos numéricos sin las flechitas.
