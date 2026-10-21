@@ -2369,7 +2369,7 @@ document.addEventListener('mousedown', (e) => {
       { el: "#gear", t: "Configuración", x: "Los valores globales de la [[Baja automática]]: horas sin vender, cuánto baja y el piso mínimo." },
       { el: "#views", t: "Mis ventas y Mercado", x: "Mis ventas es tu stock; Mercado sirve para mirar lo que se vende de cada arma." },
       { el: "#mine", t: "Tus rivens", x: "Acá van tus rivens. Tocá el nombre de uno para ver su resumen: precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Si todavía no tenés ninguno, seguí: vamos a crear uno de ejemplo." },
-      { el: "#fab", t: "Nuevo riven", x: "Con este botón creás uno. Te abro el formulario con datos de ejemplo: no se publica nada." },
+      { el: "#fab", click: true, t: "Nuevo riven", x: "Con este botón creás uno. Tocalo: te abro el formulario con datos de ejemplo y no se publica nada." },
       { el: ".grid-riven", demo: "new", t: "Arma y datos", x: "Elegís el arma, la polaridad, MR, rango y rolls. Los cargué de ejemplo." },
       { el: "#stat-slots", demo: "new", t: "Stats", x: "Hasta tres stats positivos y uno negativo, con sus valores tal como figuran en el juego." },
       { el: "#name-chips", demo: "new", t: "Nombre", x: "El nombre sale de los stats; elegís entre las combinaciones posibles." },
@@ -2425,6 +2425,7 @@ document.addEventListener('mousedown', (e) => {
   const saveTour = (st) => { settings.tutorials = st; api().set_setting("tutorials", st); };
   function endTour(completed) {
     if (!tour) return;
+    if (tour.clickOff) tour.clickOff();
     const st = tourState(), never = $("#tour-never")?.checked;
     if (completed) st.done[tour.id] = true;
     if (never) st.off = true;
@@ -2454,6 +2455,12 @@ document.addEventListener('mousedown', (e) => {
     tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 160), innerWidth - 336) + "px";
     tip.querySelectorAll(".hlink").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openHelp(a.dataset.help); }));
     requestAnimationFrame(() => requestAnimationFrame(() => { r = place(); const h2 = tip.offsetHeight; tip.style.top = Math.max(8, r.bottom + 14 + h2 < innerHeight ? r.bottom + 14 : r.top - h2 - 14) + "px"; }));
+    if (tour.clickOff) tour.clickOff();
+    tour.clickOff = null;
+    if (st.click) {   // el paso pide tocar el elemento: se intercepta el clic y se avanza en vez de abrir el formulario de verdad
+      const h = (e) => { e.preventDefault(); e.stopImmediatePropagation(); tourStep(i + 1); };
+      el.addEventListener("click", h, true); tour.clickOff = () => el.removeEventListener("click", h, true);
+    }
     $("#tt-skip").onclick = () => endTour(false);
     $("#tt-prev")?.addEventListener("click", () => tourStep(i - 1));
     $("#tt-next").onclick = () => (last ? endTour(true) : tourStep(i + 1));
