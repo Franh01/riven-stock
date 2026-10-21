@@ -476,7 +476,9 @@
   .cf-val { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
   .cf-val .old { color: var(--neg); text-decoration: line-through; text-decoration-thickness: 2px; opacity: .85; }
   .cf-val .arrow { color: var(--muted); }
-  .cf-val .new { color: var(--pos); font-weight: 800; font-size: 18px; }
+  .cf-val .new { color: var(--pos); font-weight: 800; font-size: 15px; }
+  .cf-val .stats-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 12px; }
+  .cf-val .old-stats { opacity: .6; }
   .cf-val .diff { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
   .cf-val .diff.up { background: #7ee2a81f; color: var(--pos); }
   .cf-val .diff.down { background: #ff8a9a1f; color: var(--neg); }
@@ -2257,7 +2259,7 @@ document.addEventListener('mousedown', (e) => {
       if (Number(item.mastery_level) !== editing.mr) fields.push([tr("rd.mr"), editing.mr, item.mastery_level]);
       if (Number(item.mod_rank) !== editing.rank) fields.push([tr("rd.rank"), editing.rank, item.mod_rank]);
       if (Number(item.re_rolls) !== editing.rolls) fields.push([tr("rd.rolls"), editing.rolls, item.re_rolls]);
-      if (sig(item.attributes) !== sig(editing.stats)) fields.push(["Stats", tr("pub.curStats"), tr("pub.newStats")]);
+      if (sig(item.attributes) !== sig(editing.stats)) fields.push(["Stats", { stats: editing.stats }, { stats: item.attributes.map((x) => ({ slug: x.slug ?? x.url_name, value: Number(x.value), positive: !!x.positive })) }]);
     }
     if (fields.length) { changes.item = item; changes.fields = fields; }
     if (price !== editing.price) changes.price = price;
@@ -2291,7 +2293,8 @@ document.addEventListener('mousedown', (e) => {
         if (npos < 2 || attributes.length - npos > 1 || attributes.some((x) => Number.isNaN(x.value)) || !changes.item.name) {
           toast(tr("pub.fillAll"), true); return;
         }
-        for (const [k, o, n] of changes.fields) rows.push(row(k, chg(esc(String(o)), esc(String(n)))));
+        const stk = (v) => `<span class="stats-col">${v.stats.map((s) => formatStat(s)).join("")}</span>`;
+        for (const [k, o, n] of changes.fields) rows.push(row(k, o && o.stats ? `<span class="old-stats">${stk(o)}</span><span class="arrow">→</span>${stk(n)}` : chg(esc(String(o)), esc(String(n)))));
         rows.push(row(tr("pub.notice"), `<span class="muted">${tr("pub.republishNote")}</span>`));
       }
       if ("price" in changes) { const d = changes.price - editing.price; rows.push(row(tr("rd.price"), chg(`${editing.price}p`, `${changes.price}p`) + `<span class="diff ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${Math.abs(d)}p</span>`)); }
