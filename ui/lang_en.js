@@ -609,7 +609,7 @@ window.LANGS.en = {
   "fb.sug": "Suggestion",
   "fb.bug": "Report a bug",
   "fb.ph": "Tell us what happened or what you would improve",
-  "fb.contact": "Contact (optional, in case we need to ask you something)",
+  "fb.contact": "Contact (optional)",
   "fb.add": "Attach screenshot",
   "fb.shots": "{n} screenshot(s) (max. 3)",
   "fb.logs": "Include the app log",

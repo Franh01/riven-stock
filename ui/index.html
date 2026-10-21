@@ -147,6 +147,10 @@
   .status-row.current { background: #a066f614; }
   .status-menu .hint { padding: 4px 6px 0; }
   .auto-row { display: flex; align-items: center; gap: 8px; padding: 8px 6px 2px; margin-top: 4px; border-top: 1px solid var(--line); color: var(--text); font-size: 13px; cursor: pointer; }
+  .fb-kinds { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin: 4px 0 10px; }
+  .fb-row { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 13px; cursor: pointer; }
+  .fb-row input { width: 15px; height: 15px; margin: 0; padding: 0; accent-color: var(--accent); }
+  #fb-dialog textarea, #fb-dialog input[type=text], #fb-dialog #fb-contact { margin-top: 0; }
   .auto-row input { width: 15px; height: 15px; accent-color: var(--accent); }
   .totals { margin-left: 0; }
 
@@ -749,11 +753,11 @@
 <dialog id="fb-dialog">
   <div class="dlg-head"><h3 data-i18n="fb.title">Sugerencias y bugs</h3><button class="icon" id="fb-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <div class="dlg-body">
-    <p><label><input type="radio" name="fb-kind" value="suggestion" checked> <span data-i18n="fb.sug">Sugerencia</span></label> &nbsp; <label><input type="radio" name="fb-kind" value="bug"> <span data-i18n="fb.bug">Reportar un bug</span></label></p>
+    <div class="fb-kinds"><label class="fb-row"><input type="radio" name="fb-kind" value="suggestion" checked><span data-i18n="fb.sug">Sugerencia</span></label><label class="fb-row"><input type="radio" name="fb-kind" value="bug"><span data-i18n="fb.bug">Reportar un bug</span></label></div>
     <textarea id="fb-text" rows="5" maxlength="4000" style="width:100%" data-i18n-placeholder="fb.ph" placeholder="Contanos qué pasó o qué mejorarías"></textarea>
     <input id="fb-contact" maxlength="120" style="width:100%;margin-top:6px" data-i18n-placeholder="fb.contact" placeholder="Contacto (opcional)">
     <p style="margin:8px 0 2px"><button class="ghost" id="fb-add" data-i18n="fb.add">Adjuntar captura</button> <input type="file" id="fb-file" accept="image/*" multiple hidden> <span class="muted" id="fb-shots"></span></p>
-    <p style="margin:4px 0"><label><input type="checkbox" id="fb-logs"> <span data-i18n="fb.logs">Incluir el registro (log) de la app</span></label> <a href="#" id="fb-logview" data-i18n="fb.view">ver qué se envía</a></p>
+    <div class="fb-kinds"><label class="fb-row"><input type="checkbox" id="fb-logs"><span data-i18n="fb.logs">Incluir el registro (log) de la app</span></label><a href="#" id="fb-logview" data-i18n="fb.view">ver qué se envía</a></div>
     <pre id="fb-logbox" class="muted" hidden style="max-height:140px;overflow:auto;white-space:pre-wrap;font-size:11px"></pre>
     <div class="muted" id="fb-msg" style="min-height:1.4em"></div>
     <div class="upd-actions"><button class="ghost" id="fb-cancel" data-i18n="common.cancel">Cancelar</button><button id="fb-send" data-i18n="fb.send">Enviar</button></div>
