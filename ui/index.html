@@ -272,6 +272,17 @@
   .rk.low { background: #e5a54b26; color: #e5a54b; }
   .comp .stat:not(.shared):not(.neg) { opacity: .55; }
   .comp .stat.shared { box-shadow: inset 0 0 0 1px #7ee2a866; }
+  .comp.ord { grid-template-columns: 96px 1fr 100px; padding: 10px 8px; }
+  .ord { cursor: pointer; border-radius: 8px; transition: background .12s; }
+  .ord:hover { background: #ffffff0a; }
+  .ord .seller-nm { display: block; margin-top: 6px; font-size: 12px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ord .st { display: inline-block; margin-top: 3px; }
+  .ord .comp-price small { display: block; margin-top: 2px; font-size: 11px; }
+  .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; font-size: 12px; color: var(--muted); }
+  .crumbs button { background: none; border: 0; padding: 0; color: var(--accent-2); cursor: pointer; font-size: 12px; }
+  .crumbs button:hover { text-decoration: underline; }
+  .crumbs b { color: var(--text); font-weight: 600; }
+  #sum-dialog.resizing { transition: height .16s ease-out; overflow: hidden; }
   .comp-sim b { font-size: 12px; }
   .comp-sim i { display: block; height: 4px; margin-top: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
   .comp-sim u { display: block; height: 100%; background: var(--accent-2); }
@@ -1923,13 +1934,18 @@ document.addEventListener('mousedown', (e) => {
     document.querySelectorAll("#views button").forEach((x) => x.classList.toggle("on", x === b));
   });
 
-  async function openSummary(aid) {
+  let sumStack = [];   // recorrido de resúmenes abiertos: [{id, label}]
+  async function openSummary(aid, push = false) {
+    if (!push || !$("#sum-dialog").open) sumStack = [];
+    $("#sum-dialog").style.height = ""; $("#sum-dialog").classList.remove("resizing");
     $("#sum-title").textContent = "Cargando…";
     $("#sum-body").innerHTML = skelSummary();
     $("#sum-dialog").showModal();
     const r = await api().riven_summary(aid);
     if (r.error) { $("#sum-body").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
     const a = r.auction, h = r.hours, o = r.orders;
+    sumStack.push({ id: aid, label: `${weaponName(a.weapon)} ${a.name}` });
+    const crumbs = sumStack.length < 2 ? "" : `<div class="crumbs">${sumStack.map((c, i) => i === sumStack.length - 1 ? `<b>${esc(c.label)}</b>` : `<button data-i="${i}">${esc(c.label)}</button><span>›</span>`).join("")}</div>`;
     const own = mine.find((x) => x.id === aid);
     $("#sum-title").innerHTML = own
       ? `<span class="link" id="sum-edit" title="Editar este contrato">${esc(weaponName(a.weapon))} ${esc(a.name)} <small class="muted">✎ editar</small></span>`
@@ -1938,8 +1954,12 @@ document.addEventListener('mousedown', (e) => {
     const SRC = { auto: "Automática", manual: "Manual", seen: "Detectado", revert: "Revertida" };
     const hist = r.history.slice().reverse().map((x) => `<div><span class="muted">${esc(when(x.at))}</span><b>${x.price}p</b><span class="src ${esc(x.source)}">${esc(SRC[x.source] || x.source)}</span></div>`).join("") || `<span class="muted">Sin historial.</span>`;
     const delta = (p) => p === a.price ? `<small class="muted"> igual</small>` : p < a.price ? `<small class="below">${a.price - p}p menos</small>` : `<small class="above">+${p - a.price}p</small>`;
-    const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<table class="sum-orders"><thead><tr><th>Vendedor</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
-      o.orders.map((x) => `<tr><td class="seller"><span class="nm" title="${esc(x.seller)}">${esc(x.seller)}</span><small><span class="st ${esc(x.status)}">${x.status === "ingame" ? "En juego" : "Online"}</span></small></td><td class="ord-price">${x.price}p${delta(x.price)}</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>`;
+    const mineSlugs = new Set(a.stats.filter((x) => x.positive).map((x) => x.slug));
+    const rankTxt = (k) => k == null ? "" : k >= 8 ? `<span class="rk max">Rango máx</span>` : `<span class="rk low">Rango ${k}</span>`;
+    const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<div class="comps">${
+      o.orders.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="Ver el resumen de este riven"><div class="comp-price"><b>${x.price}p</b>${delta(x.price)}<span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}</div>
+        <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
+        <div><span class="st ${esc(x.status)}">${x.status === "ingame" ? "En juego" : "Online"}</span><span class="seller-nm" title="${esc(x.seller)}">${esc(x.seller)}</span></div></div>`).join("")}</div>`;
     const es = r.estimate;
     const mk = r.market;
     const diff = es ? es.price - a.price : 0;
@@ -1953,8 +1973,6 @@ document.addEventListener('mousedown', (e) => {
           ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">Estimado incompleto: warframe.market limitó los pedidos y faltaron comparables. Cerrá y reabrí en un minuto.</div>` : ""}
           <small class="muted" style="display:block;margin-top:4px">${es.n} comparables · confianza ${esc(es.confidence)} · ver</small></div>`
       : `<div class="sum-card"><h4>Precio estimado</h4><small class="muted">Sin comparables suficientes.</small></div>`;
-    const mineSlugs = new Set(a.stats.filter((x) => x.positive).map((x) => x.slug));
-    const rankTxt = (k) => k == null ? "" : k >= 8 ? `<span class="rk max">Rango máx</span>` : `<span class="rk low">Rango ${k}</span>`;
     const comps = es ? `<div class="comp-legend">Ordenadas de más a menos parecidas a tu riven. Los stats <b>resaltados</b> son los que también tiene el tuyo. Un riven con rango bajo muestra valores más chicos de los que tendría al subirlo.</div><div class="comps">${
       es.comps.map((x) => `<div class="comp"><div class="comp-price"><b>${x.price}p</b><span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}</div>
         <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
@@ -1978,11 +1996,24 @@ document.addEventListener('mousedown', (e) => {
         </div><small class="muted">Vacío = usa el valor global.</small></div>
         <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>`}
       </div>
-      <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
-    const showTab = (t) => {
+      <div class="sum-main">${crumbs}<div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
+    const resize = (fn) => {   // cambio de alto suave y corto: mide antes y después
+      const d = $("#sum-dialog"), from = d.offsetHeight;
+      d.style.height = ""; fn();
+      const to = d.offsetHeight;
+      if (Math.abs(to - from) < 4) return;
+      d.style.height = from + "px"; d.classList.add("resizing"); void d.offsetHeight;
+      d.style.height = to + "px";
+      setTimeout(() => { d.style.height = ""; d.classList.remove("resizing"); }, 190);
+    };
+    const showTab = (t) => resize(() => {
       $("#tab-orders").hidden = t !== "orders"; $("#tab-comps").hidden = t !== "comps";
       document.querySelectorAll(".sum-tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
-    };
+    });
+    document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
+    document.querySelectorAll(".crumbs button").forEach((b) => b.addEventListener("click", () => {
+      const c = sumStack[+b.dataset.i]; sumStack = sumStack.slice(0, +b.dataset.i); openSummary(c.id, true);
+    }));
     document.querySelectorAll(".sum-tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
     $("#est-card")?.addEventListener("click", () => showTab("comps"));
     if (mk) return;

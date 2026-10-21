@@ -200,6 +200,8 @@ class Api:
                 e = self._cache.load(weapon)
         except (WFMError, requests.RequestException) as ex:
             return {"error": str(ex)}
+        for a in e["orders"]:
+            self._market[a["id"]] = a   # para poder abrir su resumen al tocarla
         return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],
                             "reputation": a["owner"].get("reputation")} for a in e["orders"][:7]],
                 "age_s": int(time.time() - e["at"]), "market": e.get("market", [])}
