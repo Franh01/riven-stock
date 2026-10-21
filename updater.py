@@ -45,16 +45,29 @@ def _tupla(v):
     return tuple(partes)
 
 
+def buscar_version(version, timeout=10):
+    """Como buscar_actualizacion pero de una versión puntual (para volver a una anterior)."""
+    r = requests.get(API.rsplit("/", 1)[0] + f"/tags/v{version}", timeout=timeout, headers={"Accept": "application/vnd.github+json"})
+    if r.status_code == 404:
+        return None
+    r.raise_for_status()
+    return _info(r.json())
+
+
 def buscar_actualizacion(timeout=10):
     """Devuelve {version, notas, zip_url, sha_url} si hay una versión más nueva, o None."""
     r = requests.get(API, timeout=timeout, headers={"Accept": "application/vnd.github+json"})
     if r.status_code == 404:          # todavía no hay releases
         return None
     r.raise_for_status()
-    rel = r.json()
-    nueva = rel["tag_name"].lstrip("vV")
-    if _tupla(nueva) <= _tupla(version_actual()):
+    info = _info(r.json())
+    if not info or _tupla(info["version"]) <= _tupla(version_actual()):
         return None
+    return info
+
+
+def _info(rel):
+    nueva = rel["tag_name"].lstrip("vV")
     zip_url = sha_url = None
     paquete = "Setup.exe" if FROZEN else ".zip"   # instalado se actualiza con el instalador; con Python, con el zip
     for a in rel.get("assets", []):

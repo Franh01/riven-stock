@@ -20,3 +20,4 @@ cloud/node_modules/
 cloud/.serverless/
 build/
 .vercel
+crashes/

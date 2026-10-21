@@ -3,6 +3,9 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado semántico.
 
 ## [Sin publicar]
+- Informes de errores: si la app se cierra con un error, al abrirla de nuevo te ofrece enviar un informe técnico (sin token ni datos personales); podés elegir enviarlos siempre.
+- Si una versión nueva falla varias veces seguidas, te ofrece volver a la última que andaba bien.
+- Seguridad: límites anti-abuso en la copia en la nube y dependencias actualizadas.
 
 ## [0.6.5] - 2026-10-21
 - Nuevo botón de sugerencias y reporte de bugs en el encabezado: texto, hasta 3 capturas y, si querés, el registro de la app sin datos personales (con vista previa). Un envío cada 10 minutos.

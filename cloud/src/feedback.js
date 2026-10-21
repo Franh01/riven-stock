@@ -1,5 +1,5 @@
 // Sugerencias y reportes de bugs (Function URL pública, POST JSON).
-//   {iid, v, kind:"suggestion"|"bug", text, contact?, logs?, shots?:[{name, data}]}
+//   {iid, v, kind:"suggestion"|"bug"|"crash", text, contact?, logs?, shots?:[{name, data}]}
 // Capturas: base64 de PNG/JPG (se valida la firma real del archivo). Logs: texto en base64 (gzip opcional).
 // Los adjuntos van a S3 (bucket privado); el reporte, a Mongo. Límites por instalación y por IP, y topes globales.
 const { createHash } = require("crypto");
@@ -45,7 +45,7 @@ exports.handler = async (event) => {
 
   const kind = req.kind;
   const text = typeof req.text === "string" ? req.text.trim() : "";
-  if (!IID.test(req.iid || "") || (kind !== "suggestion" && kind !== "bug") || text.length < 5 || text.length > MAX_TEXT)
+  if (!IID.test(req.iid || "") || (kind !== "suggestion" && kind !== "bug" && kind !== "crash") || text.length < (kind === "crash" ? 1 : 5) || text.length > MAX_TEXT)
     return reply(400, { error: "bad_request" });
   const contact = typeof req.contact === "string" ? req.contact.trim().slice(0, MAX_CONTACT) : "";
 
@@ -73,7 +73,9 @@ exports.handler = async (event) => {
   }
 
   const ip = event.requestContext?.http?.sourceIp || "unknown";
-  const ipKey = hash("ip:" + ip), iidKey = hash("iid:" + req.iid);
+  const ns = kind === "crash" ? "crash:" : "";   // los crashes tienen contadores propios: no gastan el cupo de sugerencias
+  const cdMs = kind === "crash" ? 60 * 1000 : COOLDOWN_MS;
+  const ipKey = ns + hash("ip:" + ip), iidKey = ns + hash("iid:" + req.iid);
   const now = new Date();
   const limits = await collection("feedback_limits");
   await ensureIndex(limits);
@@ -82,11 +84,11 @@ exports.handler = async (event) => {
   for (const key of [iidKey, ipKey]) {
     const r = await limits.findOneAndUpdate(
       { _id: "cd:" + key, until: { $lte: now } },
-      { $set: { until: new Date(now.getTime() + COOLDOWN_MS), exp: new Date(now.getTime() + COOLDOWN_MS) } },
+      { $set: { until: new Date(now.getTime() + cdMs), exp: new Date(now.getTime() + cdMs) } },
       { returnDocument: "after" });
     if (!r) {
       try {
-        await limits.insertOne({ _id: "cd:" + key, until: new Date(now.getTime() + COOLDOWN_MS), exp: new Date(now.getTime() + COOLDOWN_MS) });
+        await limits.insertOne({ _id: "cd:" + key, until: new Date(now.getTime() + cdMs), exp: new Date(now.getTime() + cdMs) });
       } catch {
         const cur = await limits.findOne({ _id: "cd:" + key });
         return reply(429, { error: "rate_limited", retry_after: Math.max(1, Math.ceil(((cur?.until || now) - now) / 1000)) });
@@ -97,7 +99,7 @@ exports.handler = async (event) => {
   const day = now.toISOString().slice(0, 10);
   const exp = new Date(now.getTime() + 2 * 86400000);
   const bump = async (id) => (await limits.findOneAndUpdate({ _id: id }, { $inc: { n: 1 }, $setOnInsert: { exp } }, { upsert: true, returnDocument: "after" })).n;
-  if ((await bump(`day:${day}:${ipKey}`)) > DAILY_PER_IP || (await bump(`day:${day}:all`)) > DAILY_GLOBAL)
+  if ((await bump(`day:${day}:${ipKey}`)) > DAILY_PER_IP * (ns ? 2 : 1) || (await bump(`day:${day}:${ns}all`)) > DAILY_GLOBAL)
     return reply(429, { error: "rate_limited", retry_after: 3600 });
 
   const id = `${day}/${now.getTime()}-${hash(req.iid).slice(0, 8)}`;

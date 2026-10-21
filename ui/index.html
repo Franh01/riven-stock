@@ -777,6 +777,15 @@
     <div class="upd-actions"><button class="ghost" id="upd-later" data-i18n="upd.later">Más tarde</button><button id="upd-go" data-i18n="upd.go">Actualizar ahora</button></div>
   </div>
 </dialog>
+<dialog id="crash-dialog">
+  <div class="dlg-head"><h3 id="crash-title"></h3><button class="icon" id="crash-x" data-i18n-title="common.close" title="Cerrar">×</button></div>
+  <div class="dlg-body">
+    <p id="crash-body" style="margin:0"></p>
+    <pre id="crash-prev" class="muted" style="max-height:140px;overflow:auto;font-size:11px;white-space:pre-wrap;margin:0"></pre>
+    <label id="crash-alw" style="display:flex;gap:8px;align-items:center;justify-content:flex-start;font-size:13px;flex-direction:row"><input type="checkbox" id="crash-always" style="width:auto;flex:none;margin:0"><span data-i18n="crash.always">Enviar siempre sin preguntar</span></label>
+    <div class="upd-actions"><button class="ghost" id="crash-no"></button><button id="crash-go"></button></div>
+  </div>
+</dialog>
 <dialog id="cfg-dialog">
   <div class="dlg-head"><h3 data-i18n="cfg.title">Ajuste automático de precio</h3><button class="icon" id="cfg-x" data-i18n-title="common.close" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <div class="dlg-body" id="cfg-body"></div>
@@ -3046,6 +3055,42 @@ document.addEventListener('mousedown', (e) => {
   }
   let rzT; window.addEventListener("resize", () => { clearTimeout(rzT); rzT = setTimeout(() => tour && tourStep(tour.i), 120); });
   window.addEventListener("keydown", (e) => { if (tour && e.key === "Escape") { e.preventDefault(); endTour(false); } });
+  // Errores de la interfaz: se avisan al programa para el informe (el reporte lo decide el usuario al reabrir).
+  window.addEventListener("error", (e) => { try { api().crash_ui_error(`${e.message} @ ${(e.filename || "").split("/").pop()}:${e.lineno}:${e.colno}
+${e.error && e.error.stack || ""}`); } catch (_) {} });
+  window.addEventListener("unhandledrejection", (e) => { try { const r = e.reason; api().crash_ui_error("Promise: " + (r && r.stack || r)); } catch (_) {} });
+  async function checkCrash() {
+    let st; try { st = await api().crash_state(); } catch (e) { return; }
+    const dlg = $("#crash-dialog");
+    const show = (title, body, prev, yes, no, always) => {
+      $("#crash-title").textContent = title; $("#crash-body").textContent = body;
+      $("#crash-prev").textContent = prev; $("#crash-prev").hidden = !prev; $("#crash-alw").hidden = !always;
+      $("#crash-go").textContent = yes; $("#crash-no").textContent = no; $("#crash-go").disabled = false;
+      dlg.showModal();
+    };
+    const finish = () => { dlg.close(); if (st.rollback) askRollback(); };
+    const askRollback = () => {
+      show(tr("crash.rbTitle"), tr("crash.rbBody", { v: st.rollback }), "", tr("crash.rbGo", { v: st.rollback }), tr("crash.rbSkip"), false);
+      $("#crash-go").onclick = async () => {
+        $("#crash-go").disabled = true; $("#crash-title").textContent = tr("crash.rbWorking");
+        const x = await api().rollback_do();
+        if (x && x.error) { toast(x.error, true); dlg.close(); }
+      };
+      $("#crash-no").onclick = () => dlg.close(); $("#crash-x").onclick = () => dlg.close();
+    };
+    if (st.n && st.auto) {
+      api().crash_send(false).then(() => { if (st.rollback) askRollback(); });
+    } else if (st.n) {
+      show(tr("crash.title"), tr("crash.body"), st.preview, tr("crash.send"), tr("crash.discard"), true);
+      $("#crash-go").onclick = async () => {
+        $("#crash-go").disabled = true;
+        const r = await api().crash_send($("#crash-always").checked);
+        toast(r && r.ok ? tr("crash.sent") : tr("crash.fail"), !(r && r.ok)); finish();
+      };
+      $("#crash-no").onclick = async () => { await api().crash_discard(); finish(); };
+      $("#crash-x").onclick = finish;
+    } else if (st.rollback) askRollback();
+  }
   window.addEventListener("pywebviewready", async () => {
     api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; const sv = $("#sp-ver"); if (sv) sv.textContent = "v" + v; });
     window.loadActiveUsers = async () => { try { const st = await api().cloud_stats(); const el = $("#au"); if (st && st.active != null) { $("#au-txt").textContent = tr("hdr.users", { n: st.active }); el.title = tr("hdr.usersTip"); el.hidden = false; } } catch (e) {} };
@@ -3070,6 +3115,7 @@ document.addEventListener('mousedown', (e) => {
     { const ts = tourState(); if (!ts.off && !ts.done.inicio) setTimeout(() => startTour("inicio"), 2000); }
     loadAlerts();
     checkToken();
+    setTimeout(checkCrash, 800);
     setTimeout(() => checkUpdate(false), 1500);
     setInterval(() => checkUpdate(false), 3600 * 1000);
     // Al abrir: En juego por 4 h (se desactiva desde el menú del estado).
@@ -3113,7 +3159,7 @@ document.addEventListener('mousedown', (e) => {
 </style>
 <script>
   const splashAt = Date.now();
-  const hideSplash = () => setTimeout(() => { const e = document.getElementById("splash"); e.classList.add("out"); setTimeout(() => e.remove(), 400); },
+  const hideSplash = () => setTimeout(() => { const e = document.getElementById("splash"); if (!e) return; e.classList.add("out"); setTimeout(() => e.remove(), 400); },
     Math.max(0, 1600 - (Date.now() - splashAt)));
   setTimeout(hideSplash, 8000);   // por si la carga falla: nunca dejar la pantalla tapada
   // ---- Token de warframe.market ----
@@ -3179,7 +3225,7 @@ document.addEventListener('mousedown', (e) => {
     const s = await api().token_status(); tokHelpUrl = s.help_url;
     if (!s.has) openToken();
   }
-  const HELP_N = 13;
+  const HELP_N = 14;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button>`;

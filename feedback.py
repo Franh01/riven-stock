@@ -75,6 +75,26 @@ def send(conn, version, kind, text, contact, logs_text, shots):
     return {"error": "server"}
 
 
+def send_crash(conn, version, files, log_path):
+    """Envía el último crash pendiente con el log previo. Sin textos del usuario; todo sanitizado."""
+    last = files[-1]
+    try:
+        text = sanitize(last.read_text(encoding="utf-8", errors="replace"))[:4000]
+    except OSError:
+        return {"ok": True}
+    body = {"iid": _iid(conn), "v": version, "kind": "crash", "text": text or "crash"}
+    logs = read_log(log_path)
+    if logs:
+        body["logs"] = base64.b64encode(gzip.compress(logs.encode("utf-8"))).decode()
+    try:
+        r = requests.post(URL, json=body, timeout=TIMEOUT)
+    except requests.RequestException:
+        return {"error": "network"}
+    if r.status_code == 200 or r.status_code == 429:   # 429: ya se envió uno hace poco; no se acumula
+        return {"ok": True}
+    return {"error": "server"}
+
+
 def _iid(conn):
     import cloud_backup
     return cloud_backup.install_id(conn)

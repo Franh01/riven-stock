@@ -17,11 +17,24 @@ if getattr(sys, "frozen", False):   # instalado: la carpeta de la app no es escr
     LOG_FILE = Path(os.environ.get("RIVEN_STOCK_DATA") or Path(os.environ.get("APPDATA", Path.home())) / "RivenStock") / "riven-stock.log"
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 try:
+    import crashes
+    try:
+        from updater import version_actual as _va
+        import store as _st
+        crashes.begin(_st.DATA_DIR, LOG_FILE, _va())   # antes de que el log se pise
+    except Exception:
+        pass
     logging.basicConfig(filename=LOG_FILE, filemode="w", level=logging.INFO, encoding="utf-8",
                         format="%(asctime)s %(levelname)s %(message)s")
     logging.info("Arranque. Python %s en %s", sys.version.split()[0], sys.executable)
-    sys.excepthook = lambda t, v, tb: logging.critical("Error sin capturar", exc_info=(t, v, tb))
-    threading.excepthook = lambda a: logging.error("Error en hilo %s", a.thread, exc_info=(a.exc_type, a.exc_value, a.exc_traceback))
+    def _hook(t, v, tb):
+        logging.critical("Error sin capturar", exc_info=(t, v, tb))
+        crashes.record("el programa", (t, v, tb))
+    def _thook(a):
+        logging.error("Error en hilo %s", a.thread, exc_info=(a.exc_type, a.exc_value, a.exc_traceback))
+        crashes.record(f"el hilo {a.thread.name if a.thread else '?'}", (a.exc_type, a.exc_value, a.exc_traceback))
+    sys.excepthook = _hook
+    threading.excepthook = _thook
 except OSError:
     pass
 
@@ -235,6 +248,65 @@ class Api:
             r = feedback.send(conn, updater.version_actual(), kind, text, contact, logs, shots)
         logging.info("feedback %s -> %s", kind, r.get("error") or "ok")
         return r
+
+    # ---- Reporte de crashes y vuelta a la versión sana ----
+    def crash_state(self):
+        files = crashes.pending()
+        with store.connect() as conn:
+            auto = bool(store.settings(conn).get("crash_auto"))
+        prev = ""
+        if files:
+            prev = feedback.sanitize(files[-1].read_text(encoding="utf-8", errors="replace"))[:1500]
+        return {"n": len(files), "auto": auto, "preview": prev, "rollback": crashes.rollback_target()}
+
+    def crash_ui_error(self, msg):
+        """Error de JavaScript no capturado (la interfaz lo manda; se ignoran repetidos)."""
+        msg = str(msg)[:3000]
+        key = msg[:200]
+        seen = getattr(self, "_ui_seen", set())
+        if key not in seen and len(seen) < 20:
+            seen.add(key)
+            self._ui_seen = seen
+            logging.error("Error en la interfaz: %s", msg)
+            crashes.record_text("la interfaz", msg)
+        return {"ok": True}
+
+    def crash_send(self, always=False):
+        files = crashes.pending()
+        if not files:
+            return {"ok": True}
+        with store.connect() as conn:
+            if always:
+                store.set_setting(conn, "crash_auto", True)
+            r = feedback.send_crash(conn, updater.version_actual(), files, LOG_FILE)
+        logging.info("crash -> %s", r.get("error") or "ok")
+        if r.get("ok"):
+            crashes.discard()
+        return r
+
+    def crash_discard(self):
+        crashes.discard()
+        return {"ok": True}
+
+    def crash_set_auto(self, value):
+        with store.connect() as conn:
+            store.set_setting(conn, "crash_auto", bool(value))
+        return {"ok": True}
+
+    def rollback_do(self):
+        to = crashes.rollback_target()
+        if not to:
+            return {"error": "No hay una versión anterior sana para volver."}
+        try:
+            info = updater.buscar_version(to)
+            if not info:
+                return {"error": f"No se encontró la versión {to} en GitHub."}
+            staging, nuevo = updater.preparar(info)
+            updater.lanzar_aplicador(staging, nuevo)
+        except Exception as e:
+            return {"error": str(e)}
+        threading.Timer(1.0, lambda: self._window.destroy()).start()
+        return {"ok": True}
 
     def cloud_info(self):
         with store.connect() as conn:
@@ -1020,7 +1092,9 @@ if __name__ == "__main__":
     try:
         main()
         logging.info("Cierre normal")
+        crashes.end()
     except Exception:
         logging.critical("La app no pudo arrancar", exc_info=True)
+        crashes.record("el arranque", sys.exc_info())
         ctypes.windll.user32.MessageBoxW(None, "Riven Stock no pudo arrancar. Detalle en: " + str(LOG_FILE), TITLE, 0x10)
         raise
