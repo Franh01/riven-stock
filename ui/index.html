@@ -2148,15 +2148,22 @@ document.addEventListener('mousedown', (e) => {
     document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
     api().market_trend(a.weapon, 90).then((t) => {
       const c = $("#trend-card"); if (!c) return;
+      const tracked = () => (settings.tracked_weapons || []).includes(a.weapon);
+      const star = () => `<button class="icon" id="trk" title="${tracked() ? "Dejar de seguir esta arma" : "Seguir esta arma: se registra su mercado cada día"}" style="float:right;font-size:18px;color:${tracked() ? "var(--accent-2)" : "var(--muted)"}">${tracked() ? "★" : "☆"}</button>`;
+      const bindStar = () => $("#trk")?.addEventListener("click", () => {
+        const l = new Set(settings.tracked_weapons || []); l.has(a.weapon) ? l.delete(a.weapon) : l.add(a.weapon);
+        saveCfg("tracked_weapons", [...l]); $("#trk").outerHTML = star(); bindStar();
+      });
       const pts = (t.points || []).filter((x) => x.median != null);
-      if (pts.length < 2) { c.innerHTML = `<h4>Tendencia del arma</h4><small class="muted">${pts.length ? "Hay 1 día registrado: la tendencia aparece desde el segundo." : "Todavía sin datos: se registra una foto por día."}</small>`; return; }
+      if (pts.length < 2) { c.innerHTML = `<h4>${star()}Tendencia del arma</h4><small class="muted">${pts.length ? "Hay 1 día registrado: la tendencia aparece desde el segundo." : "Todavía sin datos: se registra una foto por día."}</small>`; bindStar(); return; }
       const W = 260, H = 70, vals = pts.flatMap((x) => [x.median, x.min_price]), lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
       const xy = (i, v) => `${(i / (pts.length - 1) * W).toFixed(1)},${(H - 4 - (v - lo) / span * (H - 8)).toFixed(1)}`;
       const line = (k, col) => `<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" points="${pts.map((x, i) => xy(i, x[k])).join(" ")}"/>`;
       const first = pts[0].median, last = pts[pts.length - 1].median, pct = first ? Math.round((last - first) / first * 100) : 0;
-      c.innerHTML = `<h4>Tendencia del arma</h4><div style="display:flex;align-items:baseline;gap:10px"><b class="accent" style="font-size:24px">${last}p</b><span class="${pct > 0 ? "below" : pct < 0 ? "above" : "muted"}">${pct > 0 ? "+" : ""}${pct}% en ${pts.length} días</span></div>
+      c.innerHTML = `<h4>${star()}Tendencia del arma</h4><div style="display:flex;align-items:baseline;gap:10px"><b class="accent" style="font-size:24px">${last}p</b><span class="${pct > 0 ? "below" : pct < 0 ? "above" : "muted"}">${pct > 0 ? "+" : ""}${pct}% en ${pts.length} días</span></div>
         <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="margin-top:8px">${line("min_price", "var(--accent-2)")}${line("median", "var(--accent)")}</svg>
         <small class="muted">Mediana (violeta fuerte) y mínimo · ${pts[pts.length - 1].n_online} online de ${pts[pts.length - 1].n_orders}</small>`;
+      bindStar();
     }).catch(() => {});
     const resize = (fn) => {   // cambio de alto suave y corto: mide antes y después
       const d = $("#sum-dialog"), from = d.offsetHeight;

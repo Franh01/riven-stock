@@ -214,7 +214,8 @@ class Api:
                 continue
             try:
                 with store.connect() as conn:
-                    todo = [w for w in self._wanted_weapons() if not store.snapshot_done_today(conn, w)]
+                    tracked = store.settings(conn).get("tracked_weapons") or []
+                    todo = [w for w in list(self._wanted_weapons()) + tracked if not store.snapshot_done_today(conn, w)]
                     if not todo:
                         continue
                     e = self._cache.get(todo[0], self.VIEW_MAX_AGE_S) or self._cache.load(todo[0])
