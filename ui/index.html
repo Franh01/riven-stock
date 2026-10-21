@@ -2356,7 +2356,7 @@ document.addEventListener('mousedown', (e) => {
       { el: "#bell", t: "Alertas", x: "Te avisa cuando la [[Baja automática]] le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
       { el: "#gear", t: "Configuración", x: "Los valores globales de la [[Baja automática]]: horas sin vender, cuánto baja y el piso mínimo." },
       { el: "#views", t: "Mis ventas y Mercado", x: "Mis ventas es tu stock; Mercado sirve para mirar lo que se vende de cada arma." },
-      { el: "#mine", t: "Tus rivens", x: "Tocá el nombre de uno para ver su resumen (el recorrido te espera abajo a la derecha): precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Desde el resumen lo editás." },
+      { el: "#mine", t: "Tus rivens", x: "Tocá el nombre de uno para ver su resumen: precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Desde el resumen lo editás." },
       { el: ".grid-riven", demo: true, t: "Editar un riven", x: "Este es un riven de ejemplo (no se guarda) para mostrarte el editor. Arriba van el arma, la polaridad, MR, rango y rolls. En uno ya publicado quedan fijos, salvo la polaridad." },
       { el: "#stat-slots", demo: true, t: "Stats", x: "Hasta tres stats positivos y uno negativo, con sus valores tal como figuran en el juego." },
       { el: "#name-chips", demo: true, t: "Nombre", x: "El nombre sale de los stats. Al editar uno publicado ya viene definido." },
@@ -2420,7 +2420,7 @@ document.addEventListener('mousedown', (e) => {
     tip.innerHTML = `<h5>${st.t}</h5><p>${st.x.replace(/\[\[(.+?)(?:\|(.+?))?\]\]/g, (_, k, l) => `<a href="#" class="hlink" data-help="${k}">${l || k}</a>`)}</p><label><input type="checkbox" id="tour-never"> No volver a mostrar tutoriales</label>
       <div class="tt-row"><span class="tt-n">${i + 1} de ${T.steps.length}</span><button class="ghost" id="tt-skip">Saltar</button>${i ? `<button class="ghost" id="tt-prev">Atrás</button>` : ""}<button id="tt-next">${last ? "Listo" : "Siguiente"}</button></div>`;
     const th = tip.offsetHeight, below = r.bottom + 14 + th < innerHeight;
-    tip.style.top = Math.max(8, below ? r.bottom + 14 : r.top - th - 14) + "px";
+    tip.style.bottom = "auto"; tip.style.top = Math.max(8, below ? r.bottom + 14 : r.top - th - 14) + "px";
     tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 160), innerWidth - 336) + "px";
     tip.querySelectorAll(".hlink").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openHelp(a.dataset.help); }));
     requestAnimationFrame(() => requestAnimationFrame(() => { r = place(); const h2 = tip.offsetHeight; tip.style.top = Math.max(8, r.bottom + 14 + h2 < innerHeight ? r.bottom + 14 : r.top - h2 - 14) + "px"; }));
