@@ -43,6 +43,11 @@ HEADERS = {
 }
 
 
+_CODES = {
+    "app.form.invalid": "valor no válido (fuera del rango que acepta warframe.market, revisá que sea un número entero y no sea demasiado alto)",
+    "app.form.required": "es obligatorio",
+}
+
 _FIELDS = {
     "buyout_price": "El precio", "price": "El precio", "note": "La nota", "name": "El nombre",
     "mod_rank": "El rango", "mastery_level": "El MR", "re_rolls": "Los rolls",
@@ -60,7 +65,9 @@ def _explain_error(res, method, path):
     if isinstance(err, dict):
         for field, msgs in err.items():
             msgs = msgs if isinstance(msgs, list) else [msgs]
-            detail = "; ".join(str(m) for m in msgs)
+            if field == "starting_price" and "buyout_price" in err:
+                continue  # se manda el mismo valor en ambos: alcanza con avisar del precio
+            detail = "; ".join(_CODES.get(str(m), str(m)) for m in msgs)
             parts.append(f"{_FIELDS.get(field, field)}: {detail}")
     elif err:
         parts.append(str(err))
