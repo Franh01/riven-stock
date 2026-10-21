@@ -602,7 +602,7 @@
 <dialog id="riven-dialog">
   <div class="dlg-head">
     <h3 id="rd-title">Nuevo riven</h3>
-    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender" data-i18n-title="rd.autoTip"><span data-i18n="common.autoDrop">Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label>Horas<input type="number" id="rd-ov-h" min="1" step="1"></label><label>Baja (p)<input type="number" id="rd-ov-a" min="1" step="1"></label><label>Piso (p)<input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar" data-i18n-title="common.close">×</button></span>
+    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender" data-i18n-title="rd.autoTip"><span data-i18n="common.autoDrop">Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label>${tr("th.hours")}<input type="number" id="rd-ov-h" min="1" step="1"></label><label>${tr("sum.ovDrop")}<input type="number" id="rd-ov-a" min="1" step="1"></label><label>${tr("sum.ovFloor")}<input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar" data-i18n-title="common.close">×</button></span>
   </div>
   <div class="dlg-body">
     <section>
@@ -2069,25 +2069,25 @@ document.addEventListener('mousedown', (e) => {
         .map((s) => ({ value: s.slug, label: s.name, hint: UNIT[s.unit] })));
     });
   }
-  const STATUS_TXT = { ingame: "En juego", online: "Online" };
+  const stTxt = (s) => tr(s === "ingame" || s === "online" ? "st." + s : "st.offline");
   async function runMarket() {
     if (!mkWeapon.value) { toast(tr("common.pickWeapon"), true); $("#mk-weapon").focus(); return; }
-    $("#mk-go").disabled = true; $("#mk-go").textContent = "Buscando…";
+    $("#mk-go").disabled = true; $("#mk-go").textContent = tr("common.searching");
     $("#mk-results").innerHTML = `<div style="padding:6px 0"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div>`;
     try {
       const r = await api().market_search(mkWeapon.value, mkStats.map((c) => c.value).filter(Boolean));
       if (r.error) { $("#mk-results").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
-      if (!r.results.length) { $("#mk-results").innerHTML = `<div class="state">No hay ventas directas con esos filtros.</div>`; return; }
-      $("#mk-info").textContent = `${r.results.length} de ${r.total} publicaciones, de la más barata a la más cara. Tocá una para ver el estimado.`;
-      $("#mk-results").innerHTML = `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>Vendedor</th><th>Precio</th></tr></thead><tbody>${
+      if (!r.results.length) { $("#mk-results").innerHTML = `<div class="state">${tr("mkt.none")}</div>`; return; }
+      $("#mk-info").textContent = tr("mkt.info", { n: r.results.length, t: r.total });
+      $("#mk-results").innerHTML = `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>${tr("mkt.seller")}</th><th>${tr("th.price")}</th></tr></thead><tbody>${
         r.results.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
           <td><div class="stats">${a.stats.map((st) => formatStat(st)).join("")}</div></td><td>${a.rolls ?? "—"}</td>
-          <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${STATUS_TXT[a.status] || "Offline"}</span></small></td>
+          <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${stTxt(a.status)}</span></small></td>
           <td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>`;
     } catch (e) {
       $("#mk-results").innerHTML = `<div class="state">${esc(e.message || String(e))}</div>`;
     } finally {
-      $("#mk-go").disabled = false; $("#mk-go").textContent = "Buscar";
+      $("#mk-go").disabled = false; $("#mk-go").textContent = tr("mkt.go");
     }
   }
   $("#mk-go").addEventListener("click", runMarket);
@@ -2113,8 +2113,8 @@ document.addEventListener('mousedown', (e) => {
     nav.hidden = n < 2;
     if (n < 2) return;
     const steps = sumStack.map((c, i) => (!loading && i === sumStack.length - 1) ? `<b>${esc(c.label)}</b>` : `<button class="cstep" data-i="${i}">${esc(c.label)}</button>`);
-    if (loading) steps.push(`<b>Cargando…</b>`);
-    nav.innerHTML = `<button class="back" data-i="${Math.max(0, (loading ? sumStack.length : sumStack.length - 1) - 1)}">‹ Volver</button>${steps.join('<span class="sep">›</span>')}`;
+    if (loading) steps.push(`<b>${tr("common.loading")}</b>`);
+    nav.innerHTML = `<button class="back" data-i="${Math.max(0, (loading ? sumStack.length : sumStack.length - 1) - 1)}">${tr("sum.back")}</button>${steps.join('<span class="sep">›</span>')}`;
     nav.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
       const c = sumStack[+b.dataset.i]; sumStack = sumStack.slice(0, +b.dataset.i); openSummary(c.id, true);
     }));
@@ -2124,7 +2124,7 @@ document.addEventListener('mousedown', (e) => {
     if (!push || !$("#sum-dialog").open) sumStack = [];
     if (!push) $("#sum-crumbs").hidden = true;
     $("#sum-dialog").style.height = ""; $("#sum-dialog").classList.remove("resizing");
-    $("#sum-title").textContent = "Cargando…"; $("#sum-meta").innerHTML = "";
+    $("#sum-title").textContent = tr("common.loading"); $("#sum-meta").innerHTML = "";
     renderCrumbs(true);
     const d0 = $("#sum-dialog"), from0 = d0.open ? d0.offsetHeight : 0;
     $("#sum-body").innerHTML = skelSummary();
@@ -2132,8 +2132,8 @@ document.addEventListener('mousedown', (e) => {
     const poll = aid.startsWith("demo") ? 0 : setInterval(async () => {
       const q = await api().queue_status().catch(() => null), n = $("#skel-note");
       if (!q || !n) return;
-      const txt = q.cooldown_s > 0 ? (q.reason === "net" ? `Sin respuesta de warframe.market: reintentando en ${Math.ceil(q.cooldown_s)} s` : `warframe.market limitó los pedidos: reintentando en ${Math.ceil(q.cooldown_s)} s`)
-        : q.total > 1 ? `Consultando warframe.market… ${q.done} de ${q.total}${q.eta_s >= 1 ? ` · unos ${Math.ceil(q.eta_s)} s` : ""}` : "Consultando warframe.market…";
+      const txt = q.cooldown_s > 0 ? tr(q.reason === "net" ? "sum.qNet" : "sum.qLimit", { n: Math.ceil(q.cooldown_s) })
+        : q.total > 1 ? `${tr("common.askingWfm")} ${tr("sum.qProg", { d: q.done, t: q.total })}${q.eta_s >= 1 ? ` · ${tr("sum.qEta", { n: Math.ceil(q.eta_s) })}` : ""}` : tr("common.askingWfm");
       n.firstChild.textContent = txt; $("#skel-fill").style.width = (q.total > 1 ? q.percent : 8) + "%";
     }, 400);
     let r;
@@ -2147,81 +2147,81 @@ document.addEventListener('mousedown', (e) => {
     $("#sum-title").innerHTML = own
       ? `${esc(weaponName(a.weapon))} ${esc(a.name)} `
       : esc(`${weaponName(a.weapon)} ${a.name}`);
-    const SRC = { auto: "Automática", manual: "Manual", seen: "Detectado", revert: "Revertida" };
-    const hist = r.history.slice().reverse().map((x) => `<div><span class="muted">${esc(when(x.at))}</span><b>${x.price}p</b><span class="src ${esc(x.source)}">${esc(SRC[x.source] || x.source)}</span></div>`).join("") || `<span class="muted">Sin historial.</span>`;
-    const delta = (p) => p === a.price ? `<small class="muted"> igual</small>` : p < a.price ? `<small class="below">${a.price - p}p menos</small>` : `<small class="above">+${p - a.price}p</small>`;
+    const SRC = { auto: tr("src.auto"), manual: tr("src.manual"), seen: tr("src.seen"), revert: tr("src.revert") };
+    const hist = r.history.slice().reverse().map((x) => `<div><span class="muted">${esc(when(x.at))}</span><b>${x.price}p</b><span class="src ${esc(x.source)}">${esc(SRC[x.source] || x.source)}</span></div>`).join("") || `<span class="muted">${tr("sum.noHist")}</span>`;
+    const delta = (p) => p === a.price ? `<small class="muted"> ${tr("sum.same")}</small>` : p < a.price ? `<small class="below">${tr("sum.less", { n: a.price - p })}</small>` : `<small class="above">+${p - a.price}p</small>`;
     const mineSlugs = new Set(a.stats.filter((x) => x.positive).map((x) => x.slug));
-    const rankTxt = (k) => k == null ? "" : k >= 8 ? `<span class="rk max">Rango máx</span>` : `<span class="rk low">Rango ${k}</span>`;
-    const pubTxt = (iso) => iso ? `<span class="pub" title="${esc(fullDate(iso))}">Publicado ${esc(ago(iso))}</span>` : "";
-    const presence = (st, seen, name) => `<span class="pres"><span class="st ${esc(st || "offline")}">${st === "ingame" ? "En juego" : st === "online" ? "Online" : "Offline"}</span>${st === "offline" || !st ? (seen ? `<span class="seen" title="${esc(fullDate(seen))}">Visto ${esc(ago(seen))}</span>` : "") : ""}${name ? `<span class="seller-nm" title="${esc(name)}">${esc(name)}</span>` : ""}</span>`;
+    const rankTxt = (k) => k == null ? "" : k >= 8 ? `<span class="rk max">${tr("sum.rankMax")}</span>` : `<span class="rk low">${tr("sum.rank", { k })}</span>`;
+    const pubTxt = (iso) => iso ? `<span class="pub" title="${esc(fullDate(iso))}">${tr("sum.published", { t: esc(ago(iso)) })}</span>` : "";
+    const presence = (st, seen, name) => `<span class="pres"><span class="st ${esc(st || "offline")}">${stTxt(st)}</span>${st === "offline" || !st ? (seen ? `<span class="seen" title="${esc(fullDate(seen))}">${tr("sum.seen", { t: esc(ago(seen)) })}</span>` : "") : ""}${name ? `<span class="seller-nm" title="${esc(name)}">${esc(name)}</span>` : ""}</span>`;
     const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<div class="comps">${
-      o.orders.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="Ver el resumen de este riven"><div class="comp-price"><b>${x.price}p</b>${delta(x.price)}<span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
+      o.orders.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><b>${x.price}p</b>${delta(x.price)}<span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
         <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
         ${presence(x.status, x.last_seen, x.seller)}</div>`).join("")}</div>`;
     const es = r.estimate;
     const mk = r.market;
     const diff = es ? es.price - a.price : 0;
-    const verdict = !es ? "" : mk ? (Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">Precio de mercado</span>`
-        : diff > 0 ? `<span class="below">Barato: vale ~${diff}p más (${Math.round(diff / es.price * 100)}%)</span>` : `<span class="above">Caro: ~${-diff}p sobre el estimado</span>`) : Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">Tu precio está en línea</span>`
-      : diff > 0 ? `<span class="below">Podrías pedir ~${diff}p más</span>` : `<span class="above">Estás ~${-diff}p por encima</span>`;
-    const estCard = es ? `<div class="sum-card est-link" id="est-card" title="Ver los comparables usados"><h4>Precio estimado</h4>
+    const verdict = !es ? "" : mk ? (Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">${tr("v.market")}</span>`
+        : diff > 0 ? `<span class="below">${tr("v.cheap", { d: diff, p: Math.round(diff / es.price * 100) })}</span>` : `<span class="above">${tr("v.pricey", { d: -diff })}</span>`) : Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">${tr("v.inline")}</span>`
+      : diff > 0 ? `<span class="below">${tr("v.askMore", { d: diff })}</span>` : `<span class="above">${tr("v.over", { d: -diff })}</span>`;
+    const estCard = es ? `<div class="sum-card est-link" id="est-card" title="${tr("sum.compsTip")}"><h4>${tr("sum.estimated")}</h4>
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b class="accent" style="font-size:30px;line-height:1">${es.price}p</b>
-            <span class="muted" style="white-space:nowrap">rango ${es.low}–${es.high}p</span></div>
+            <span class="muted" style="white-space:nowrap">${tr("sum.range", { a: es.low, b: es.high })}</span></div>
           <div style="margin-top:8px;font-size:13px">${verdict}</div>
-          ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">Estimado incompleto: warframe.market limitó los pedidos y faltaron comparables. Cerrá y reabrí en un minuto.</div>` : ""}
-          <small class="muted" style="display:block;margin-top:4px">${es.n} comparables · confianza ${esc(es.confidence)} · ver</small></div>`
-      : `<div class="sum-card"><h4>Precio estimado</h4><small class="muted">Sin comparables suficientes.</small></div>`;
-    const comps = es ? `<div class="comp-legend">Ordenadas de más a menos parecidas a tu riven. Los stats <b>resaltados</b> son los que también tiene el tuyo. Un riven con rango bajo muestra valores más chicos de los que tendría al subirlo.</div><div class="comps">${
-      es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="Ver el resumen de este riven"><div class="comp-price"><b>${x.price}p</b><span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
+          ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">${tr("sum.partial")}</div>` : ""}
+          <small class="muted" style="display:block;margin-top:4px">${tr("sum.compsLine", { n: es.n, c: esc(es.confidence) })}</small></div>`
+      : `<div class="sum-card"><h4>${tr("sum.estimated")}</h4><small class="muted">${tr("sum.noComps")}</small></div>`;
+    const comps = es ? `<div class="comp-legend">${tr("sum.legend")}</div><div class="comps">${
+      es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><b>${x.price}p</b><span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
         <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
-        <div class="comp-side">${presence(x.status, x.last_seen, x.seller)}<div class="comp-sim" title="Qué tan parecido es a tu riven"><b>${Math.round(x.sim * 100)}%</b><i><u style="width:${Math.round(x.sim * 100)}%"></u></i></div></div></div>`).join("")}</div>` : "";
+        <div class="comp-side">${presence(x.status, x.last_seen, x.seller)}<div class="comp-sim" title="${tr("sum.simTip")}"><b>${Math.round(x.sim * 100)}%</b><i><u style="width:${Math.round(x.sim * 100)}%"></u></i></div></div></div>`).join("")}</div>` : "";
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
-    $("#sum-meta").innerHTML = `<b>${a.rolls} rolls</b><b>MR ${a.mr}</b>${own ? `<button class="icon" id="sum-edit" title="Editar este contrato y su ajuste automático de precio"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.7 7.7 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>` : ""}<button class="icon copy-url" id="sum-copy" title="Copiar el link de la publicación en warframe.market"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"/></svg></button>`;
+    $("#sum-meta").innerHTML = `<b>${tr("sum.rolls", { n: a.rolls })}</b><b>MR ${a.mr}</b>${own ? `<button class="icon" id="sum-edit" title="${tr("sum.editTip")}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.7 7.7 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>` : ""}<button class="icon copy-url" id="sum-copy" title="${tr("sum.copyTip")}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"/></svg></button>`;
     $("#sum-edit")?.addEventListener("click", () => { $("#sum-dialog").close(); editFromSum = own.id; openRiven({ existing: own }); });
     $("#sum-copy").addEventListener("click", async () => {
       const url = `https://warframe.market/auction/${aid}`;
       try { await navigator.clipboard.writeText(url); } catch { const t = document.createElement("textarea"); t.value = url; document.body.append(t); t.select(); document.execCommand("copy"); t.remove(); }
-      toast("Link copiado");
+      toast(tr("sum.copied"));
     });
     $("#sum-body").innerHTML = `<div class="sum-grid">
       <div class="sum-side">
         <div class="sum-card"><div class="kpis">
-          <div class="kpi"><b class="accent">${a.price}p</b><span>${mk ? "Precio" : "Tu precio"}</span></div>
-          ${mk ? `<div class="kpi"><b>${esc(mk.seller)}</b><span>${STATUS_TXT[mk.status] || "Offline"}</span></div>` : `<div class="kpi"><b>${h ? h.hours.toFixed(1) : "—"}</b><span>Horas online</span></div>`}
-          <div class="kpi"><b>${o.orders ? cheaper : "—"}</b><span>Más baratos</span></div>
+          <div class="kpi"><b class="accent">${a.price}p</b><span>${tr(mk ? "th.price" : "sum.yourPrice")}</span></div>
+          ${mk ? `<div class="kpi"><b>${esc(mk.seller)}</b><span>${stTxt(mk.status)}</span></div>` : `<div class="kpi"><b>${h ? h.hours.toFixed(1) : "—"}</b><span>${tr("sum.hoursOnline")}</span></div>`}
+          <div class="kpi"><b>${o.orders ? cheaper : "—"}</b><span>${tr("sum.cheaper")}</span></div>
         </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div></div>
         ${estCard}
-        <div class="sum-card" id="trend-card"><h4>Tendencia del arma</h4><small class="muted">Cargando…</small></div>
-        ${mk ? "" : `<div class="sum-card" id="sum-auto-card"><label class="switch-row"><span>Ajuste automático de precio<small>Baja el precio cuando pasan las horas sin vender</small></span>
+        <div class="sum-card" id="trend-card"><h4>${tr("trend.title")}</h4><small class="muted">${tr("common.loading")}</small></div>
+        ${mk ? "" : `<div class="sum-card" id="sum-auto-card"><label class="switch-row"><span>${tr("sum.auto")}<small>${tr("sum.autoSub")}</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
-        <div class="sum-card" id="sum-ovr-card"><h4>Ajustes de este riven</h4><div class="ovr">
-          <label>Horas<input type="number" id="ov-h" min="1" step="1" placeholder="${cfgVal("autodrop_hours")}" value="${h && h.hours_override ? h.hours_override : ""}"></label>
-          <label>Baja (p)<input type="number" id="ov-a" min="1" step="1" placeholder="${cfgVal("autodrop_amount")}" value="${h && h.amount_override ? h.amount_override : ""}"></label>
-          <label>Piso (p)<input type="number" id="ov-f" min="1" step="1" placeholder="${cfgVal("autodrop_floor")}" value="${h && h.floor_override ? h.floor_override : ""}"></label>
-        </div><small class="muted">Vacío = usa el valor global.</small></div>
-        <div class="sum-card" id="sum-hist-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>`}
+        <div class="sum-card" id="sum-ovr-card"><h4>${tr("sum.ovrTitle")}</h4><div class="ovr">
+          <label>${tr("th.hours")}<input type="number" id="ov-h" min="1" step="1" placeholder="${cfgVal("autodrop_hours")}" value="${h && h.hours_override ? h.hours_override : ""}"></label>
+          <label>${tr("sum.ovDrop")}<input type="number" id="ov-a" min="1" step="1" placeholder="${cfgVal("autodrop_amount")}" value="${h && h.amount_override ? h.amount_override : ""}"></label>
+          <label>${tr("sum.ovFloor")}<input type="number" id="ov-f" min="1" step="1" placeholder="${cfgVal("autodrop_floor")}" value="${h && h.floor_override ? h.floor_override : ""}"></label>
+        </div><small class="muted">${tr("sum.ovHint")}</small></div>
+        <div class="sum-card" id="sum-hist-card"><h4>${tr("sum.histTitle")}</h4><div class="hist">${hist}</div></div>`}
       </div>
-      <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
+      <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">${tr("sum.tabOrders")}</button>${es ? `<button data-tab="comps">${tr("sum.tabComps", { n: es.n })}</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">${tr("sum.dataAge", { n: Math.max(0, Math.round(o.age_s / 60)) })}</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
     document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
     (aid.startsWith("demo") ? Promise.resolve(demoTrend()) : api().market_trend(a.weapon, 90)).then((t) => {
       const c = $("#trend-card"); if (!c) return;
       const tracked = () => (settings.tracked_weapons || []).includes(a.weapon);
-      const star = () => `<button class="icon" id="trk" title="${tracked() ? "Dejar de seguir esta arma" : "Seguir esta arma: se registra su mercado cada día"}" style="float:right;font-size:18px;color:${tracked() ? "var(--accent-2)" : "var(--muted)"}">${tracked() ? "★" : "☆"}</button>`;
+      const star = () => `<button class="icon" id="trk" title="${tracked() ? tr("trend.unfollow") : tr("trend.follow")}" style="float:right;font-size:18px;color:${tracked() ? "var(--accent-2)" : "var(--muted)"}">${tracked() ? "★" : "☆"}</button>`;
       const bindStar = () => $("#trk")?.addEventListener("click", () => {
         if (aid.startsWith("demo")) return;
         const l = new Set(settings.tracked_weapons || []); l.has(a.weapon) ? l.delete(a.weapon) : l.add(a.weapon);
         saveCfg("tracked_weapons", [...l]); $("#trk").outerHTML = star(); bindStar();
       });
       const pts = (t.points || []).filter((x) => x.median != null);
-      if (pts.length < 2) { c.innerHTML = `<h4>${star()}Tendencia del arma</h4><small class="muted">${pts.length ? "Hay 1 día registrado: la tendencia aparece desde el segundo." : "Todavía sin datos: se registra una foto por día."}</small>`; bindStar(); return; }
+      if (pts.length < 2) { c.innerHTML = `<h4>${star()}${tr("trend.title")}</h4><small class="muted">${tr(pts.length ? "trend.one" : "trend.none")}</small>`; bindStar(); return; }
       const W = 260, H = 70, vals = pts.flatMap((x) => [x.median, x.min_price]), lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
       const xy = (i, v) => `${(i / (pts.length - 1) * W).toFixed(1)},${(H - 4 - (v - lo) / span * (H - 8)).toFixed(1)}`;
       const line = (k, col) => `<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" points="${pts.map((x, i) => xy(i, x[k])).join(" ")}"/>`;
       const first = pts[0].median, last = pts[pts.length - 1].median, pct = first ? Math.round((last - first) / first * 100) : 0;
-      c.innerHTML = `<h4>${star()}Tendencia del arma</h4><div style="display:flex;align-items:baseline;gap:10px"><b class="accent" style="font-size:24px">${last}p</b><span class="${pct > 0 ? "below" : pct < 0 ? "above" : "muted"}">${pct > 0 ? "+" : ""}${pct}% en ${pts.length} días</span></div>
+      c.innerHTML = `<h4>${star()}${tr("trend.title")}</h4><div style="display:flex;align-items:baseline;gap:10px"><b class="accent" style="font-size:24px">${last}p</b><span class="${pct > 0 ? "below" : pct < 0 ? "above" : "muted"}">${pct > 0 ? "+" : ""}${tr("trend.pct", { p: pct, n: pts.length })}</span></div>
         <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="margin-top:8px">${line("min_price", "var(--accent-2)")}${line("median", "var(--accent)")}</svg>
-        <small class="muted">Mediana (violeta fuerte) y mínimo · ${pts[pts.length - 1].n_online} online de ${pts[pts.length - 1].n_orders}</small>`;
+        <small class="muted">${tr("trend.legend", { a: pts[pts.length - 1].n_online, b: pts[pts.length - 1].n_orders })}</small>`;
       bindStar();
     }).catch(() => {});
     const resize = (fn) => {   // cambio de alto suave y corto: mide antes y después
