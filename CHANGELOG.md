@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.7] - 2026-10-21
+
 #### Español
 - Tu stock se compara con el mercado: etiquetas Caro, Barato y Estancado en la tabla, filtro por etiqueta y un botón para ajustar el precio al estimado.
 - Ajustes: el recorrido de respaldos ya no se desalinea cuando carga la información, títulos más claros (Respaldo de tus datos, Alertas de oportunidad) y las alertas de oportunidad tienen su propia ventana, con un botón de rayo en la cabecera; Ajustes ya no cambia de tamaño y los tags quedan centrados. En Ayuda, los recorridos pasan a un selector único.
