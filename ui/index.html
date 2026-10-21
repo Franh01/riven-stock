@@ -35,11 +35,11 @@
   ::-webkit-scrollbar-thumb:hover { background: #5b3a99; border: 2px solid transparent; background-clip: padding-box; }
   ::-webkit-scrollbar-corner { background: transparent; }
 
-  header { display: flex; align-items: center; gap: 12px; padding: 14px 28px; border-bottom: 1px solid var(--line); }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 28px; border-bottom: 1px solid var(--line); }
   header h1 { margin: 0; font: 600 19px "Segoe UI Variable Display", "Segoe UI", sans-serif; letter-spacing: .3px; }
   header p { margin: 0; color: var(--muted); font-size: 12px; }
-  .totals { margin-left: auto; display: flex; gap: 8px; }
-  .total { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px 14px; min-width: 104px; }
+  .totals { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+  .total { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; min-width: 88px; }
   .total b { display: block; font-size: 17px; font-weight: 600; }
   .total span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
   .total.good b { color: var(--pos); }
