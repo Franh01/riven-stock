@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.2.5] - 2026-10-20
+
 - Editar riven: el encabezado trae el switch de baja automática y sus ajustes (horas, baja, piso) de ese riven.
 - Editar riven: botón Cancelar junto a Guardar; si venías del resumen, vuelve a él.
 - Editar riven: una sola barra de scroll.
