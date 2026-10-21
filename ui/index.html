@@ -2817,15 +2817,16 @@ document.addEventListener('mousedown', (e) => {
           <input type="range" id="cfg-amount" min="1" max="50" value="${cfgVal("autodrop_amount")}"></div>
         <div class="cfg-row"><span>${tr("cfg.floor")}<small>${tr("cfg.floorSub")}</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
+      <h4 class="cfg-sec">${ic("data", 16)}${tr("cfg.secData")}</h4>
+      <div class="sum-card" id="bk-card"><div style="display:flex;justify-content:space-between;align-items:center"><b>${ic("save")}${tr("bk.title")}</b><button class="ghost" id="bk-tour" title="${tr("stock.tourTip")}" style="padding:4px 10px">?</button></div><small style="display:block;margin:2px 0 8px" class="muted">${tr("bk.sub")}</small>
+        <div id="bk-info" class="muted" style="font-size:12px;margin-bottom:8px;min-height:18px"><span class="skel" style="width:60%"></span></div>
+        <div id="bk-btns" style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="bk-now">${tr("bk.now")}</button><button class="ghost" id="bk-export">${tr("bk.export")}</button><button class="ghost" id="bk-import">${tr("bk.import")}</button><button class="ghost" id="bk-folder">${tr("bk.folder")}</button></div></div>
       </div><div class="cfg-col">
       <h4 class="cfg-sec">${ic("cog", 16)}${tr("cfg.secGeneral")}</h4>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.invis")}</b><small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.autoIn")}</b><small>${tr("cfg.autoInSub")}</small></span>${sw("cfg-autoin", cfgVal("auto_ingame") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("globe")}${tr("lang.label")}</b><small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
-      <h4 class="cfg-sec">${ic("data", 16)}${tr("cfg.secData")}</h4>
-      <div class="sum-card" id="bk-card"><div style="display:flex;justify-content:space-between;align-items:center"><b>${ic("save")}${tr("bk.title")}</b><button class="ghost" id="bk-tour" title="${tr("stock.tourTip")}" style="padding:4px 10px">?</button></div><small style="display:block;margin:2px 0 8px" class="muted">${tr("bk.sub")}</small>
-        <div id="bk-info" class="muted" style="font-size:12px;margin-bottom:8px;min-height:18px"><span class="skel" style="width:60%"></span></div>
-        <div id="bk-btns" style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="bk-now">${tr("bk.now")}</button><button class="ghost" id="bk-export">${tr("bk.export")}</button><button class="ghost" id="bk-import">${tr("bk.import")}</button><button class="ghost" id="bk-folder">${tr("bk.folder")}</button></div></div>
+      <h4 class="cfg-sec">${ic("cloud", 16)}${tr("cfg.secCloud")}</h4>
       <div class="sum-card" id="cl-card"><b>${ic("cloud")}${tr("cl.title")}</b><small style="display:block;margin:2px 0 8px" class="muted">${tr("cl.sub")}</small>
         <div id="cl-body" style="min-height:130px"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div></div>
       <div class="muted" style="font-size:12px">${tr("cfg.total", { h: "<b>" + total.toFixed(1) + " h</b>" })}</div>

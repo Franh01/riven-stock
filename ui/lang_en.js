@@ -244,6 +244,7 @@ window.LANGS.en = {
   "tour.name.reporte": "Report",
   "tour.name.backup": "Data backup",
   "tour.name.opp": "Opportunity alerts",
+  "cfg.secCloud": "Cloud",
   "rd.range": "Range",
   "rd.partial": "Incomplete: warframe.market throttled the requests. Try again in a minute.",
   "rd.seeComps": "See the {n} comparables",

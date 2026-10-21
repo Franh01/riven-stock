@@ -244,6 +244,7 @@ window.LANGS.es = {
   "tour.name.reporte": "Reporte",
   "tour.name.backup": "Respaldo de datos",
   "tour.name.opp": "Alertas de oportunidad",
+  "cfg.secCloud": "Nube",
   "rd.range": "Rango",
   "rd.partial": "Incompleto: warframe.market limitó los pedidos. Probá de nuevo en un minuto.",
   "rd.seeComps": "Ver los {n} comparables",
