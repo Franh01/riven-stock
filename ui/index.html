@@ -529,6 +529,7 @@
   label.flash input { animation: flash 1s ease-in-out 2; }
   @keyframes need-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
   .need { animation: need-shake .35s; } .need input { border-color: #f87171 !important; box-shadow: 0 0 0 2px rgba(248,113,113,.35); }
+  .need-ok input { border-color: #a78bfa !important; box-shadow: 0 0 0 2px rgba(167,139,250,.4); transition: box-shadow .4s, border-color .4s; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .skel { display: block; border-radius: 8px; height: 14px; background: linear-gradient(90deg, #ffffff08 25%, #ffffff18 50%, #ffffff08 75%); background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; }
   .skel.big { height: 38px; width: 45%; }
@@ -1880,6 +1881,12 @@ document.addEventListener('mousedown', (e) => {
 
   const weaponCombo = new Combo($("#f-weapon"), () => refreshSlots());
   // Al elegir o borrar un stat se recalculan las opciones de los otros (no se repiten stats).
+  slotEls.forEach((el) => ["input", "change"].forEach((ev) => el.addEventListener(ev, () => {
+    if (!el.classList.contains("need")) return;
+    if (el.querySelector(".slot-stat").value.trim() && el.querySelector(".slot-value").value.trim()) {
+      el.classList.remove("need"); el.classList.add("need-ok"); setTimeout(() => el.classList.remove("need-ok"), 1500);
+    }
+  })));
   const statCombos = slotEls.map((el) => new Combo(el.querySelector(".slot-stat"), () => refreshSlots()));
 
   const currentWeapon = () => weaponBySlug[weaponCombo.value];
