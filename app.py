@@ -73,7 +73,7 @@ class Api:
     # ---- Preferencias (locales) -------------------------------------------
 
     SETTING_KEYS = {"auto_ingame", "mine_sort", "invisible_on_close",
-                    "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor"}
+                    "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials"}
 
     # ---- Actualizaciones ----
     def get_version(self):

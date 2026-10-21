@@ -2530,6 +2530,7 @@ document.addEventListener('mousedown', (e) => {
     const last = i === T.steps.length - 1;
     tip.innerHTML = `<h5>${st.t}</h5><p>${st.x.replace(/\[\[(.+?)(?:\|(.+?))?\]\]/g, (_, k, l) => `<a href="#" class="hlink" data-help="${k}">${l || k}</a>`)}</p><label><input type="checkbox" id="tour-never"> No volver a mostrar tutoriales</label>
       <div class="tt-row"><span class="tt-n">${i + 1} de ${T.steps.length}</span><button class="ghost" id="tt-skip">Saltar</button>${i ? `<button class="ghost" id="tt-prev">Atrás</button>` : ""}<button id="tt-next">${last ? "Listo" : "Siguiente"}</button></div>`;
+    { const nv = tip.querySelector("#tour-never"); if (nv) { nv.checked = !!tourState().off; nv.addEventListener("change", () => { const t = tourState(); t.off = nv.checked; saveTour(t); }); } }
     const th = tip.offsetHeight, below = r.bottom + 14 + th < innerHeight;
     tip.style.bottom = "auto"; tip.style.top = Math.max(8, below ? r.bottom + 14 : r.top - th - 14) + "px";
     tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 160), innerWidth - 336) + "px";

@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Arreglo: «No volver a mostrar tutoriales» ahora se guarda y no reaparece al reabrir la app.
+
 ## [0.3.1] - 2026-10-21
 
 - «Baja automática» pasa a llamarse «Ajuste automático de precio» en toda la app.
