@@ -123,8 +123,10 @@ class Api:
     def status(self):
         try:
             return {"status": self.client.get_status()}
-        except (WFMError, OSError, websocket.WebSocketException) as e:
+        except WFMError as e:
             return {"error": str(e)}
+        except (OSError, websocket.WebSocketException):
+            return {"error": "warframe.market no responde. Se reintenta solo en un rato."}
 
     def set_status(self, status, minutes):
         try:

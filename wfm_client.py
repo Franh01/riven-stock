@@ -67,9 +67,12 @@ class WFMClient:
             scheme = "JWT" if path.startswith("/v1/") else "Bearer"
             headers["Authorization"] = f"{scheme} {self.jwt}"
         # La cola espacia los pedidos y reintenta sola los 429 (con enfriamiento global).
-        res = QUEUE.submit(
-            lambda: self.session.request(method, BASE_URL + path, headers=headers, timeout=20, **kwargs),
-            label=f"{method} {path}")
+        try:
+            res = QUEUE.submit(
+                lambda: self.session.request(method, BASE_URL + path, headers=headers, timeout=20, **kwargs),
+                label=f"{method} {path}")
+        except requests.exceptions.RequestException:
+            raise WFMError("No se pudo conectar con warframe.market (no responde). Revisá tu conexión y probá de nuevo en un momento.")
         if res.status_code in (401, 403) and auth:
             raise AuthError(f"{res.status_code} en {path}: el JWT no sirve o expiró")
         if res.status_code == 429:

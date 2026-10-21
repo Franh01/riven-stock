@@ -10,15 +10,24 @@ Si la API contesta 429, la cola entera se frena (enfriamiento con espera crecien
 Retry-After del servidor) y ese mismo pedido se reintenta primero, sin perder su lugar.
 """
 
+import socket
 import threading
 import time
 from collections import deque
+
+import requests
+import websocket
 
 MAX_PER_WINDOW = 3
 WINDOW_S = 1.1        # 3 pedidos por 1.1 s (~2.7/s): margen para el jitter de red
 MAX_RETRIES = 3       # reintentos ante 429 antes de rendirse
 COOLDOWN_S = 10       # primera espera tras un 429; se duplica en cada reintento
 COOLDOWN_MAX_S = 60
+NET_RETRIES = 3       # reintentos ante timeouts o cortes de red antes de mostrar el error
+NET_WAIT_S = 3        # espera base; se duplica en cada reintento
+
+_TRANSIENT = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, socket.timeout,
+              TimeoutError, ConnectionError, websocket.WebSocketException)
 
 
 class _Job:
@@ -35,6 +44,7 @@ class RequestQueue:
         self._cond = threading.Condition()
         self._stamps = deque()      # momentos en que arrancaron los últimos pedidos
         self._cooldown_until = 0.0
+        self._reason = "limit"      # por qué espera la cola: limit (429) o net (sin conexión)
         self._active = None
         self._total = self._done = 0   # lote actual: se reinicia cuando la cola se vacía
         threading.Thread(target=self._run, daemon=True, name="wfm-queue").start()
@@ -72,6 +82,7 @@ class RequestQueue:
                 "percent": round(100 * self._done / total) if total else 100,
                 "eta_s": round(waiting * self.window / self.max + cooldown, 1),
                 "cooldown_s": round(cooldown, 1),
+                "reason": self._reason,
                 "label": (self._active.label if self._active else (self._q[0].label if self._q else "")),
             }
 
@@ -109,6 +120,17 @@ class RequestQueue:
             self._wait_slot()
             try:
                 res = job.fn()
+            except _TRANSIENT as e:   # timeout o corte de red: se reintenta solo antes de mostrar nada
+                if job.tries < NET_RETRIES:
+                    self._cooldown_until = self._clock() + NET_WAIT_S * (2 ** job.tries)
+                    self._reason = "net"
+                    job.tries += 1
+                    with self._cond:
+                        self._q.appendleft(job)
+                        self._active = None
+                    continue
+                self._finish(job, error=e)
+                continue
             except Exception as e:   # el error le llega a quien pidió
                 self._finish(job, error=e)
                 continue
@@ -116,6 +138,7 @@ class RequestQueue:
                 retry_after = _retry_after(res)
                 wait = retry_after if retry_after is not None else COOLDOWN_S * (2 ** job.tries)
                 self._cooldown_until = self._clock() + min(wait, COOLDOWN_MAX_S)
+                self._reason = "limit"
                 job.tries += 1
                 with self._cond:
                     self._q.appendleft(job)   # conserva su lugar: sigue siendo el primero

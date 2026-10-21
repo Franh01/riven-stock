@@ -2116,7 +2116,7 @@ document.addEventListener('mousedown', (e) => {
     const poll = aid.startsWith("demo") ? 0 : setInterval(async () => {
       const q = await api().queue_status().catch(() => null), n = $("#skel-note");
       if (!q || !n) return;
-      const txt = q.cooldown_s > 0 ? `warframe.market limitó los pedidos: reintentando en ${Math.ceil(q.cooldown_s)} s`
+      const txt = q.cooldown_s > 0 ? (q.reason === "net" ? `Sin respuesta de warframe.market: reintentando en ${Math.ceil(q.cooldown_s)} s` : `warframe.market limitó los pedidos: reintentando en ${Math.ceil(q.cooldown_s)} s`)
         : q.total > 1 ? `Consultando warframe.market… ${q.done} de ${q.total}${q.eta_s >= 1 ? ` · unos ${Math.ceil(q.eta_s)} s` : ""}` : "Consultando warframe.market…";
       n.firstChild.textContent = txt; $("#skel-fill").style.width = (q.total > 1 ? q.percent : 8) + "%";
     }, 400);
@@ -2381,7 +2381,7 @@ document.addEventListener('mousedown', (e) => {
       if (show) {
         bar.classList.toggle("wait", q.cooldown_s > 0);
         $("#q-title").textContent = q.cooldown_s > 0
-          ? "warframe.market pidió esperar un poco…"
+          ? (q.reason === "net" ? "warframe.market no responde, reintentando…" : "warframe.market pidió esperar un poco…")
           : `Consultando warframe.market… ${q.done} de ${q.total}`;
         $("#q-fill").style.width = q.percent + "%";
         $("#q-eta").textContent = q.eta_s >= 1 ? `~${Math.ceil(q.eta_s)} s` : "casi listo";
