@@ -55,6 +55,8 @@
   }
   input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #a066f633; }
   input:disabled, select:disabled { opacity: .5; }
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   button {
     background: linear-gradient(180deg, #b47cff, #7b3fe4); border: 0; border-radius: 9px;
     padding: 10px 20px; font-weight: 600; cursor: pointer; white-space: nowrap;
