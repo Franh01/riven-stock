@@ -2500,6 +2500,14 @@ document.addEventListener('mousedown', (e) => {
     $("#tt-prev")?.addEventListener("click", () => tourStep(i - 1));
     $("#tt-next").onclick = () => (last ? endTour(true) : tourStep(i + 1));
   }
+  document.addEventListener("toggle", (e) => {   // plegar o desplegar ordenes cambia el alto: se reajusta el resaltado
+    if (!tour || !e.target.matches?.("details.orders")) return;
+    requestAnimationFrame(() => {
+      if (!tour?.place) return;
+      const r = tour.place(), tip = $("#tour-tip"), h = tip.offsetHeight;
+      if (tip.style.bottom === "auto") tip.style.top = Math.max(8, r.bottom + 14 + h < innerHeight ? r.bottom + 14 : r.top - h - 14) + "px";
+    });
+  }, true);
   function startTour(id) {
     if (tour) return;
     document.body.insertAdjacentHTML("beforeend", `<div id="tour-hole"></div><div id="tour-tip"></div>`);
