@@ -46,6 +46,8 @@ class RequestQueue:
         self._cooldown_until = 0.0
         self._reason = "limit"      # por qué espera la cola: limit (429) o net (sin conexión)
         self._active = None
+        self._log = deque(maxlen=30)   # últimos pedidos que arrancaron (para mostrarlos en la UI)
+        self._seq = 0
         self._total = self._done = 0   # lote actual: se reinicia cuando la cola se vacía
         threading.Thread(target=self._run, daemon=True, name="wfm-queue").start()
 
@@ -62,6 +64,11 @@ class RequestQueue:
         if job.error is not None:
             raise job.error
         return job.result
+
+    def recent(self, since=0):
+        """Pedidos que arrancaron después de `since` (id), del más viejo al más nuevo."""
+        with self._cond:
+            return [dict(e) for e in self._log if e["id"] > since]
 
     def busy(self):
         """True si hay pedidos esperando o en curso (el cargador de fondo no debe meterse)."""
@@ -118,6 +125,9 @@ class RequestQueue:
                 job = self._q.popleft()
                 self._active = job
             self._wait_slot()
+            with self._cond:
+                self._seq += 1
+                self._log.append({"id": self._seq, "name": job.label, "retry": job.tries})
             try:
                 res = job.fn()
             except _TRANSIENT as e:   # timeout o corte de red: se reintenta solo antes de mostrar nada

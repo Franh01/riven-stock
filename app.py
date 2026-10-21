@@ -107,7 +107,7 @@ class Api:
 
     SETTING_KEYS = {"cloud_auto", "lang", "tracked_weapons", "auto_ingame", "mine_sort", "invisible_on_close",
                     "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials",
-                    "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain"}
+                    "show_requests", "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain"}
 
     # ---- Token de warframe.market ----
     def token_status(self):
@@ -713,12 +713,24 @@ class Api:
         except (WFMError, requests.RequestException, KeyError, ValueError) as e:
             return {"error": str(e)}
 
+    def _from_cache(self, auction_id):
+        """Reconstruye un contrato ajeno desde el caché de órdenes (sobrevive a reinicios)."""
+        for w, e in list(self._cache._data.items()):
+            for o in e.get("market") or []:
+                if o.get("id") == auction_id:
+                    a = slim_to_raw(o, w)
+                    self._market[auction_id] = a
+                    return a
+        return None
+
     def riven_summary(self, auction_id):
         """Resumen de un riven: historial de precios, horas y órdenes online más baratas del caché."""
         a = self._seen.get(auction_id)
         foreign = a is None
         if foreign:
             a = self._market.get(auction_id)
+            if not a:   # alerta de oportunidad: sale del caché de mercado del arma
+                a = self._from_cache(auction_id)
         if not a:
             return {"error": "Riven no encontrado."}
         if foreign:
@@ -856,6 +868,10 @@ class Api:
             # Si la búsqueda llegó al corte y no hubo `n` in game, puede haber más fuera del corte.
             "maybe_incomplete": len(found) >= SEARCH_CAP - 10 and len(top) < n,
         }
+
+    def request_log(self, since=0):
+        """Pedidos recientes a warframe.market, con nombre corto (para el panel opcional de pedidos)."""
+        return QUEUE.recent(int(since or 0))
 
     def queue_status(self):
         """Avance de la cola de pedidos a warframe.market (para la barra de progreso)."""

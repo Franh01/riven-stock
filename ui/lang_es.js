@@ -353,6 +353,9 @@ window.LANGS.es = {
   "cfg.invis": "Invisible al cerrar la app",
   "opp.rmTip": "Quitar",
   "cfg.invisSub": "Al cerrar, tu estado pasa a Invisible.",
+  "cfg.showReq": "Ver pedidos a warframe.market",
+  "cfg.showReqSub": "Muestra arriba a la izquierda los últimos 3 pedidos que hace la app, con su nombre corto.",
+  "req.retry": "reintento",
   "cfg.autoIn": "En juego al abrir la app",
   "cfg.autoInSub": "Al abrir, tu estado pasa a En juego por 4 h.",
   "cfg.total": "Horas online acumuladas en total: {h}",
@@ -719,5 +722,5 @@ window.LANGS.es = {
   "tour.opp.2.t": "Cuánto tiene que valer la pena",
   "tour.opp.2.x": "El descuento mínimo es qué tan por debajo del estimado tiene que estar el precio, y la ganancia mínima es la diferencia en platino. Se tienen que cumplir las dos.",
   "tour.opp.3.t": "Armas vigiladas",
-  "tour.opp.3.x": "Se vigilan solas las armas de tu stock. Acá agregás otras. En la campana, el botón Ver publicación abre el anuncio en warframe.market.",
+  "tour.opp.3.x": "Se vigilan solas las armas de tu stock. Acá agregás otras. En la campana, el botón Ver publicación abre el detalle del riven en la app.",
 };

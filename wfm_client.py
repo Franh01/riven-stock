@@ -83,6 +83,26 @@ class WFMError(Exception):
     pass
 
 
+def request_name(method, path, params=None):
+    """Nombre corto de un pedido para mostrarlo al usuario (sin la URL)."""
+    p = params or {}
+    if path.startswith("/v1/auctions/search"):
+        return "get_rivens_by_weapon: " + str(p.get("weapon_url_name", "?"))
+    table = (
+        ("/v2/riven/weapons", "get_riven_weapons_catalog"),
+        ("/v2/riven/attributes", "get_riven_stats_catalog"),
+        ("/v2/me", "get_my_profile"),
+        ("/v1/profile/auctions", "get_my_rivens"),
+        ("/v1/auctions/create", "create_riven_listing"),
+        ("/v1/auctions/entry/", "close_riven_listing" if path.endswith("/close") else "update_riven_listing"),
+        ("/v1/profile/", "get_seller_rivens"),
+    )
+    for prefix, name in table:
+        if path.startswith(prefix):
+            return name
+    return f"{method.lower()}_other"
+
+
 def _check_price(price):
     if price > MAX_PRICE:
         raise WFMError(f"El precio máximo es {MAX_PRICE}p.")
@@ -116,7 +136,7 @@ class WFMClient:
         try:
             res = QUEUE.submit(
                 lambda: self.session.request(method, BASE_URL + path, headers=headers, timeout=20, **kwargs),
-                label=f"{method} {path}")
+                label=request_name(method, path, kwargs.get("params")))
         except requests.exceptions.RequestException:
             raise WFMError("No se pudo conectar con warframe.market (no responde). Revisá tu conexión y probá de nuevo en un momento.")
         if res.status_code in (401, 403) and auth:
@@ -191,7 +211,7 @@ class WFMClient:
         ws = QUEUE.submit(
             lambda: websocket.create_connection(WS_URL, timeout=timeout, origin="https://warframe.market",
                                                 header=[f"User-Agent: {HEADERS['User-Agent']}"]),
-            label="WebSocket")
+            label="ws_status")
         try:
             ws.send(json.dumps({"route": "@wfm|cmd/auth/signIn", "payload": {"token": self.jwt}, "id": "auth"}))
             status = reply = None

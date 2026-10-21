@@ -9,12 +9,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - Corregido: las etiquetas Caro/Barato/Estancado no aparecían porque el caché de órdenes no se completaba mientras usabas la app; ahora se carga en segundo plano al abrir Mis ventas.
 - Corregido: el caché de órdenes ahora se guarda entre sesiones.
 - La barra de «warframe.market pidió esperar» ahora avanza con la cuenta regresiva.
+- Nuevo en Ajustes: «Ver pedidos a warframe.market» muestra arriba a la izquierda los últimos 3 pedidos con nombre corto.
+- Corregido: «Ver publicación» en las alertas de oportunidad ahora abre el detalle del riven dentro de la app.
 
 #### English
 - New in Report: "Rolling profitability" (cost per sellable riven, usable share, profit by type and best-selling weapons from your lots).
 - Fixed: the Expensive/Cheap/Stale tags were not showing because the order cache was not filled while you used the app; it now loads in the background when opening My sales.
 - Fixed: the order cache is now saved between sessions.
 - The "warframe.market asked to wait" bar now fills along with the countdown.
+- New in Settings: "Show warframe.market requests" displays the last 3 requests top-left with short names.
+- Fixed: "View listing" on opportunity alerts now opens the riven detail inside the app.
 
 ## [0.8.8] - 2026-10-21
 

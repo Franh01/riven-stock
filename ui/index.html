@@ -210,6 +210,11 @@
   .qbar .qtop b { color: var(--text); }
   .qbar .track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
   .qbar .fill { height: 100%; width: 0; background: var(--accent-2); transition: width .4s linear; }
+  #req-feed { position: fixed; top: 12px; left: 12px; z-index: 70; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  #req-feed .req { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px;
+    padding: 5px 10px; font: 12px ui-monospace, Consolas, monospace; color: var(--text); box-shadow: 0 4px 16px #0006; animation: reqin .25s ease-out; transition: opacity .6s; }
+  #req-feed .req.old { opacity: 0; }
+  @keyframes reqin { from { opacity: 0; transform: translateY(-8px); } }
   .toast {
     position: fixed; inset: auto auto 30px 50%; margin: 0; color: var(--text); overflow: visible; transform: translateX(-50%) translateY(20px); z-index: 50;
     background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
@@ -905,6 +910,7 @@
   </form>
 </dialog>
 
+<div id="req-feed"></div>
 <div class="qbar" id="qbar" hidden>
   <div class="qtop"><b id="q-title">Consultando warframe.market…</b><span id="q-eta"></span></div>
   <div class="track"><div class="fill" id="q-fill"></div></div>
@@ -2534,7 +2540,7 @@ document.addEventListener('mousedown', (e) => {
       return `<div class="al-card ${unread ? "unread" : ""} ${n.reverted_at ? "rev" : ""}" data-id="${ids}"><span class="bar"></span>
         <div>${head}<div class="when">${esc(agoTxt(n.created_at))}</div></div>
         <div class="acts">
-          ${op ? `<button class="ghost" data-act="web" data-aid="${esc(n.auction_id)}">${tr("opp.open")}</button>` : ""}
+          ${op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("opp.open")}</button>` : ""}
           ${n.auction_id && !fake && !op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
           ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">${tr("al.revert")}</button>` : ""}
         </div></div>`;
@@ -2857,6 +2863,7 @@ document.addEventListener('mousedown', (e) => {
       </div></div>
       <h4 class="cfg-sec">${ic("cog", 16)}${tr("cfg.secGeneral")}</h4>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.invis")}</b><small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
+      <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.showReq")}</b><small>${tr("cfg.showReqSub")}</small></span>${sw("cfg-showreq", cfgVal("show_requests") === true)}</label></div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.autoIn")}</b><small>${tr("cfg.autoInSub")}</small></span>${sw("cfg-autoin", cfgVal("auto_ingame") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row" style="flex-direction:column;align-items:stretch;gap:10px"><span><b>${ic("globe")}${tr("lang.label")}</b><small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
     </div><div class="cfg-col">
@@ -2960,6 +2967,7 @@ document.addEventListener('mousedown', (e) => {
     else if (t.id === "opp-gain") { const v = Math.max(1, Math.round(Number(t.value) || 15)); t.value = v; saveCfg("opp_min_gain", v); }
     else if (t.id === "cfg-invis") saveCfg("invisible_on_close", t.checked);
     else if (t.id === "cfg-autoin") saveCfg("auto_ingame", t.checked);
+    else if (t.id === "cfg-showreq") saveCfg("show_requests", t.checked);
     else if (t.id === "cfg-lang") { saveCfg("lang", t.value); I18N.setLang(t.value); loadActiveUsers(); openConfig(); }
   });
 
@@ -3090,6 +3098,28 @@ document.addEventListener('mousedown', (e) => {
       }
     } catch (e) {} finally { qBusy = false; }
   }, 400);
+
+  // Panel opcional (Ajustes): los últimos 3 pedidos a warframe.market, con su nombre corto.
+  let reqLast = 0, reqBusy = false;
+  setInterval(async () => {
+    const feed = $("#req-feed");
+    if (settings.show_requests !== true || !window.pywebview) { feed.innerHTML = ""; reqLast = 0; return; }
+    if (reqBusy) return;
+    reqBusy = true;
+    try {
+      const list = await api().request_log(reqLast);
+      if (!reqLast && list.length) { reqLast = list[list.length - 1].id; return; }   // al activarlo no vuelca el historial
+      for (const r of list) {
+        reqLast = r.id;
+        const el = document.createElement("div");
+        el.className = "req"; el.textContent = r.name + (r.retry ? " (" + tr("req.retry") + ")" : "");
+        feed.appendChild(el);
+        while (feed.children.length > 3) feed.firstChild.remove();
+        setTimeout(() => el.classList.add("old"), 3500);
+        setTimeout(() => el.remove(), 4200);
+      }
+    } catch (e) {} finally { reqBusy = false; }
+  }, 500);
 
   // ---- Tutoriales guiados ----
   const TOURS = {

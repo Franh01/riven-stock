@@ -353,6 +353,9 @@ window.LANGS.en = {
   "cfg.invis": "Invisible when closing the app",
   "opp.rmTip": "Remove",
   "cfg.invisSub": "On close, your status becomes Invisible.",
+  "cfg.showReq": "Show warframe.market requests",
+  "cfg.showReqSub": "Shows the last 3 requests the app makes in the top-left corner, with a short name.",
+  "req.retry": "retry",
   "cfg.autoIn": "In game when opening the app",
   "cfg.autoInSub": "On open, your status becomes In game for 4 h.",
   "cfg.total": "Total online hours accumulated: {h}",
@@ -719,5 +722,5 @@ window.LANGS.en = {
   "tour.opp.2.t": "How worthwhile it must be",
   "tour.opp.2.x": "The minimum discount is how far below the estimate the price must be, and the minimum gain is the difference in platinum. Both must be met.",
   "tour.opp.3.t": "Watched weapons",
-  "tour.opp.3.x": "Weapons in your stock are watched automatically. Add others here. In the bell, View listing opens the ad on warframe.market.",
+  "tour.opp.3.x": "Weapons in your stock are watched automatically. Add others here. In the bell, View listing opens the riven detail inside the app.",
 };
