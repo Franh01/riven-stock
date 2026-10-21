@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.6.2] - 2026-10-21
+
 - El número de usuarios activos (últimos 30 días, conteo anónimo) ahora se ve junto al logo, con un indicador verde, sin abrir la configuración.
 ## [0.6.1] - 2026-10-21
 
