@@ -40,18 +40,19 @@
   .shot img { display:block; width:100%; height:auto; }
   .steps .shot.small { margin:14px 0 2px; }
   .shot.small { max-width:760px; margin:26px 0 12px; }
-  .car { max-width:340px; margin:20px 0; position:relative; }
-  .car-view { overflow:hidden; border-radius:16px; }
-  .car-track { display:flex; transition:transform .4s ease; }
+  .car { max-width:380px; margin:28px auto; padding:14px 14px 16px; background:var(--card); border:1px solid var(--line); border-radius:20px; box-shadow:0 30px 80px -30px rgba(0,0,0,.8); }
+  .car-view { position:relative; overflow:hidden; border-radius:12px; }
+  .car-track { display:flex; transition:transform .45s cubic-bezier(.4,.1,.2,1); }
   .car-slide { flex:0 0 100%; min-width:0; }
-  .car-slide .shot { box-shadow:none; }
-  .car-slide p { margin:10px 0 0; text-align:center; }
-  .car-arrow { position:absolute; top:150px; width:36px; height:36px; border-radius:50%; border:0; background:rgba(0,0,0,.65); color:#fff; font-size:22px; line-height:1; cursor:pointer; z-index:2; }
-  .car-arrow:hover { background:rgba(0,0,0,.9); }
-  .car-prev { left:8px; } .car-next { right:8px; }
-  .car-nav { display:flex; gap:10px; justify-content:center; margin-top:8px; }
-  .car-nav button { width:12px; height:12px; border-radius:50%; border:0; padding:0; background:var(--line); cursor:pointer; }
-  .car-nav button.on { background:#fff; }
+  .car-slide .shot { box-shadow:none; border-radius:12px; }
+  .car-slide p { margin:14px 6px 0; text-align:center; font-size:15px; line-height:1.5; min-height:46px; }
+  .car-slide p::before { content:attr(data-n); display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; margin-right:8px; border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; vertical-align:1px; }
+  .car-arrow { position:absolute; top:50%; transform:translateY(-50%); width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,.25); background:rgba(10,12,24,.6); backdrop-filter:blur(6px); color:#fff; font-size:24px; line-height:1; padding:0 0 3px; cursor:pointer; z-index:2; opacity:.85; transition:background .2s, transform .2s, opacity .2s; }
+  .car-arrow:hover { background:var(--accent); opacity:1; transform:translateY(-50%) scale(1.08); }
+  .car-prev { left:10px; } .car-next { right:10px; }
+  .car-nav { display:flex; gap:8px; justify-content:center; margin-top:12px; }
+  .car-nav button { width:8px; height:8px; border-radius:99px; border:0; padding:0; background:rgba(255,255,255,.25); cursor:pointer; transition:width .3s, background .3s; }
+  .car-nav button.on { width:24px; background:var(--accent); }
   .hero .shot { transform:perspective(1200px) rotateY(-6deg) rotateX(2deg); }
   .mock { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 30px 80px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.03); overflow:hidden; transform:perspective(1200px) rotateY(-6deg) rotateX(2deg); }
   .mock-bar { display:flex; gap:7px; padding:12px 14px; background:var(--bg2); border-bottom:1px solid var(--line); }
@@ -146,10 +147,9 @@
     <h2 data-i18n="ss.h"></h2>
     <p data-i18n="ss.p"></p>
     <div class="car" id="ssCar">
-      <button type="button" class="car-arrow car-prev" aria-label="Anterior">&#8249;</button><button type="button" class="car-arrow car-next" aria-label="Siguiente">&#8250;</button>
-      <div class="car-view"><div class="car-track">
-      <div class="car-slide"><div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-1.png" alt="" loading="lazy" width="534" height="500"></div><p data-i18n-html="ss.s1"></p></div>
-      <div class="car-slide"><div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-2.png" alt="" loading="lazy" width="534" height="500"></div><p data-i18n-html="ss.s2"></p></div>
+      <div class="car-view"><button type="button" class="car-arrow car-prev" aria-label="Anterior">&#8249;</button><button type="button" class="car-arrow car-next" aria-label="Siguiente">&#8250;</button><div class="car-track">
+      <div class="car-slide"><div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-1.png" alt="" loading="lazy" width="534" height="500"></div><p data-n="1" data-i18n-html="ss.s1"></p></div>
+      <div class="car-slide"><div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-2.png" alt="" loading="lazy" width="534" height="500"></div><p data-n="2" data-i18n-html="ss.s2"></p></div>
       </div></div>
       <div class="car-nav"><button type="button" aria-label="1" class="on"></button><button type="button" aria-label="2"></button></div>
     </div>
