@@ -34,6 +34,9 @@ class Api:
         self._online = False   # lo mantiene el hilo contador
         self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"))
 
+    def _rtype(self, weapon):
+        return next((w.get("rivenType") for w in self.client.riven_weapons() if w["slug"] == weapon), None)
+
     def catalog(self):
         weapons = [
             {"slug": w["slug"], "name": w["i18n"]["en"]["name"], "type": w["rivenType"],
@@ -269,7 +272,11 @@ class Api:
                     pool[o["id"]] = o
             except (WFMError, requests.RequestException):
                 pass
-        est = estimate(view, list(pool.values()), exclude_id=auction_id)
+        try:
+            rtype = self._rtype(weapon)
+        except (WFMError, requests.RequestException):
+            rtype = None
+        est = estimate(view, list(pool.values()), exclude_id=auction_id, rtype=rtype)
         return {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
 
     def _drop_loop(self):

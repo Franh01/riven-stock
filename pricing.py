@@ -15,11 +15,29 @@ WEIGHTS = {
     "finisher_damage": 0.5, "slide_attack_critical_chance": 0.4, "channeling_damage": 0.4,
     "channeling_efficiency": 0.4, "chance_to_gain_combo_count": 0.5,
 }
+# Ajustes por tipo de arma (rivenType de warframe.market): lo que cambia respecto de WEIGHTS.
+TYPE_WEIGHTS = {
+    "rifle": {"multishot": 3.5, "base_damage_/_melee_damage": 3, "fire_rate_/_attack_speed": 2,
+              "slash_damage": 1.2, "toxin_damage": 1.5, "heat_damage": 1.5, "cold_damage": 1.5,
+              "electric_damage": 1.5},
+    "shotgun": {"critical_chance": 3.5, "critical_damage": 3, "status_chance": 2.5, "slash_damage": 2,
+                "multishot": 2, "toxin_damage": 1.8, "fire_rate_/_attack_speed": 1.5},
+    "pistol": {"multishot": 3.5, "critical_chance": 3, "fire_rate_/_attack_speed": 2,
+               "toxin_damage": 1.5, "status_chance": 1.5},
+    "melee": {"critical_chance": 3.5, "critical_damage": 3, "fire_rate_/_attack_speed": 2.5,
+              "slash_damage": 2, "range": 1, "combo_duration": 1, "initial_combo": 1.2,
+              "chance_to_gain_extra_combo_count": 1, "finisher_damage": 0.8, "base_damage_/_melee_damage": 2.5},
+    "kitgun": {"critical_chance": 3, "multishot": 3, "fire_rate_/_attack_speed": 2},
+    "zaw": {"critical_chance": 3, "fire_rate_/_attack_speed": 2.5, "initial_combo": 1.2, "range": 1},
+}
 MIN_SIM = 0.35      # por debajo no se considera comparable
 MAX_COMPS = 12      # cuántos comparables entran al cálculo
 
 
-def _w(slug):
+def _w(slug, rtype=None):
+    over = TYPE_WEIGHTS.get(rtype)
+    if over and slug in over:
+        return over[slug]
     return WEIGHTS.get(slug, 1.0)
 
 
@@ -39,7 +57,7 @@ def slim(a):
     }
 
 
-def similarity(pos, neg, rolls, other):
+def similarity(pos, neg, rolls, other, rtype=None):
     opos = {s: v for s, v, p in other["s"] if p}
     oneg = next((s for s, v, p in other["s"] if not p), None)
     union = set(pos) | set(opos)
@@ -50,10 +68,10 @@ def similarity(pos, neg, rolls, other):
     for s in shared:
         a, b = abs(pos[s]), abs(opos[s])
         close = min(a, b) / max(a, b) if max(a, b) else 1.0
-        got += _w(s) * (0.6 + 0.4 * close)
+        got += _w(s, rtype) * (0.6 + 0.4 * close)
     # cubrir MIS stats pesa mas que que el otro tenga extras
-    mine = sum(_w(s) for s in pos)
-    sim = (got / sum(_w(s) for s in union)) ** 0.4 * (got / mine) ** 0.6
+    mine = sum(_w(s, rtype) for s in pos)
+    sim = (got / sum(_w(s, rtype) for s in union)) ** 0.4 * (got / mine) ** 0.6
     if neg != oneg:
         # sin negativo vale más que con uno; un negativo distinto cambia poco
         sim *= 0.9 if (neg and oneg) else 0.8
@@ -73,7 +91,7 @@ def _wquantile(pairs, q):
     return pairs[-1][0]
 
 
-def estimate(view, market, exclude_id=None):
+def estimate(view, market, exclude_id=None, rtype=None):
     """view: auction_view de mi riven. Devuelve {price, low, high, n, confidence, comps} o None."""
     pos, neg = _split(view["stats"])
     if not pos or not market:
@@ -82,7 +100,7 @@ def estimate(view, market, exclude_id=None):
     for o in market:
         if o["id"] == exclude_id or not o["p"]:
             continue
-        sim = similarity(pos, neg, view.get("rolls") or 0, o)
+        sim = similarity(pos, neg, view.get("rolls") or 0, o, rtype)
         if sim >= MIN_SIM:
             scored.append((sim, o))
     if not scored:
