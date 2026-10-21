@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.6.4] - 2026-10-21
+
 - Versión de prueba del actualizador de la app instalada (sin cambios visibles).
 
 ## [0.6.3] - 2026-10-21
