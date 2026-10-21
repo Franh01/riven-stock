@@ -1646,7 +1646,7 @@ document.addEventListener('mousedown', (e) => {
   // openRiven({}) = nuevo · openRiven({lotId}) = nuevo desde un lote · openRiven({existing}) = editar
   function openRiven({ existing = null, lotId = "" } = {}) {
     editing = existing; if (!existing) editFromSum = null; $("#publish-cancel").hidden = !existing;
-    $("#rd-title").innerHTML = existing ? `Editar · ${rivenLabel(existing)}` : "Nuevo riven";
+    $("#rd-title").innerHTML = existing ? `Editar · ${rivenLabel(existing)}${existing.id === "demo" ? ' <span class="muted" style="font-weight:400;font-size:12px">· ejemplo del tutorial, no se guarda</span>' : ""}` : "Nuevo riven";
     $("#publish-title").textContent = existing ? "Editar contrato" : "Publicar venta directa";
     $("#publish-go").textContent = existing ? "Guardar cambios" : "Publicar";
     $("#origin-row").hidden = !!existing;
@@ -1690,7 +1690,19 @@ document.addEventListener('mousedown', (e) => {
     }
     $("#est-go").hidden = !existing; $("#est-hint").hidden = !existing; $("#est-section").hidden = true;
     $("#riven-dialog").showModal();
-    if (existing) runReference(); else $("#f-weapon").focus();
+    if (existing && existing.id === "demo") demoReference();
+    else if (existing) runReference(); else $("#f-weapon").focus();
+  }
+
+  function demoReference() {   // referencia de mentira para el tutorial: sin red, y el dialogo no cambia de tamaño
+    const w = currentWeapon(); if (!w) return;
+    const st = (slug, value, positive = true) => ({ slug, value, positive });
+    const nm = (slug) => statBySlug[slug]?.name || slug;
+    const fake = [[30, "Igni-Cronicron", 15, 13], [50, "Hera-Argibin", 0, 14], [70, "Acrican", 2, 16], [75, "Satidex", 6, 10], [100, "Deci-Toxicron", 2, 14], [100, "Croniata", 0, 13], [120, "Crita-Acriton", 41, 14]]
+      .map(([price, name, rolls, mr], i) => ({ id: "demo" + i, price, name, rolls, mr, seller: ["Dan_pk10", "caiwan7", "syalsim", "Ch33chThePlug", "Kibbleray", "Souza", "Biker27893"][i], reputation: i * 3,
+        stats: (editing?.stats || []).slice(0, 3).map((s, j) => ({ ...s, value: Math.round(s.value * (0.6 + 0.1 * ((i + j) % 5)) * 10) / 10 })) }));
+    renderReference(w, { results: fake });
+    $("#ref-note").textContent = "Datos de ejemplo del tutorial.";
   }
 
   async function runReference() {
