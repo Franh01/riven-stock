@@ -174,6 +174,8 @@
 
   /* Stock unveiled */
   .lot-form { display: grid; grid-template-columns: 140px 100px 120px 120px 1fr auto; gap: 10px; align-items: end; margin-bottom: 16px; }
+  .lot-form input, .lot-form select, .lot-form button { height: 38px; box-sizing: border-box; }
+  .lot-form .unit input { height: 38px; }
   .lot-type { text-transform: capitalize; font-weight: 600; }
   .remaining { font-weight: 700; color: var(--accent-2); }
 
@@ -558,11 +560,12 @@
     <div id="mine"><div style="padding:6px 0"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div></div>
   </section>
 
-  <section class="card view-mine">
+  <section class="card view-mine" id="stock-card">
     <div class="card-head">
       <h2 id="stock-title">Stock unveiled</h2>
       <div class="head-tools">
         <span class="hint">Solo en esta app: no se publica en warframe.market.</span>
+        <button class="ghost" id="stock-help" title="Recorrido guiado de este panel" style="padding:6px 11px">?</button>
         <button class="ghost" id="tm-open" title="Cambiar 4 rivens publicados por 1 sin abrir">Transmutar</button>
       </div>
     </div>
@@ -2388,6 +2391,13 @@ document.addEventListener('mousedown', (e) => {
 
   // ---- Tutoriales guiados ----
   const TOURS = {
+    stock: { title: "Stock unveiled", steps: [
+      { el: "#stock-card .card-head", t: "Stock unveiled", x: "Acá llevás los rivens sin abrir que comprás en lote. Es solo de la app: no se publica nada en warframe.market." },
+      { el: "#lot-form", t: "Cargar un lote", x: "Elegí el tipo de riven, la cantidad y cuánto pagaste. En «El costo es» indicás si el precio fue por todo el lote o por unidad; la nota es opcional." },
+      { el: "#lot-add", t: "Agregar al stock", x: "Guarda el lote. Queda en la tabla de abajo con su costo por unidad y cuántos faltan abrir." },
+      { el: "#lots", t: "Tus lotes", x: "Con Abrir cargás el riven que salió, con el costo ya puesto, para publicarlo. Con −1 descartás uno que abriste y no vas a publicar. Borrar solo aparece si no abriste ninguno." },
+      { el: "#tm-open", t: "Transmutar", x: "Cuando cambiás 4 rivens por 1 sin abrir en el juego, acá cerrás esos 4 sin venta y entra el nuevo al stock. [[Stock unveiled|Más info]]" },
+    ] },
     inicio: { title: "Recorrido inicial", steps: [
       { el: "#status-pill", t: "Tu estado", x: "Acá ves y cambiás tu [[Estado en warframe.market]]. Mientras estés online se cuentan las horas de cada riven." },
       { el: "#bell", t: "Alertas", x: "Te avisa cuando el [[Ajuste automático de precio]] le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
@@ -2648,6 +2658,7 @@ document.addEventListener('mousedown', (e) => {
     Math.max(0, 1600 - (Date.now() - splashAt)));
   setTimeout(hideSplash, 8000);   // por si la carga falla: nunca dejar la pantalla tapada
   const HELP = [
+    ["Stock unveiled", "Lotes de rivens sin abrir que comprás, con su costo. Cada lote te lleva a cargar el riven que salió al abrirlo, y Transmutar cambia 4 publicados por 1 sin abrir. Todo es local: no se publica en warframe.market. El botón ? del panel abre su recorrido guiado."],
     ["Mis ventas", "Tu stock de rivens publicados en warframe.market. Tocá el nombre de uno para ver su resumen: precio estimado, comparables, órdenes más baratas, tendencia del arma e historial de precios. Desde el engranaje del resumen lo editás."],
     ["Publicar", "El botón flotante «+ Nuevo riven» (abajo a la derecha) abre el formulario para publicar un riven nuevo: arma, stats, rolls y precio. Antes de guardar te muestra una confirmación con lo que cambia."],
     ["Ajuste automático de precio", "Si un riven pasa las horas que definas online sin venderse, la app le baja el precio sola, sin pasar el piso que pongas. Se activa con el switch del riven al editarlo, y los valores globales están en el engranaje de arriba. Cada ajuste se puede revertir desde las alertas (la campana)."],
@@ -2657,9 +2668,10 @@ document.addEventListener('mousedown', (e) => {
     ["Límite de pedidos", "warframe.market permite pocos pedidos por segundo. La app los pone en fila para no pasarse, por eso a veces la información tarda en cargar (sobre todo al abrir o al editar). Cuando espera te muestra un aviso con el motivo; solo hay que esperar un momento."],
   ];
   document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("help-body").innerHTML = `<h4>Recorridos guiados</h4><p>Te muestran la app paso a paso.</p><button class="ghost tour-btn" data-tour="inicio">Ver el recorrido inicial</button>`
+    document.getElementById("help-body").innerHTML = `<h4>Recorridos guiados</h4><p>Te muestran la app paso a paso.</p><button class="ghost tour-btn" data-tour="inicio">Ver el recorrido inicial</button> <button class="ghost tour-btn" data-tour="stock">Ver el recorrido de Stock unveiled</button>`
       + HELP.map(([t, x]) => `<div class="hsec"><h4>${t}</h4><p>${x}</p></div>`).join("");
     document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
+    document.getElementById("stock-help").addEventListener("click", () => startTour("stock"));
     document.getElementById("help-btn").addEventListener("click", () => document.getElementById("help-dialog").showModal());
     document.getElementById("help-x").addEventListener("click", () => document.getElementById("help-dialog").close());
     document.getElementById("help-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });

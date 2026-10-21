@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Recorrido guiado de Stock unveiled (botón ? del panel o desde Ayuda) y entrada en la ayuda.
+- Alineado el alto del botón «Agregar al stock» con los campos del formulario.
+
 - Arreglo: «No volver a mostrar tutoriales» ahora se guarda y no reaparece al reabrir la app.
 
 ## [0.3.1] - 2026-10-21
