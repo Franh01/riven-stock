@@ -971,12 +971,13 @@ document.addEventListener('mousedown', (e) => {
     }
   }
 
+  const demoRowObj = () => ({ ...demoRiven(), updated: new Date().toISOString() });
   let demoRowOn = false;   // fila de ejemplo del tutorial, solo en pantalla
   function sortedMine() {
     const base = demoRowOn ? mine.filter((a) => a.id !== "demo") : mine;
     const val = (a) => (sort.key === "price" ? a.price : new Date(a.updated || 0).getTime());
     const rows = sort.key ? [...base].sort((a, b) => (val(a) - val(b)) * sort.dir) : base;
-    return demoRowOn ? [{ ...demoRiven(), updated: new Date().toISOString(), stats: demoRiven().stats }, ...rows] : rows;
+    return demoRowOn ? [demoRowObj(), ...rows] : rows;
   }
 
   function sortHeader(key, label) {
@@ -2107,7 +2108,7 @@ document.addEventListener('mousedown', (e) => {
     const d0 = $("#sum-dialog"), from0 = d0.open ? d0.offsetHeight : 0;
     $("#sum-body").innerHTML = skelSummary();
     if (!d0.open) d0.showModal(); else growFrom(from0);
-    const poll = setInterval(async () => {
+    const poll = aid === "demo" ? 0 : setInterval(async () => {
       const q = await api().queue_status().catch(() => null), n = $("#skel-note");
       if (!q || !n) return;
       const txt = q.cooldown_s > 0 ? `warframe.market limitó los pedidos: reintentando en ${Math.ceil(q.cooldown_s)} s`
@@ -2115,13 +2116,13 @@ document.addEventListener('mousedown', (e) => {
       n.firstChild.textContent = txt; $("#skel-fill").style.width = (q.total > 1 ? q.percent : 8) + "%";
     }, 400);
     let r;
-    try { r = await api().riven_summary(aid); } finally { clearInterval(poll); }
+    try { r = aid === "demo" ? demoSummary() : await api().riven_summary(aid); } finally { clearInterval(poll); }
     const fromLoaded = d0.offsetHeight;
     if (r.error) { $("#sum-body").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
     const a = r.auction, h = r.hours, o = r.orders;
     if (!sumStack.length || sumStack[sumStack.length - 1].id !== aid) sumStack.push({ id: aid, label: `${weaponName(a.weapon)} ${a.name}` });
     renderCrumbs();
-    const own = mine.find((x) => x.id === aid);
+    const own = aid === "demo" ? demoRowObj() : mine.find((x) => x.id === aid);
     $("#sum-title").innerHTML = own
       ? `${esc(weaponName(a.weapon))} ${esc(a.name)} `
       : esc(`${weaponName(a.weapon)} ${a.name}`);
@@ -2181,12 +2182,13 @@ document.addEventListener('mousedown', (e) => {
       </div>
       <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
-    document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
-    api().market_trend(a.weapon, 90).then((t) => {
+    if (aid !== "demo") document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
+    (aid === "demo" ? Promise.resolve(demoTrend()) : api().market_trend(a.weapon, 90)).then((t) => {
       const c = $("#trend-card"); if (!c) return;
       const tracked = () => (settings.tracked_weapons || []).includes(a.weapon);
       const star = () => `<button class="icon" id="trk" title="${tracked() ? "Dejar de seguir esta arma" : "Seguir esta arma: se registra su mercado cada día"}" style="float:right;font-size:18px;color:${tracked() ? "var(--accent-2)" : "var(--muted)"}">${tracked() ? "★" : "☆"}</button>`;
       const bindStar = () => $("#trk")?.addEventListener("click", () => {
+        if (aid === "demo") return;
         const l = new Set(settings.tracked_weapons || []); l.has(a.weapon) ? l.delete(a.weapon) : l.add(a.weapon);
         saveCfg("tracked_weapons", [...l]); $("#trk").outerHTML = star(); bindStar();
       });
@@ -2217,6 +2219,7 @@ document.addEventListener('mousedown', (e) => {
     document.querySelectorAll(".sum-tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
     $("#est-card")?.addEventListener("click", () => showTab("comps"));
     if (mk) return;
+    if (aid === "demo") { document.querySelectorAll("#sum-auto, #ov-h, #ov-a, #ov-f").forEach((x) => (x.disabled = true)); return; }   // tutorial: datos de ejemplo
     $("#sum-auto").addEventListener("change", (e) => api().set_autodrop(aid, e.target.checked).then(loadMine));
     for (const id of ["#ov-h", "#ov-a", "#ov-f"]) $(id).addEventListener("change", () => api().set_overrides(aid, $("#ov-h").value, $("#ov-a").value, $("#ov-f").value).then(loadMine));
   }
@@ -2401,6 +2404,13 @@ document.addEventListener('mousedown', (e) => {
       { el: "#est-go", demo: "edit", click: true, t: "Estimado con comparables", x: "Busca rivens parecidos al tuyo (mismos stats) y calcula un precio. Tarda porque hace varias búsquedas. Tocalo: te muestro un ejemplo." },
       { el: "#est-section", demo: "edit", pre: demoEstimate, t: "Estimado", x: "Te da un precio y un rango. Tocá el estimado para usarlo como precio, o abrí la lista para ver los comparables." },
       { el: "#publish-section", demo: "edit", t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
+      { el: '#mine tr[data-id="demo"] .riven-name', demo: "list", click: true, t: "Detalle de un riven", x: "Después de guardar, volvés a la lista. Tocá el nombre de un riven para ver su detalle." },
+      { el: "#sum-dialog .kpis", demo: "summary", t: "Resumen", x: "Tu precio, las horas que lleva online y cuántas publicaciones del arma están más baratas que la tuya. Abajo, los stats." },
+      { el: "#est-card", demo: "summary", t: "Precio estimado", x: "Compara con rivens parecidos y dice si estás barato o caro. Tocalo para ver los comparables que usó." },
+      { el: "#trend-card", demo: "summary", t: "Tendencia del arma", x: "Mediana y mínimo de los últimos días. La estrella sigue el arma aunque no la tengas; las de tu stock se siguen solas." },
+      { el: "#sum-dialog .switch-row", demo: "summary", t: "Baja automática", x: "Activa o desactiva la [[Baja automática]] de este riven. Más abajo están sus ajustes propios (horas, baja y piso) y el historial de precios." },
+      { el: "#sum-dialog .sum-tabs", demo: "summary", t: "Órdenes y comparables", x: "Alterná entre las publicaciones más baratas del arma y los comparables del estimado. Tocá cualquiera para abrir su propio resumen." },
+      { el: "#sum-edit", demo: "summary", t: "Editar", x: "El engranaje abre el editor de este riven, el mismo que acabamos de ver." },
       { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
     ] },
   };
@@ -2418,16 +2428,34 @@ document.addEventListener('mousedown', (e) => {
     const neg = by("Zoom") && { slug: by("Zoom").slug, value: -40.5, positive: false };
     return { id: "demo", weapon: w.slug, name: "Ejemplo", polarity: "madurai", mr: 8, rank: 8, rolls: 5, price: 100, visible: true, note: "", stats: [...pick, neg].filter(Boolean) };
   }
+  function demoSummary() {   // detalle de ejemplo del riven de ejemplo, sin red
+    const d = demoRiven(), iso = (min) => new Date(Date.now() - min * 60000).toISOString();
+    const nm = ["caiwan7", "syalsim", "Kibbleray", "Souza", "Biker27893"], sts = ["ingame", "online", "ingame", "offline", "online"];
+    const mkOrd = (price, i, sim) => ({ id: "demo-o" + i, price, rolls: [2, 6, 0, 14, 41][i], rank: i === 3 ? 4 : 8, created: iso(300 + i * 900), status: sts[i], last_seen: iso(60 * (i + 1)), seller: nm[i], sim,
+      stats: d.stats.map((x, j) => ({ ...x, value: Math.round(x.value * (0.75 + 0.07 * ((i + j) % 5)) * 10) / 10 })) });
+    const orders = [70, 85, 95, 110, 120].map((p, i) => mkOrd(p, i)), comps = [80, 90, 95, 100, 110].map((p, i) => mkOrd(p, i, 0.92 - i * 0.04));
+    return { auction: { ...d, updated: iso(30) }, hours: { hours: 12.4, autodrop_on: true, hours_override: null, amount_override: null, floor_override: null },
+      orders: { orders, age_s: 120 }, estimate: { price: 95, low: 80, high: 110, n: 5, confidence: "media", partial: false, comps }, market: null,
+      history: [{ at: iso(60 * 24 * 3), price: 130, source: "manual" }, { at: iso(60 * 24), price: 115, source: "auto" }, { at: iso(60 * 5), price: 100, source: "auto" }] };
+  }
+  function demoTrend() {
+    return { points: [92, 95, 90, 98, 104, 101, 108, 110].map((m, i) => ({ median: m, min_price: Math.round(m * 0.6), n_online: 20 + i, n_orders: 60 + i })) };
+  }
   let demoOpen = "";
   function closeDemo() {
     if (!demoOpen) return;
-    const wasList = demoOpen === "list" || demoOpen === "menu"; demoOpen = "";
+    const wasList = ["list", "menu", "summary"].includes(demoOpen); demoOpen = "";
+    if (wasList) $("#sum-dialog").open && $("#sum-dialog").close();
     if (wasList) { demoRowOn = false; closeMenu(); renderMine(); return; }
     $("#publish-go").disabled = false; $("#est-go").disabled = false; $("#riven-dialog").close();
   }
   function openDemo(mode = "edit") {   // "new": el formulario de alta con datos de ejemplo; "edit": el editor de un riven ya publicado
-    if (demoOpen === mode) return; $("#sum-dialog").open && $("#sum-dialog").close();
+    if (demoOpen === mode) return; if (mode !== "summary") $("#sum-dialog").open && $("#sum-dialog").close();
     if ($("#riven-dialog").open) $("#riven-dialog").close();
+    if (mode === "summary") {
+      $("#publish-go").disabled = false; $("#est-go").disabled = false;
+      demoRowOn = true; renderMine(); closeMenu(); openSummary("demo"); demoOpen = mode; return;
+    }
     if (mode === "list" || mode === "menu") {   // el riven de ejemplo en la lista; "menu" ademas deja abierto su menu de tres puntos
       $("#publish-go").disabled = false; $("#est-go").disabled = false;
       demoRowOn = true; renderMine();
@@ -2435,7 +2463,7 @@ document.addEventListener('mousedown', (e) => {
       if (mode === "menu" && btn) openMenu(btn, sortedMine()[0]); else closeMenu();
       demoOpen = mode; return;
     }
-    if (demoOpen === "list" || demoOpen === "menu") { demoRowOn = false; closeMenu(); renderMine(); }
+    if (["list", "menu", "summary"].includes(demoOpen)) { demoRowOn = false; closeMenu(); renderMine(); }
     if (mode === "edit") openRiven({ existing: demoRiven() });
     else {
       const d = demoRiven();
@@ -2469,7 +2497,7 @@ document.addEventListener('mousedown', (e) => {
   function tourStep(i) {
     const T = TOURS[tour.id], st = T.steps[i];
     if (st.demo) openDemo(st.demo); else closeDemo();
-    document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.demo && d.id === "riven-dialog")) d.close(); });
+    document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.demo && d.id === (st.demo === "summary" ? "sum-dialog" : "riven-dialog"))) d.close(); });
     if (st.pre) st.pre();
     const el = document.querySelector(st.el);
     if (!el || !el.getClientRects().length) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
@@ -2516,6 +2544,7 @@ document.addEventListener('mousedown', (e) => {
   }, true);
   function startTour(id) {
     if (tour) return;
+    $("#help-dialog").open && $("#help-dialog").close();
     document.body.insertAdjacentHTML("beforeend", `<div id="tour-hole"></div><div id="tour-tip"></div>`);
     tour = { id, i: 0 }; tourStep(0);
   }
