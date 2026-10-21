@@ -13,11 +13,16 @@ provider:
   timeout: 10
   environment:
     MONGODB_URI: ${env:MONGODB_URI}
+    FEEDBACK_BUCKET: riven-stock-feedback-${aws:accountId}
   tags:
     project: riven-stock
   iam:
     role:
       statements:
+        # Los reportes de bugs guardan capturas y logs en el bucket privado de feedback (solo escritura).
+        - Effect: Allow
+          Action: s3:PutObject
+          Resource: arn:aws:s3:::riven-stock-feedback-${aws:accountId}/*
         # El colector se relanza a sí mismo si le quedan armas pendientes al agotar su tiempo.
         - Effect: Allow
           Action: lambda:InvokeFunction
@@ -52,3 +57,35 @@ functions:
     reservedConcurrency: 5
     url:
       cors: true
+  feedback:
+    name: riven-stock-feedback
+    handler: src/feedback.handler
+    memorySize: 256
+    timeout: 20
+    reservedConcurrency: 3
+    url:
+      cors: true
+
+resources:
+  Resources:
+    FeedbackBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: riven-stock-feedback-${aws:accountId}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        LifecycleConfiguration:
+          Rules:
+            - Id: borrar-a-los-180-dias
+              Status: Enabled
+              ExpirationInDays: 180
+        Tags:
+          - Key: project
+            Value: riven-stock
