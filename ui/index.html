@@ -839,6 +839,16 @@ document.addEventListener('mousedown', (e) => {
   }
 
   function renderAll() { renderTotals(); renderMine(); renderLots(); renderClosed(); }
+  // Cambio de idioma en caliente: re-pinta todo lo que se arma desde JS.
+  document.addEventListener("langchange", () => {
+    try {
+      renderAll(); renderStatus(); renderBell();
+      refreshOrigins($("#f-origin").value);
+      if (catalog) refreshSlots();
+      if ($("#alerts-dialog")?.open) renderAlerts();
+      if (tour) tourStep(tour.i);
+    } catch (e) { console.error(e); }
+  });
 
   // ---- Estado del usuario (Invisible / Online / En juego) -------------------
   // Va por el WebSocket de warframe.market; el servidor lo mantiene hasta `statusUntil` (máx. 4 h).
@@ -1509,8 +1519,8 @@ document.addEventListener('mousedown', (e) => {
       refreshUnit(slotEls[i]);
     });
     $("#rd-info").textContent = weapon
-      ? `${weapon.name} · ${weapon.type} · disposición ${weapon.disposition}`
-      : "Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.";
+      ? tr("rd.info", { n: weapon.name, t: weapon.type, d: weapon.disposition })
+      : tr("rd.infoNone");
     refreshNames();
   }
 
@@ -1595,13 +1605,13 @@ document.addEventListener('mousedown', (e) => {
       nameAuto = true;
     }
     const chosen = $("#f-name").value.trim();
-    const tag = guess?.sure ? "sugerido" : "revisá";
-    const tagTitle = guess?.sure ? "Orden calculado con los valores base del juego" : "Dos stats están muy parejos: confirmá con el nombre del juego";
+    const tag = tr(guess?.sure ? "nm.sugg" : "nm.check");
+    const tagTitle = tr(guess?.sure ? "nm.suggTip" : "nm.checkTip");
     let hint = "";
-    if (!suggested) hint = valuesOk ? "Elegí el que figura en el juego." : "Cargá los valores para sugerir el orden.";
+    if (!suggested) hint = tr(valuesOk ? "nm.pick" : "nm.fill");
     box.innerHTML = names.map((n) => `<button type="button" class="name-chip ${!custom && n === chosen ? "selected" : ""}" data-name="${esc(n)}">
         ${esc(n)}${n === suggested ? `<small title="${tagTitle}">${tag}</small>` : ""}</button>`).join("") +
-      `<button type="button" class="name-chip ${custom ? "selected" : ""}" data-name="">Otro…</button>` +
+      `<button type="button" class="name-chip ${custom ? "selected" : ""}" data-name="">${tr("nm.other")}</button>` +
       (hint ? `<span class="hint">${hint}</span>` : "");
   }
 
@@ -1654,8 +1664,8 @@ document.addEventListener('mousedown', (e) => {
   // openRiven({}) = nuevo · openRiven({lotId}) = nuevo desde un lote · openRiven({existing}) = editar
   function openRiven({ existing = null, lotId = "" } = {}) {
     editing = existing; if (!existing) editFromSum = null; $("#publish-cancel").hidden = !existing;
-    $("#rd-title").innerHTML = existing ? `Editar · ${rivenLabel(existing)}${existing.id === "demo" ? ' <span class="muted" style="font-weight:400;font-size:12px">· ejemplo del tutorial, no se guarda</span>' : ""}` : "Nuevo riven";
-    $("#publish-title").textContent = existing ? "Editar contrato" : "Publicar venta directa";
+    $("#rd-title").innerHTML = existing ? `${tr("rd.edit")} · ${rivenLabel(existing)}${existing.id === "demo" ? ` <span class="muted" style="font-weight:400;font-size:12px">· ${tr("rd.demoNote")}</span>` : ""}` : tr("rd.new");
+    $("#publish-title").textContent = tr(existing ? "rd.editContract" : "rd.publishDirect");
     $("#publish-go").textContent = existing ? "Guardar cambios" : "Publicar";
     $("#origin-row").hidden = !!existing;
     // Todo es editable: cambiar los datos del riven republica el contrato por detrás (ver republish).
@@ -2038,12 +2048,12 @@ document.addEventListener('mousedown', (e) => {
     if (!fresh.length) return;
     blip();
     if (fresh.length > 3) {
-      pop(`<div class="p-top">Ajuste automático de precio</div><div class="p-name">${fresh.length} rivens bajaron de precio</div><div class="when">Tocá para ver el detalle</div>`);
+      pop(`<div class="p-top">${tr("cfg.title")}</div><div class="p-name">${tr("al.manyDropped", { n: fresh.length })}</div><div class="when">${tr("al.tapDetail")}</div>`);
       return;
     }
     for (const n of fresh) {
       const d = dropInfo(n);
-      pop(`<div class="p-top">Ajuste automático de precio</div><div class="p-name">${d ? `${esc(d.weapon)} <span style="font-weight:500;color:var(--muted)">${esc(d.name)}</span>` : esc(n.text)}</div>${n.old_price != null ? priceLine(n) : ""}`);
+      pop(`<div class="p-top">${tr("cfg.title")}</div><div class="p-name">${d ? `${esc(d.weapon)} <span style="font-weight:500;color:var(--muted)">${esc(d.name)}</span>` : esc(n.text)}</div>${n.old_price != null ? priceLine(n) : ""}`);
     }
   }
   async function loadAlerts() {
@@ -2399,8 +2409,8 @@ document.addEventListener('mousedown', (e) => {
       if (show) {
         bar.classList.toggle("wait", q.cooldown_s > 0);
         $("#q-title").textContent = q.cooldown_s > 0
-          ? (q.reason === "net" ? "warframe.market no responde, reintentando…" : "warframe.market pidió esperar un poco…")
-          : `Consultando warframe.market… ${q.done} de ${q.total}`;
+          ? tr(q.reason === "net" ? "q.net" : "q.wait")
+          : tr("q.asking", { d: q.done, t: q.total });
         $("#q-fill").style.width = q.percent + "%";
         $("#q-eta").textContent = q.eta_s >= 1 ? `~${Math.ceil(q.eta_s)} s` : tr("q.almost");
       }
