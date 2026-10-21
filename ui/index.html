@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <title>Riven Stock</title>
+<script src="lang_es.js"></script>
+<script src="lang_en.js"></script>
+<script src="i18n.js"></script>
 <style>
   :root {
     --bg: #0c0518;
@@ -685,7 +688,7 @@
   </div>
 </dialog>
 <dialog id="cfg-dialog">
-  <div class="dlg-head"><h3>Ajuste automático de precio</h3><button class="icon" id="cfg-x" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3 data-i18n="cfg.title">Ajuste automático de precio</h3><button class="icon" id="cfg-x" data-i18n-title="common.close" title="Cerrar">×</button></div>
   <div class="dlg-body" id="cfg-body"></div>
 </dialog>
 <style>
@@ -2266,6 +2269,7 @@ document.addEventListener('mousedown', (e) => {
         <div class="cfg-row"><span>Piso mínimo<small>Nunca baja por debajo de este precio.</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
       <div class="sum-card"><label class="switch-row"><span>Invisible al cerrar la app${""}<small>Al cerrar, tu estado pasa a Invisible.</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
+      <div class="sum-card"><label class="switch-row"><span>${tr("lang.label")}<small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
       <div class="muted" style="font-size:12px">Horas online acumuladas en total: <b>${total.toFixed(1)} h</b></div>
     </div>`;
   }
@@ -2286,6 +2290,7 @@ document.addEventListener('mousedown', (e) => {
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
     else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
     else if (t.id === "cfg-invis") saveCfg("invisible_on_close", t.checked);
+    else if (t.id === "cfg-lang") { saveCfg("lang", t.value); I18N.setLang(t.value); openConfig(); }
   });
 
   $("#sum-x").addEventListener("click", () => $("#sum-dialog").close());
@@ -2622,6 +2627,7 @@ document.addEventListener('mousedown', (e) => {
     renderTotals();
     settings = await api().get_settings();
     if (settings.mine_sort) sort = settings.mine_sort;
+    if (settings.lang && settings.lang !== I18N.lang) I18N.setLang(settings.lang); else if (!settings.lang) saveCfg("lang", I18N.lang);
     await loadMine();
     hideSplash();
     { const ts = tourState(); if (!ts.off && !ts.done.inicio) setTimeout(() => startTour("inicio"), 2000); }
