@@ -785,7 +785,46 @@ document.addEventListener('mousedown', (e) => {
 
   const $ = (sel) => document.querySelector(sel);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const api = () => window.pywebview.api;
+  // Los mensajes de error del backend vienen en español: se traducen acá, por patrón.
+  const ERRS = [
+    [/^No hay una actualización pendiente/, "e.1"],
+    [/^No se pudo conectar con warframe\.market/, "e.2"],
+    [/^(\d+) en (\S+): el JWT no sirve o expiró/, "e.3"],
+    [/^warframe\.market está limitando/, "e.4"],
+    [/^warframe\.market no responde\. Se reintenta/, "e.5"],
+    [/^Esa baja ya no se puede revertir/, "e.6"],
+    [/^Riven no encontrado/, "e.7"],
+    [/^Hay que elegir exactamente 4 rivens/, "e.8"],
+    [/^Tipo de riven inválido/, "e.9"],
+    [/^Algún riven ya no está en la lista/, "e.10"],
+    [/^El contrato ya no existe/, "e.11"],
+    [/^La cantidad tiene que ser al menos 1/, "e.12"],
+    [/^Un riven tiene 2 o 3 stats/, "e.13"],
+    [/^Falta el nombre del riven/, "e.14"],
+    [/^Ese lote ya no tiene rivens/, "e.15"],
+    [/^Ese lote no existe/, "e.16"],
+    [/^Ya abriste (\d+) de ese lote/, "e.17"],
+    [/^Se publicó la nueva pero no se pudo cerrar la vieja: (.*)$/, "e.18"],
+    [/^Se cerraron los 4 pero no se pudo cargar el stock: (.*)$/, "e.19"],
+    [/^warframe\.market no mandó el estado/, "e.20"],
+    [/^warframe\.market no respondió al cambio de estado/, "e.21"],
+    [/^Estado inválido: (.*)$/, "e.22"],
+    [/^Preferencia desconocida: (.*)$/, "e.23"],
+    [/^No se pudo buscar actualizaciones: (.*)$/, "e.24"],
+    [/^warframe\.market rechazó el token en el WebSocket \((.*)\)$/, "e.25"]
+  ];
+  const trErr = (m) => {
+    for (const [rx, k] of ERRS) { const x = rx.exec(m); if (x) return tr(k, { a: x[1], b: x[2] }); }
+    return m;
+  };
+  const fixErr = (r) => {
+    if (r && typeof r === "object") {
+      if (typeof r.error === "string") r.error = trErr(r.error);
+      if (typeof r.warning === "string") r.warning = trErr(r.warning);
+    }
+    return r;
+  };
+  const api = () => new Proxy({}, { get: (_, k) => async (...a) => fixErr(await window.pywebview.api[k](...a)) });
   const UNIT = { percent: "%", multiply: "x", seconds: "s" };
   const fmtP = (n) => `${Number(n).toLocaleString(I18N.locale, { maximumFractionDigits: 1 })}p`;
   // Placeholders animados mientras carga: filas de tabla, bloque de resumen, lista de ajustes.
@@ -1799,7 +1838,7 @@ document.addEventListener('mousedown', (e) => {
   function renderEstimate(es) {
     {
       $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
-        `<div class="chip"><b>${es.low}–${es.high}p</b><span>${tr("rd.range")}</span></div><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${esc(es.confidence)}</span></div>` +
+        `<div class="chip"><b>${es.low}–${es.high}p</b><span>${tr("rd.range")}</span></div><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>` +
         (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "");
       $("#est-results").innerHTML = `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
         <td class="price">${x.price}p</td>
@@ -2179,7 +2218,7 @@ document.addEventListener('mousedown', (e) => {
             <span class="muted" style="white-space:nowrap">${tr("sum.range", { a: es.low, b: es.high })}</span></div>
           <div style="margin-top:8px;font-size:13px">${verdict}</div>
           ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">${tr("sum.partial")}</div>` : ""}
-          <small class="muted" style="display:block;margin-top:4px">${tr("sum.compsLine", { n: es.n, c: esc(es.confidence) })}</small></div>`
+          <small class="muted" style="display:block;margin-top:4px">${tr("sum.compsLine", { n: es.n, c: tr("conf." + es.confidence) })}</small></div>`
       : `<div class="sum-card"><h4>${tr("sum.estimated")}</h4><small class="muted">${tr("sum.noComps")}</small></div>`;
     const comps = es ? `<div class="comp-legend">${tr("sum.legend")}</div><div class="comps">${
       es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><b>${x.price}p</b><span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
