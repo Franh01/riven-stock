@@ -583,6 +583,7 @@
   .rp-rank td.bar-cell { width: 34%; }
   .rp-rank .rbar { height: 8px; border-radius: 4px; background: var(--accent); min-width: 2px; }
   .mk-filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+  .mk-lbl { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
   .mk-row { cursor: pointer; }
   .mk-row:hover td { background: #a066f614; }
   tr.busy td:not(.actions) { opacity: .7; }
@@ -651,10 +652,10 @@
     </div>
     <div class="hint" id="mk-info" style="margin:10px 0 4px" data-i18n="mk.hint">Elegí un arma y buscá. Tocá un riven para ver su precio estimado y si está barato.</div>
     <div class="mk-filters" id="mk-post" style="display:none;margin:0 0 8px">
-      <label><span data-i18n="mkf.status">Vendedor</span> <select id="mkf-status"><option value="on" data-i18n="mkf.on">En juego u online</option><option value="ingame" data-i18n="mkf.ingame">Solo en juego</option><option value="all" data-i18n="mkf.all">Todos</option></select></label>
+      <div class="mk-lbl"><span data-i18n="mkf.status">Vendedor</span> <select id="mkf-status"><option value="on" data-i18n="mkf.on">En juego u online</option><option value="ingame" data-i18n="mkf.ingame">Solo en juego</option><option value="all" data-i18n="mkf.all">Todos</option></select></div>
       <label><span data-i18n="mkf.maxPrice">Precio máx.</span> <input id="mkf-price" type="number" min="0" placeholder="—"></label>
       <label><span data-i18n="mkf.maxRolls">Rolls máx.</span> <input id="mkf-rolls" type="number" min="0" placeholder="—"></label>
-      <label><span data-i18n="mkf.neg">Negativo</span> <select id="mkf-neg"><option value="any" data-i18n="mkf.any">Cualquiera</option><option value="none" data-i18n="mkf.none">Sin negativo</option><option value="has" data-i18n="mkf.has">Con negativo</option></select></label>
+      <div class="mk-lbl"><span data-i18n="mkf.neg">Negativo</span> <select id="mkf-neg"><option value="any" data-i18n="mkf.any">Cualquiera</option><option value="none" data-i18n="mkf.none">Sin negativo</option><option value="has" data-i18n="mkf.has">Con negativo</option></select></div>
     </div>
     <div id="mk-results"></div>
   </section>
@@ -2657,7 +2658,7 @@ document.addEventListener('mousedown', (e) => {
         <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${stTxt(a.status)}</span></small></td>
         <td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>`;
   }
-  ["#mkf-status", "#mkf-price", "#mkf-rolls", "#mkf-neg"].forEach((s) => $(s).addEventListener("input", renderMarket));
+  ["#mkf-status", "#mkf-price", "#mkf-rolls", "#mkf-neg"].forEach((s) => { $(s).addEventListener("input", renderMarket); $(s).addEventListener("change", renderMarket); });
   async function runMarket() {
     if (!mkWeapon.value) { toast(tr("common.pickWeapon"), true); $("#mk-weapon").focus(); return; }
     $("#mk-go").disabled = true; $("#mk-go").textContent = tr("common.searching");
