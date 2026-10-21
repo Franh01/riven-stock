@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.5.0] - 2026-10-21
+
 - Copias de seguridad: los datos pasan a la carpeta del usuario (%APPDATA%\RivenStock), así reinstalar no los borra (la base actual se copia sola la primera vez). Copia automática diaria y al cerrar, y en Configuración: copiar ahora, exportar, importar y abrir carpeta.
 - Copia en la nube: opcional, cifrada en tu PC con un código de recuperación que solo vos tenés; se sube sola cada día y al cerrar, y se restaura en otra PC con el código. Muestra además cuántos usuarios activos hay (conteo anónimo).
 - Reporte de ventas: nueva pestaña con ingresos, ganancia y margen, gráfico de ganancia en el tiempo y ranking de armas más rentables, con filtros por período, arma y tipo. Incluye recorrido guiado (botón ? y Ayuda; arranca solo la primera vez).
