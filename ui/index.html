@@ -1700,7 +1700,7 @@ document.addEventListener('mousedown', (e) => {
     const nm = (slug) => statBySlug[slug]?.name || slug;
     const fake = [[30, "Igni-Cronicron", 15, 13], [50, "Hera-Argibin", 0, 14], [70, "Acrican", 2, 16], [75, "Satidex", 6, 10], [100, "Deci-Toxicron", 2, 14], [100, "Croniata", 0, 13], [120, "Crita-Acriton", 41, 14]]
       .map(([price, name, rolls, mr], i) => ({ id: "demo" + i, price, name, rolls, mr, seller: ["Dan_pk10", "caiwan7", "syalsim", "Ch33chThePlug", "Kibbleray", "Souza", "Biker27893"][i], reputation: i * 3,
-        stats: (editing?.stats || []).slice(0, 3).map((s, j) => ({ ...s, value: Math.round(s.value * (0.6 + 0.1 * ((i + j) % 5)) * 10) / 10 })) }));
+        stats: demoRiven().stats.slice(0, 3).map((s, j) => ({ ...s, value: Math.round(s.value * (0.6 + 0.1 * ((i + j) % 5)) * 10) / 10 })) }));
     renderReference(w, { results: fake });
     $("#ref-note").textContent = "Datos de ejemplo del tutorial.";
   }
@@ -2368,13 +2368,16 @@ document.addEventListener('mousedown', (e) => {
       { el: "#bell", t: "Alertas", x: "Te avisa cuando la [[Baja automática]] le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
       { el: "#gear", t: "Configuración", x: "Los valores globales de la [[Baja automática]]: horas sin vender, cuánto baja y el piso mínimo." },
       { el: "#views", t: "Mis ventas y Mercado", x: "Mis ventas es tu stock; Mercado sirve para mirar lo que se vende de cada arma." },
-      { el: "#mine", t: "Tus rivens", x: "Tocá el nombre de uno para ver su resumen: precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Desde el resumen lo editás." },
-      { el: ".grid-riven", demo: true, t: "Editar un riven", x: "Este es un riven de ejemplo (no se guarda) para mostrarte el editor. Arriba van el arma, la polaridad, MR, rango y rolls. En uno ya publicado quedan fijos, salvo la polaridad." },
-      { el: "#stat-slots", demo: true, t: "Stats", x: "Hasta tres stats positivos y uno negativo, con sus valores tal como figuran en el juego." },
-      { el: "#name-chips", demo: true, t: "Nombre", x: "El nombre sale de los stats. Al editar uno publicado ya viene definido." },
-      { el: "#rd-auto", demo: true, t: "Baja automática", x: "El switch activa la [[Baja automática]] solo para este riven; los campos de al lado pisan los valores globales." },
-      { el: "#publish-section", demo: true, t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
-      { el: "#fab", t: "Nuevo riven", x: "Para consultar el precio de referencia y publicar un contrato nuevo." },
+      { el: "#mine", t: "Tus rivens", x: "Acá van tus rivens. Tocá el nombre de uno para ver su resumen: precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Si todavía no tenés ninguno, seguí: vamos a crear uno de ejemplo." },
+      { el: "#fab", t: "Nuevo riven", x: "Con este botón creás uno. Te abro el formulario con datos de ejemplo: no se publica nada." },
+      { el: ".grid-riven", demo: "new", t: "Arma y datos", x: "Elegís el arma, la polaridad, MR, rango y rolls. Los cargué de ejemplo." },
+      { el: "#stat-slots", demo: "new", t: "Stats", x: "Hasta tres stats positivos y uno negativo, con sus valores tal como figuran en el juego." },
+      { el: "#name-chips", demo: "new", t: "Nombre", x: "El nombre sale de los stats; elegís entre las combinaciones posibles." },
+      { el: "#ref-section", demo: "new", t: "Precio de referencia", x: "Compara con las más baratas en venta del arma (acá son datos de ejemplo). Tocá Mínimo, Mediana o Promedio para usarlo como precio." },
+      { el: "#publish-section", demo: "new", t: "Publicar", x: "Precio, costo (solo se guarda en la app), visibilidad y nota. Publicar te pide confirmación. En el recorrido está desactivado." },
+      { el: ".grid-riven", demo: "edit", t: "Editar uno publicado", x: "Así queda el mismo riven ya publicado. Arma, stats, MR, rango y rolls quedan fijos; solo podés cambiar la polaridad." },
+      { el: "#rd-auto", demo: "edit", t: "Baja automática", x: "El switch activa la [[Baja automática]] solo para este riven; los campos de al lado pisan los valores globales." },
+      { el: "#publish-section", demo: "edit", t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
       { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
     ] },
   };
@@ -2392,14 +2395,28 @@ document.addEventListener('mousedown', (e) => {
     const neg = by("Zoom") && { slug: by("Zoom").slug, value: -40.5, positive: false };
     return { id: "demo", weapon: w.slug, name: "Ejemplo", polarity: "madurai", mr: 8, rank: 8, rolls: 5, price: 100, visible: true, note: "", stats: [...pick, neg].filter(Boolean) };
   }
-  let demoOpen = false;
+  let demoOpen = "";
   function closeDemo() {
-    if (!demoOpen) return; demoOpen = false;
+    if (!demoOpen) return; demoOpen = "";
     $("#publish-go").disabled = false; $("#est-go").disabled = false; $("#riven-dialog").close();
   }
-  function openDemo() {
-    if (demoOpen) return; $("#sum-dialog").open && $("#sum-dialog").close();
-    openRiven({ existing: demoRiven() }); demoOpen = true;
+  function openDemo(mode = "edit") {   // "new": el formulario de alta con datos de ejemplo; "edit": el editor de un riven ya publicado
+    if (demoOpen === mode) return; $("#sum-dialog").open && $("#sum-dialog").close();
+    if ($("#riven-dialog").open) $("#riven-dialog").close();
+    if (mode === "edit") openRiven({ existing: demoRiven() });
+    else {
+      const d = demoRiven();
+      openRiven();
+      weaponCombo.set(d.weapon); setPolarity(d.polarity);
+      $("#f-mr").value = d.mr; $("#f-rank").value = d.rank; $("#f-rolls").value = d.rolls;
+      refreshSlots();
+      const pos = d.stats.filter((x) => x.positive), neg = d.stats.filter((x) => !x.positive);
+      [pos[0], pos[1], pos[2], neg[0]].forEach((x, k) => { statCombos[k].set(x?.slug ?? ""); slotEls[k].querySelector(".slot-value").value = x?.value ?? ""; });
+      $("#f-price").value = d.price;
+      refreshSlots();
+      editing = d; demoReference(); editing = null;
+    }
+    demoOpen = mode;
     $("#publish-go").disabled = true; $("#est-go").disabled = true;
   }
   let tour = null;
@@ -2415,7 +2432,7 @@ document.addEventListener('mousedown', (e) => {
   }
   function tourStep(i) {
     const T = TOURS[tour.id], st = T.steps[i];
-    if (st.demo) openDemo(); else closeDemo();
+    if (st.demo) openDemo(st.demo); else closeDemo();
     document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.demo && d.id === "riven-dialog")) d.close(); });
     const el = document.querySelector(st.el);
     if (!el || !el.offsetParent) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
