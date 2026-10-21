@@ -2331,6 +2331,9 @@ document.addEventListener('mousedown', (e) => {
     const m = Math.round((Date.now() - new Date(iso)) / 60000);
     return m < 1 ? tr("time.now") : m < 60 ? tr("time.minAgo", { n: m }) : m < 1440 ? tr("time.hAgo", { n: Math.round(m / 60) }) : new Date(iso).toLocaleDateString(I18N.locale);
   };
+  const oppInfo = (n) => { if (n.kind !== "opp") return null; try { return JSON.parse(n.text); } catch (e) { return null; } };
+  const oppWeapon = (o) => weaponBySlug[o.weapon]?.name || o.weapon;
+  const oppLine = (o) => `<div class="al-prices"><span class="old">${tr("opp.est")} ${fmtPt(o.estimate)}</span><span class="arrow">→</span><span class="new">${fmtPt(o.price)} pt</span><span class="diff">−${fmtPt(o.gain)}</span></div>`;
   function groupAlerts(items) {
     const out = [], byAuc = {};
     for (const n of items) {   // items vienen de la más nueva a la más vieja
@@ -2348,11 +2351,13 @@ document.addEventListener('mousedown', (e) => {
       const unread = n.all.some((x) => !x.read_at);
       const ids = n.all.map((x) => x.id).join(",");
       const cnt = n.all.length > 1 ? `<span class="tag" style="background:#a05cf622;color:var(--accent)">${tr("al.drops", { n: n.all.length })}</span>` : "";
-      const head = d ? `<div class="al-name">${esc(d.weapon)}<small>${esc(d.name)}</small>${cnt}${n.reverted_at ? `<span class="tag">${tr("src.revert")}</span>` : ""}</div>${priceLine(n)}` : `<div class="al-name">${esc(n.text)}</div>`;
+      const op = oppInfo(n);
+      const head = op ? `<div class="al-name">${esc(oppWeapon(op))}<small>${esc(op.name)}</small><span class="tag" style="background:#3fb95022;color:#3fb950">${tr("opp.tag")}</span></div>${oppLine(op)}` : d ? `<div class="al-name">${esc(d.weapon)}<small>${esc(d.name)}</small>${cnt}${n.reverted_at ? `<span class="tag">${tr("src.revert")}</span>` : ""}</div>${priceLine(n)}` : `<div class="al-name">${esc(n.text)}</div>`;
       return `<div class="al-card ${unread ? "unread" : ""} ${n.reverted_at ? "rev" : ""}" data-id="${ids}"><span class="bar"></span>
         <div>${head}<div class="when">${esc(agoTxt(n.created_at))}</div></div>
         <div class="acts">
-          ${n.auction_id && !fake ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
+          ${op ? `<button class="ghost" data-act="web" data-aid="${esc(n.auction_id)}">${tr("opp.open")}</button>` : ""}
+          ${n.auction_id && !fake && !op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
           ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">${tr("al.revert")}</button>` : ""}
         </div></div>`;
     }).join("") : `<div class="state">${tr("al.none")}</div>`;
@@ -2411,10 +2416,12 @@ document.addEventListener('mousedown', (e) => {
     if (!fresh.length) return;
     blip();
     if (fresh.length > 3) {
-      pop(`<div class="p-top">${tr("cfg.title")}</div><div class="p-name">${tr("al.manyDropped", { n: fresh.length })}</div><div class="when">${tr("al.tapDetail")}</div>`);
+      pop(`<div class="p-top">${tr(fresh.every((x) => x.kind === "opp") ? "opp.title" : "cfg.title")}</div><div class="p-name">${tr(fresh.every((x) => x.kind === "opp") ? "opp.many" : "al.manyDropped", { n: fresh.length })}</div><div class="when">${tr("al.tapDetail")}</div>`);
       return;
     }
     for (const n of fresh) {
+      const op = oppInfo(n);
+      if (op) { pop(`<div class="p-top">${tr("opp.title")}</div><div class="p-name">${esc(oppWeapon(op))} <span style="font-weight:500;color:var(--muted)">${esc(op.name)}</span></div>${oppLine(op)}`); continue; }
       const d = dropInfo(n);
       pop(`<div class="p-top">${tr("cfg.title")}</div><div class="p-name">${d ? `${esc(d.weapon)} <span style="font-weight:500;color:var(--muted)">${esc(d.name)}</span>` : esc(n.text)}</div>${n.old_price != null ? priceLine(n) : ""}`);
     }
@@ -2624,6 +2631,24 @@ document.addEventListener('mousedown', (e) => {
   // ---- Configuración del ajuste automático de precio ----
   const CFG_DEF = { autodrop_enabled: false, autodrop_hours: 10, autodrop_amount: 5, autodrop_floor: 10, invisible_on_close: true };
   const cfgVal = (k) => (settings[k] === undefined || settings[k] === null ? CFG_DEF[k] : settings[k]);
+  const OPP_DEF = { opp_threshold: 30, opp_min_gain: 15 };
+  const oppVal = (k) => (settings[k] == null ? OPP_DEF[k] : settings[k]);
+  function renderOppChips() {
+    const l = settings.opp_weapons || [];
+    $("#opp-chips").innerHTML = l.length ? l.map((w) => `<span class="tag" style="display:inline-flex;gap:6px;align-items:center">${esc(weaponBySlug[w]?.name || w)}<a href="#" data-rm="${esc(w)}" style="color:inherit;text-decoration:none">×</a></span>`).join("") : `<span class="muted" style="font-size:12px">${tr("opp.noWeapons")}</span>`;
+  }
+  function setupOpp() {
+    renderOppChips();
+    $("#opp-chips").addEventListener("click", (e) => {
+      const a = e.target.closest("[data-rm]"); if (!a) return; e.preventDefault();
+      saveCfg("opp_weapons", (settings.opp_weapons || []).filter((w) => w !== a.dataset.rm)); renderOppChips();
+    });
+    const c = new Combo($("#opp-add"), (v) => {
+      if (!v) return;
+      const l = new Set(settings.opp_weapons || []); l.add(v); saveCfg("opp_weapons", [...l].slice(0, 12)); renderOppChips(); c.set("");
+    });
+    c.setOptions(weaponCombo.options);
+  }
   const sw = (id, on) => `<span class="switch"><input type="checkbox" id="${id}" ${on ? "checked" : ""}><i></i></span>`;
   async function openConfig() {
     $("#cfg-body").innerHTML = skelForm();
@@ -2640,6 +2665,15 @@ document.addEventListener('mousedown', (e) => {
           <input type="range" id="cfg-amount" min="1" max="50" value="${cfgVal("autodrop_amount")}"></div>
         <div class="cfg-row"><span>${tr("cfg.floor")}<small>${tr("cfg.floorSub")}</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
+      <div class="sum-card" id="opp-card"><label class="switch-row"><span><b>${tr("opp.title")}</b><small>${tr("opp.sub")}</small></span>${sw("opp-enabled", !!settings.opp_enabled)}</label>
+        <div id="opp-params" class="${settings.opp_enabled ? "" : "cfg-off"}" style="margin-top:10px">
+          <div class="cfg-row"><span>${tr("opp.thr")}<small>${tr("opp.thrSub")}</small></span><span><input type="number" id="opp-thr" min="5" max="90" value="${oppVal("opp_threshold")}"> %</span></div>
+          <div class="cfg-row"><span>${tr("opp.gain")}<small>${tr("opp.gainSub")}</small></span><span><input type="number" id="opp-gain" min="1" value="${oppVal("opp_min_gain")}"> p</span></div>
+          <div style="margin-top:8px"><span class="muted" style="font-size:12px">${tr("opp.weapons")}</span>
+            <div id="opp-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"></div>
+            <input id="opp-add" type="text" placeholder="${tr("opp.addPh")}" style="max-width:260px">
+            <small class="muted" style="display:block;margin-top:6px">${tr("opp.weaponsSub")}</small></div>
+        </div></div>
       <div class="sum-card"><label class="switch-row"><span>${tr("cfg.invis")}<small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row"><span>${tr("lang.label")}<small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
       <div class="sum-card" id="bk-card"><div style="display:flex;justify-content:space-between;align-items:center"><b>${tr("bk.title")}</b><button class="ghost" id="bk-tour" title="${tr("stock.tourTip")}" style="padding:4px 10px">?</button></div><small style="display:block;margin:2px 0 8px" class="muted">${tr("bk.sub")}</small>
@@ -2649,7 +2683,7 @@ document.addEventListener('mousedown', (e) => {
         <div id="cl-body"></div></div>
       <div class="muted" style="font-size:12px">${tr("cfg.total", { h: "<b>" + total.toFixed(1) + " h</b>" })}</div>
     </div>`;
-    loadBackupInfo(); loadCloud();
+    loadBackupInfo(); loadCloud(); setupOpp();
     { const ts = tourState(); if (!ts.off && !ts.done.backup) setTimeout(() => startTour("backup"), 400); }
   }
   async function loadBackupInfo() {
@@ -2716,6 +2750,9 @@ document.addEventListener('mousedown', (e) => {
     else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
     else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
+    else if (t.id === "opp-enabled") { saveCfg("opp_enabled", t.checked); $("#opp-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "opp.on" : "opp.off")); }
+    else if (t.id === "opp-thr") { const v = Math.min(90, Math.max(5, Math.round(Number(t.value) || 30))); t.value = v; saveCfg("opp_threshold", v); }
+    else if (t.id === "opp-gain") { const v = Math.max(1, Math.round(Number(t.value) || 15)); t.value = v; saveCfg("opp_min_gain", v); }
     else if (t.id === "cfg-invis") saveCfg("invisible_on_close", t.checked);
     else if (t.id === "cfg-lang") { saveCfg("lang", t.value); I18N.setLang(t.value); loadActiveUsers(); openConfig(); }
   });
@@ -2724,6 +2761,7 @@ document.addEventListener('mousedown', (e) => {
   $("#al-readall").addEventListener("click", async () => { alerts = await api().mark_read(); renderBell(); renderAlerts(); });
   $("#al-list").addEventListener("click", async (e) => {
     const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.act === "web") api().open_url("https://warframe.market/auction/" + b.dataset.aid);
     if (b.dataset.act === "open") { $("#alerts-dialog").close(); openSummary(b.dataset.aid); }
     if (b.dataset.act === "revert") {
       if (!await askConfirm(tr("al.revTitle"), tr("al.revText"), tr("al.revert"))) return;
@@ -3225,7 +3263,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     const s = await api().token_status(); tokHelpUrl = s.help_url;
     if (!s.has) openToken();
   }
-  const HELP_N = 14;
+  const HELP_N = 15;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button>`;

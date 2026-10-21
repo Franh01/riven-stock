@@ -45,6 +45,7 @@ import webview
 import cloud_backup
 import feedback
 import store
+import opportunities
 import updater
 from orders import OrderCache
 from pricing import estimate
@@ -104,7 +105,8 @@ class Api:
     # ---- Preferencias (locales) -------------------------------------------
 
     SETTING_KEYS = {"cloud_auto", "auto_ingame", "mine_sort", "invisible_on_close",
-                    "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials"}
+                    "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials",
+                    "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain"}
 
     # ---- Token de warframe.market ----
     def token_status(self):
@@ -435,6 +437,7 @@ class Api:
         threading.Thread(target=self._counter_loop, daemon=True).start()
         threading.Thread(target=self._drop_loop, daemon=True).start()
         threading.Thread(target=self._snapshot_loop, daemon=True).start()
+        threading.Thread(target=self._opp_loop, daemon=True).start()
         threading.Thread(target=self._cloud_loop, daemon=True).start()
         self._cache.start()
 
@@ -482,6 +485,7 @@ class Api:
         with store.connect() as conn:
             cfg, hours = store.settings(conn), store.riven_hours(conn)
         base = cfg.get("autodrop_hours", 10)
+        extra = list(cfg.get("opp_weapons") or []) if cfg.get("opp_enabled") else []
         score = {}
         for i, a in list(self._seen.items()):
             if not a.get("visible", True):
@@ -490,7 +494,7 @@ class Api:
             ratio = h.get("hours", 0) / (h.get("hours_override") or base or 1)
             w = a["item"]["weapon_url_name"]
             score[w] = max(score.get(w, 0), ratio)
-        return sorted(score, key=score.get, reverse=True)
+        return sorted(score, key=score.get, reverse=True) + [w for w in extra if w not in score]
 
     SNAPSHOT_PASS_S = 120
 
@@ -509,6 +513,39 @@ class Api:
                     store.save_snapshot(conn, todo[0], e.get("market", []))
             except Exception:
                 self._stop.wait(60)
+
+    OPP_PASS_S = 90
+
+    def _opp_loop(self):
+        """Mira el caché de las armas vigiladas (lo llena el caché en idle) y avisa de las publicaciones
+        muy por debajo de su estimado. No hace pedidos propios."""
+        while not self._stop.wait(self.OPP_PASS_S):
+            try:
+                with store.connect() as conn:
+                    cfg = store.settings(conn)
+                if not cfg.get("opp_enabled"):
+                    continue
+                self.scan_opportunities(cfg)
+            except Exception:
+                logging.info("Alertas de oportunidad: se reintenta", exc_info=True)
+
+    def scan_opportunities(self, cfg=None):
+        if cfg is None:
+            with store.connect() as conn:
+                cfg = store.settings(conn)
+        thr, gain = cfg.get("opp_threshold", 30), cfg.get("opp_min_gain", 15)
+        mine = set(self._seen)
+        n_new = 0
+        for w in cfg.get("opp_weapons") or []:
+            e = self._cache.get(w, self.CACHE_MAX_AGE_S)
+            if not e or not e.get("market"):
+                continue
+            for o in opportunities.find(e["market"], self._rtype(w), thr, gain, mine):
+                text = json.dumps({"weapon": w, **o}, ensure_ascii=False)
+                with store.connect() as conn:
+                    if store.add_opportunity(conn, o["id"], text):
+                        n_new += 1
+        return n_new
 
     def market_trend(self, weapon, days=90):
         """Tendencia del arma: primero la nube (historial central de todas las armas); la foto local

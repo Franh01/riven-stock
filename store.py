@@ -472,6 +472,16 @@ def add_drop(conn, auction_id, old_price, new_price, text):
     return cur.lastrowid
 
 
+def add_opportunity(conn, auction_id, text):
+    """Aviso de oportunidad; devuelve False si esa publicación ya se avisó."""
+    if conn.execute("SELECT 1 FROM notifications WHERE kind = 'opp' AND auction_id = ?", (auction_id,)).fetchone():
+        return False
+    conn.execute("INSERT INTO notifications (kind, auction_id, text, created_at) VALUES ('opp', ?, ?, ?)",
+                 (auction_id, text, now_iso()))
+    conn.commit()
+    return True
+
+
 def notifications(conn, limit=100):
     return [dict(r) for r in conn.execute(
         "SELECT n.*, d.old_price, d.new_price, d.reverted_at FROM notifications n "
