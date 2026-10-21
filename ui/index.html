@@ -567,7 +567,7 @@
 <dialog id="riven-dialog">
   <div class="dlg-head">
     <h3 id="rd-title">Nuevo riven</h3>
-    <span style="display:flex;gap:8px;align-items:center"><button class="icon" id="rd-gear" title="Configuración de la baja automática"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg></button><button class="icon" id="rd-x" title="Cerrar">×</button></span>
+    <span style="display:flex;gap:8px;align-items:center"><button class="icon" id="rd-gear" hidden title="Baja automática de este riven"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg></button><button class="icon" id="rd-x" title="Cerrar">×</button></span>
   </div>
   <div class="dlg-body">
     <section>
@@ -1650,6 +1650,7 @@ document.addEventListener('mousedown', (e) => {
       $("#f-cost").value = Math.round(lot.unit_cost * 100) / 100;
     }
     refreshSlots();
+    $("#rd-gear").hidden = !existing;
     $("#est-go").hidden = !existing; $("#est-hint").hidden = !existing; $("#est-section").hidden = true;
     $("#riven-dialog").showModal();
     if (existing) runReference(); else $("#f-weapon").focus();
@@ -2155,7 +2156,7 @@ document.addEventListener('mousedown', (e) => {
   }
   const saveCfg = (k, v) => { settings[k] = v; api().set_setting(k, v); };
   $("#gear").addEventListener("click", openConfig);
-  $("#rd-gear").addEventListener("click", openConfig);
+  $("#rd-gear").addEventListener("click", () => editing && openSummary(editing.id));
   $("#cfg-x").addEventListener("click", () => $("#cfg-dialog").close());
   $("#cfg-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $("#cfg-body").addEventListener("input", (e) => {
