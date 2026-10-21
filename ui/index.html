@@ -286,10 +286,11 @@
   .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 9px 24px; background: #a066f60f; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
   .crumbs .back { margin-right: 8px; background: #a066f62a; border: 1px solid var(--accent); color: var(--accent-2); border-radius: 99px; padding: 3px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
   .crumbs .back:hover { background: var(--accent); color: #fff; }
-  .crumbs .step { background: none; border: 0; padding: 3px 8px; border-radius: 6px; color: var(--accent-2); cursor: pointer; font-size: 13px; }
+  .crumbs button { box-shadow: none; filter: none; }
+  .crumbs .step { background: none; border: 0; flex: none; padding: 3px 8px; border-radius: 6px; color: var(--accent-2); cursor: pointer; font-size: 13px; }
   .crumbs .step:hover { background: #a066f633; }
-  .crumbs .sep { opacity: .6; }
-  .crumbs b { color: var(--text); font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #ffffff12; }
+  .crumbs .sep { opacity: .6; flex: none; padding: 0 2px; }
+  .crumbs b { flex: none; position: static; color: var(--text); font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #ffffff12; }
   .skel-note { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
   .skel-bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 6px; }
   .skel-bar u { display: block; height: 100%; width: 0; background: var(--accent-2); transition: width .3s; }
@@ -1992,7 +1993,7 @@ document.addEventListener('mousedown', (e) => {
     const fromLoaded = d0.offsetHeight;
     if (r.error) { $("#sum-body").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
     const a = r.auction, h = r.hours, o = r.orders;
-    sumStack.push({ id: aid, label: `${weaponName(a.weapon)} ${a.name}` });
+    if (!sumStack.length || sumStack[sumStack.length - 1].id !== aid) sumStack.push({ id: aid, label: `${weaponName(a.weapon)} ${a.name}` });
     renderCrumbs();
     const own = mine.find((x) => x.id === aid);
     $("#sum-title").innerHTML = own
