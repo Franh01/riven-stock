@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.3.4] - 2026-10-21
+
 - Recorrido inicial: vuelve el paso «Editar uno publicado», ahora explicando que se pueden cambiar todos los datos y cómo lo resuelve la app (republica el contrato).
 
 ## [0.3.3] - 2026-10-21
