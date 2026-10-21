@@ -46,3 +46,9 @@ functions:
     reservedConcurrency: 5
     url:
       cors: true
+  backup:
+    name: riven-stock-backup
+    handler: src/backup.handler
+    reservedConcurrency: 5
+    url:
+      cors: true

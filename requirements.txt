@@ -2,5 +2,7 @@ requests
 python-dotenv
 pywebview
 websocket-client
+# copias de seguridad cifradas en la nube
+cryptography
 # solo para tools/make_icon.py (y el OCR más adelante)
 pillow

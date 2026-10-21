@@ -509,6 +509,8 @@
   main[data-view="mine"] > .view-market, main[data-view="report"] > .view-market { display: none; }
   main:not([data-view="report"]) > .view-report { display: none; }
   .rp-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 12px; }
+  .rp-filters > label { display: flex; flex-direction: column; gap: 4px; }
+  .rp-filters input[type=date] { height: 40px; box-sizing: border-box; color-scheme: dark; }
   .rp-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
   .rp-kpi { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
   .rp-kpi small { display: block; color: var(--muted); font-size: .75rem; margin-bottom: 2px; }
