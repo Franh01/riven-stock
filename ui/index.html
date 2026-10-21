@@ -2383,9 +2383,10 @@ document.addEventListener('mousedown', (e) => {
     const el = document.querySelector(st.el);
     if (!el || !el.offsetParent) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
     tour.i = i;
-    el.scrollIntoView({ block: "center" });
-    const r = el.getBoundingClientRect(), hole = $("#tour-hole"), tip = $("#tour-tip");
-    Object.assign(hole.style, { top: r.top - 6 + "px", left: r.left - 6 + "px", width: r.width + 12 + "px", height: r.height + 12 + "px" });
+    el.scrollIntoView({ block: "center", behavior: "instant" });
+    const hole = $("#tour-hole"), tip = $("#tour-tip");
+    const place = () => { const q = el.getBoundingClientRect(); Object.assign(hole.style, { top: q.top - 6 + "px", left: q.left - 6 + "px", width: q.width + 12 + "px", height: q.height + 12 + "px" }); return q; };
+    tour.place = place; let r = place();
     const last = i === T.steps.length - 1;
     tip.innerHTML = `<h5>${st.t}</h5><p>${st.x.replace(/\[\[(.+?)(?:\|(.+?))?\]\]/g, (_, k, l) => `<a href="#" class="hlink" data-help="${k}">${l || k}</a>`)}</p><label><input type="checkbox" id="tour-never"> No volver a mostrar tutoriales</label>
       <div class="tt-row"><span class="tt-n">${i + 1} de ${T.steps.length}</span><button class="ghost" id="tt-skip">Saltar</button>${i ? `<button class="ghost" id="tt-prev">Atrás</button>` : ""}<button id="tt-next">${last ? "Listo" : "Siguiente"}</button></div>`;
@@ -2393,6 +2394,7 @@ document.addEventListener('mousedown', (e) => {
     tip.style.top = Math.max(8, below ? r.bottom + 14 : r.top - th - 14) + "px";
     tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 160), innerWidth - 336) + "px";
     tip.querySelectorAll(".hlink").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openHelp(a.dataset.help); }));
+    requestAnimationFrame(() => requestAnimationFrame(() => { r = place(); const h2 = tip.offsetHeight; tip.style.top = Math.max(8, r.bottom + 14 + h2 < innerHeight ? r.bottom + 14 : r.top - h2 - 14) + "px"; }));
     $("#tt-skip").onclick = () => endTour(false);
     $("#tt-prev")?.addEventListener("click", () => tourStep(i - 1));
     $("#tt-next").onclick = () => (last ? endTour(true) : tourStep(i + 1));
@@ -2402,6 +2404,7 @@ document.addEventListener('mousedown', (e) => {
     document.body.insertAdjacentHTML("beforeend", `<div id="tour-hole"></div><div id="tour-tip"></div>`);
     tour = { id, i: 0 }; tourStep(0);
   }
+  window.addEventListener("resize", () => tour?.place?.());
   window.addEventListener("keydown", (e) => { if (tour && e.key === "Escape") { e.preventDefault(); endTour(false); } });
   window.addEventListener("pywebviewready", async () => {
     api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; const sv = $("#sp-ver"); if (sv) sv.textContent = "v" + v; });
