@@ -2,12 +2,24 @@
 
 import ctypes
 import json
+import logging
 import sys
 import threading
 import traceback
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Log de arranque: con pythonw.exe no hay consola, así que los errores (incluso de los imports de abajo) van a este archivo.
+LOG_FILE = Path(__file__).parent / "riven-stock.log"
+try:
+    logging.basicConfig(filename=LOG_FILE, filemode="w", level=logging.INFO, encoding="utf-8",
+                        format="%(asctime)s %(levelname)s %(message)s")
+    logging.info("Arranque. Python %s en %s", sys.version.split()[0], sys.executable)
+    sys.excepthook = lambda t, v, tb: logging.critical("Error sin capturar", exc_info=(t, v, tb))
+    threading.excepthook = lambda a: logging.error("Error en hilo %s", a.thread, exc_info=(a.exc_type, a.exc_value, a.exc_traceback))
+except OSError:
+    pass
 
 import requests
 import websocket
@@ -720,4 +732,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        logging.info("Cierre normal")
+    except Exception:
+        logging.critical("La app no pudo arrancar", exc_info=True)
+        ctypes.windll.user32.MessageBoxW(None, "Riven Stock no pudo arrancar. Detalle en: " + str(LOG_FILE), TITLE, 0x10)
+        raise
