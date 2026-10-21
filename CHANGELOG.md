@@ -3,6 +3,8 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado semántico.
 
 ## [Sin publicar]
+
+## [0.6.5] - 2026-10-21
 - Nuevo botón de sugerencias y reporte de bugs en el encabezado: texto, hasta 3 capturas y, si querés, el registro de la app sin datos personales (con vista previa). Un envío cada 10 minutos.
 
 ## [0.6.4] - 2026-10-21
