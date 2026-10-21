@@ -2500,6 +2500,8 @@ document.addEventListener('mousedown', (e) => {
     $("#tt-prev")?.addEventListener("click", () => tourStep(i - 1));
     $("#tt-next").onclick = () => (last ? endTour(true) : tourStep(i + 1));
   }
+  addEventListener("scroll", () => { if (tour?.place) tour.place(); }, true);   // el resaltado sigue al elemento al scrollear
+  addEventListener("resize", () => { if (tour?.place) tour.place(); });
   document.addEventListener("toggle", (e) => {   // plegar o desplegar ordenes cambia el alto: se reajusta el resaltado
     if (!tour || !e.target.matches?.("details.orders")) return;
     requestAnimationFrame(() => {
