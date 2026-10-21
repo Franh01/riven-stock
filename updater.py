@@ -101,9 +101,13 @@ def preparar(info, timeout=60):
 
 def lanzar_aplicador(staging, nuevo):
     """Copia este archivo fuera de la app y lo ejecuta aparte. La app debe cerrarse después."""
-    if FROZEN:   # el instalador reemplaza los archivos y vuelve a abrir la app
-        subprocess.Popen([str(nuevo), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CLOSEAPPLICATIONS"],
-                         creationflags=0x00000008 | 0x00000200, close_fds=True, cwd=str(staging))
+    if FROZEN:   # espera a que esta app cierre, corre el instalador y, si nadie la reabrió, abre la app
+        q = lambda x: "'" + str(x).replace("'", "''") + "'"
+        cmd = (f"Wait-Process -Id {os.getpid()} -Timeout 90 -ErrorAction SilentlyContinue; "
+               f"Start-Process -Wait -FilePath {q(nuevo)} -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS'; "
+               f"Start-Sleep 4; if (-not (Get-Process -Name RivenStock -ErrorAction SilentlyContinue)) {{ Start-Process -FilePath {q(sys.executable)} }}")
+        subprocess.Popen(["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", cmd],
+                         creationflags=0x08000000 | 0x00000200, close_fds=True, cwd=str(staging))
         return
     copia = Path(staging) / "aplicar_update.py"
     shutil.copy2(__file__, copia)
