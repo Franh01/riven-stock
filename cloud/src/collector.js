@@ -1,5 +1,6 @@
-// Corre una vez por día (EventBridge): una foto de cada arma con rivens en warframe.market.
+// Corre 4 veces por día (EventBridge): una foto de cada arma con rivens en warframe.market.
 const { snapshots } = require("./db");
+const history = require("./history");
 
 const BASE = "https://api.warframe.market";
 const HEADERS = { Platform: "pc", Language: "en", Accept: "application/json", "User-Agent": "riven-stock-collector/1.0" };
@@ -44,10 +45,12 @@ async function relaunch(chain) {
 exports.handler = async (event, context) => {
   const chain = event?.chain || 0;
   const day = new Date().toISOString().slice(0, 10);
+  const slot = `${day}T${String(Math.floor(new Date().getUTCHours() / 6) * 6).padStart(2, "0")}`;   // pasada de 6 horas
   const weapons = (await get("/v2/riven/weapons")).data.map((w) => w.slug);
   const col = await snapshots();
   // Cola de pendientes: lo que ya está guardado hoy no se repite, así cada corrida retoma donde quedó la anterior.
-  const done = new Set((await col.find({ day }, { projection: { weapon: 1 } }).toArray()).map((d) => d.weapon));
+  const { state } = await history.ensure();
+  const done = new Set((await state.find({ slot }, { projection: { _id: 1 } }).toArray()).map((d) => d._id));
   let pending = weapons.filter((w) => !done.has(w));
   const start = pending.length;
   const deadline = () => context.getRemainingTimeInMillis() - MARGIN_MS;
@@ -71,6 +74,8 @@ exports.handler = async (event, context) => {
           const qs = new URLSearchParams({ type: "riven", weapon_url_name: weapon, buyout_policy: "direct", sort_by: "price_asc" });
           const auctions = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
           await col.updateOne({ weapon, day }, { $set: { weapon, day, ...summarize(auctions) } }, { upsert: true });
+          await history.record(weapon, auctions);
+          await state.updateOne({ _id: weapon }, { $set: { slot } });
         } catch (e) {
           lastError = `${weapon}: ${e.message}`;
           pending.push(weapon);   // vuelve a la cola para la próxima ronda
@@ -83,7 +88,7 @@ exports.handler = async (event, context) => {
     if (pending.length && deadline() > 0) await sleep(Math.min(5000 * round, 30000, Math.max(0, deadline())));
   }
 
-  const result = { day, total: weapons.length, skipped: done.size, saved: start - pending.length, pending: pending.length, chain, lastError };
+  const result = { slot, total: weapons.length, skipped: done.size, saved: start - pending.length, pending: pending.length, chain, lastError };
   if (pending.length) {
     if (chain < MAX_CHAIN) { await relaunch(chain); result.relaunched = true; }
     else console.error("Se agotaron los relevos con armas pendientes", pending.length);

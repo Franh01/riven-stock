@@ -39,11 +39,11 @@ functions:
     timeout: 900
     events:
       - schedule:
-          # 06:00 UTC todos los días (03:00 en Argentina)
-          rate: cron(0 6 * * ? *)
+          # Cada 6 horas (00, 06, 12 y 18 UTC): cubre todas las zonas horarias de juego
+          rate: cron(0 0,6,12,18 * * ? *)
       - schedule:
           # Segunda pasada: completa las armas que fallaron por límite de la API (el colector retoma lo que falta)
-          rate: cron(30 6 * * ? *)
+          rate: cron(30 0,6,12,18 * * ? *)
   api:
     name: riven-stock-api
     handler: src/api.handler
