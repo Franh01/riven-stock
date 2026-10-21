@@ -2417,6 +2417,7 @@ document.addEventListener('mousedown', (e) => {
       editing = d; demoReference(); editing = null;
     }
     demoOpen = mode;
+    $("#f-weapon").blur(); document.querySelectorAll("#riven-dialog .combo-list").forEach((l) => (l.hidden = true));   // openRiven enfoca el arma y abre su lista; el recorrido no la quiere
     $("#publish-go").disabled = true; $("#est-go").disabled = true;
   }
   let tour = null;
