@@ -580,9 +580,9 @@
   tr.busy td:not(.actions) { opacity: .7; }
   tr.busy .editable { cursor: default; }
   tr.busy .editable:hover { background: none; }
-.est-help { width:24px; height:24px; padding:0; border-radius:50%; align-self:center; font-size:13px; line-height:1; background:transparent; border:1px solid var(--muted,#8a8f98); color:var(--muted,#8a8f98); cursor:pointer; }
+.est-help { width:22px; height:22px; padding:0; border-radius:50%; margin-left:8px; flex:none; font-size:13px; line-height:1; background:transparent; border:1px solid var(--muted,#8a8f98); color:var(--muted,#8a8f98); cursor:pointer; }
 .est-help:hover { color:#fff; border-color:#fff; }
-.est-info { flex-basis:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 12px; font-size:12.5px; line-height:1.45; }
+.est-info { margin:0 0 12px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 12px; font-size:12.5px; line-height:1.45; }
 .est-info p { margin:4px 0; }
 </style>
 </head>
@@ -741,7 +741,8 @@
     </section>
 
     <section id="est-section" hidden>
-      <div class="section-title"><span class="step">2</span><h2 data-i18n="rd.estTitle">Estimado según comparables</h2></div>
+      <div class="section-title"><span class="step">2</span><h2 data-i18n="rd.estTitle">Estimado según comparables</h2><button type="button" class="est-help" id="est-help" data-i18n-title="rd.helpBtn" title="¿Qué significan estos precios?">?</button></div>
+      <div class="est-info" id="est-info" hidden></div>
       <div class="summary" id="est-summary"></div>
       <div id="est-results"></div>
     </section>
@@ -2247,9 +2248,9 @@ document.addEventListener('mousedown', (e) => {
   }
   function renderEstimate(es) {
     {
-      $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
-        `<button class="chip" data-price="${es.low}" title="${tr("rd.useTip")}"><b>${es.low}p</b><span>${tr("rd.fast")} · ${tr("rd.use")}</span></button><button class="chip" data-price="${es.high}" title="${tr("rd.useTip")}"><b>${es.high}p</b><span>${tr("rd.high")} · ${tr("rd.use")}</span></button><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>` +
-        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + sellSpeedHtml(es) + `<button type="button" class="est-help" aria-label="${tr("rd.helpBtn")}" title="${tr("rd.helpBtn")}">?</button><div class="est-info" hidden><p><b>${tr("rd.fast")}</b> — ${tr("rd.hFast")}</p><p><b>${tr("rd.estimated")}</b> — ${tr("rd.hMid")}</p><p><b>${tr("rd.high")}</b> — ${tr("rd.hHigh")}</p><p class="muted">${tr("rd.hNote")}</p></div>`;
+      $("#est-summary").innerHTML = `<button class="chip" data-price="${es.low}" title="${tr("rd.useTip")}"><b>${es.low}p</b><span>${tr("rd.fast")} · ${tr("rd.use")}</span></button><button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
+        `<button class="chip" data-price="${es.high}" title="${tr("rd.useTip")}"><b>${es.high}p</b><span>${tr("rd.high")} · ${tr("rd.use")}</span></button><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>` +
+        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + sellSpeedHtml(es);
       $("#est-results").innerHTML = `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
         <td class="price">${x.price}p</td>
         <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
@@ -2264,9 +2265,13 @@ document.addEventListener('mousedown', (e) => {
       comps: [[80, 14, .92, "caiwan7"], [90, 6, .88, "syalsim"], [95, 2, .85, "Kibbleray"], [100, 0, .8, "Souza"], [110, 41, .76, "Biker27893"]]
         .map(([price, rolls, sim, seller]) => ({ price, rolls, sim, seller, stats: st })) });
   }
+  $("#est-help").addEventListener("click", () => {
+    const i = $("#est-info");
+    i.innerHTML = `<p><b>${tr("rd.fast")}</b> — ${tr("rd.hFast")}</p><p><b>${tr("rd.estimated")}</b> — ${tr("rd.hMid")}</p><p><b>${tr("rd.high")}</b> — ${tr("rd.hHigh")}</p><p class="muted">${tr("rd.hNote")}</p>`;
+    i.hidden = !i.hidden;
+  });
   $("#est-go").addEventListener("click", runEstimate);
   $("#est-summary").addEventListener("click", (e) => {
-    if (e.target.closest(".est-help")) { const i = $("#est-summary .est-info"); i.hidden = !i.hidden; return; }
     const chip = e.target.closest("[data-price]");
     if (!chip) return;
     usePrice(chip.dataset.price); $("#confirm").hidden = true;
