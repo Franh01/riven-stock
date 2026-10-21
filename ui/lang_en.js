@@ -481,4 +481,5 @@ window.LANGS.en = {
   "conf.media": "medium",
   "conf.baja": "low",
   "combo.none": "No results",
+  "rd.saveChanges": "Save changes",
 };

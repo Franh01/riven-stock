@@ -625,7 +625,7 @@
 <dialog id="riven-dialog">
   <div class="dlg-head">
     <h3 id="rd-title">Nuevo riven</h3>
-    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender" data-i18n-title="rd.autoTip"><span data-i18n="common.autoDrop">Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label>${tr("th.hours")}<input type="number" id="rd-ov-h" min="1" step="1"></label><label>${tr("sum.ovDrop")}<input type="number" id="rd-ov-a" min="1" step="1"></label><label>${tr("sum.ovFloor")}<input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar" data-i18n-title="common.close">×</button></span>
+    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender" data-i18n-title="rd.autoTip"><span data-i18n="common.autoDrop">Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label><span data-i18n="th.hours"></span><input type="number" id="rd-ov-h" min="1" step="1"></label><label><span data-i18n="sum.ovDrop"></span><input type="number" id="rd-ov-a" min="1" step="1"></label><label><span data-i18n="sum.ovFloor"></span><input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar" data-i18n-title="common.close">×</button></span>
   </div>
   <div class="dlg-body">
     <section>
@@ -1795,7 +1795,7 @@ document.addEventListener('mousedown', (e) => {
     editing = existing; if (!existing) editFromSum = null; $("#publish-cancel").hidden = !existing;
     $("#rd-title").innerHTML = existing ? `${tr("rd.edit")} · ${rivenLabel(existing)}${existing.id === "demo" ? ` <span class="muted" style="font-weight:400;font-size:12px">· ${tr("rd.demoNote")}</span>` : ""}` : tr("rd.new");
     $("#publish-title").textContent = tr(existing ? "rd.editContract" : "rd.publishDirect");
-    $("#publish-go").textContent = existing ? "Guardar cambios" : "Publicar";
+    $("#publish-go").textContent = existing ? tr("rd.saveChanges") : tr("rd.publish");
     $("#origin-row").hidden = !!existing;
     // Todo es editable: cambiar los datos del riven republica el contrato por detrás (ver republish).
     document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value, .pol-btn")
