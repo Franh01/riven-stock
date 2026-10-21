@@ -295,6 +295,8 @@
   .alert-item.unread { background: #a05cf61a; }
   .alert-item .when { color: var(--muted); font-size: 12px; }
   .riven-name.link, .riven-weapon.link { cursor: pointer; }
+  .sum-title .link { cursor: pointer; }
+  .sum-title .link:hover { text-decoration: underline; }
   .riven-weapon.link:hover { text-decoration: underline; }
   .sum-orders td, .sum-orders th { padding: 8px 8px; text-align: left; }
 
@@ -1902,7 +1904,11 @@ document.addEventListener('mousedown', (e) => {
     const r = await api().riven_summary(aid);
     if (r.error) { $("#sum-body").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
     const a = r.auction, h = r.hours, o = r.orders;
-    $("#sum-title").textContent = `${weaponName(a.weapon)} ${a.name}`;
+    const own = mine.find((x) => x.id === aid);
+    $("#sum-title").innerHTML = own
+      ? `<span class="link" id="sum-edit" title="Editar este contrato">${esc(weaponName(a.weapon))} ${esc(a.name)} <small class="muted">✎ editar</small></span>`
+      : esc(`${weaponName(a.weapon)} ${a.name}`);
+    $("#sum-edit")?.addEventListener("click", () => { $("#sum-dialog").close(); openRiven({ existing: own }); });
     const SRC = { auto: "Automática", manual: "Manual", seen: "Detectado", revert: "Revertida" };
     const hist = r.history.slice().reverse().map((x) => `<div><span class="muted">${esc(when(x.at))}</span><b>${x.price}p</b><span class="src ${esc(x.source)}">${esc(SRC[x.source] || x.source)}</span></div>`).join("") || `<span class="muted">Sin historial.</span>`;
     const delta = (p) => p === a.price ? `<small class="muted"> igual</small>` : p < a.price ? `<small class="below">${a.price - p}p menos</small>` : `<small class="above">+${p - a.price}p</small>`;
@@ -1918,6 +1924,7 @@ document.addEventListener('mousedown', (e) => {
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b class="accent" style="font-size:30px;line-height:1">${es.price}p</b>
             <span class="muted" style="white-space:nowrap">rango ${es.low}–${es.high}p</span></div>
           <div style="margin-top:8px;font-size:13px">${verdict}</div>
+          ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">Estimado incompleto: warframe.market limitó los pedidos y faltaron comparables. Cerrá y reabrí en un minuto.</div>` : ""}
           <small class="muted" style="display:block;margin-top:4px">${es.n} comparables · confianza ${esc(es.confidence)} · ver</small></div>`
       : `<div class="sum-card"><h4>Precio estimado</h4><small class="muted">Sin comparables suficientes.</small></div>`;
     const comps = es ? `<table class="sum-orders"><thead><tr><th>Parecido</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${

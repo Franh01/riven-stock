@@ -78,7 +78,7 @@ class WFMClient:
             self._throttle()
             res = self.session.request(method, BASE_URL + path, headers=headers, timeout=20, **kwargs)
             if res.status_code == 429 and attempt < 2:
-                time.sleep(2 * (attempt + 1))
+                time.sleep(4 * (attempt + 1))
                 continue
             break
         if res.status_code in (401, 403) and auth:

@@ -273,17 +273,20 @@ class Api:
         combos = [positives] if len(positives) >= 2 else []
         if len(positives) == 3:
             combos += [[x, y] for i, x in enumerate(positives) for y in positives[i + 1:]]
+        failed = False
         for c in combos:
             try:
                 for o in self._cache.targeted(weapon, c):
                     pool[o["id"]] = o
             except (WFMError, requests.RequestException):
-                pass
+                failed = True   # sin esas consultas el estimado sale bajo: se avisa en vez de callarlo
         try:
             rtype = self._rtype(weapon)
         except (WFMError, requests.RequestException):
             rtype = None
         est = estimate(view, list(pool.values()), exclude_id=auction_id, rtype=rtype)
+        if est and failed:
+            est["partial"] = True
         out = {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
         if foreign:
             out["market"] = {"seller": a["owner"]["ingame_name"], "status": a["owner"].get("status"),
