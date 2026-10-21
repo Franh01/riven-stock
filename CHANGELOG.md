@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.2] - 2026-10-21
+
 #### Español
 - Arreglo: en algunas instalaciones la app no cargaba (pantalla en blanco) por un error en el lector de las notas de versión.
 
