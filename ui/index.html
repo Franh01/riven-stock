@@ -2349,6 +2349,54 @@ document.addEventListener('mousedown', (e) => {
     } catch (e) {} finally { qBusy = false; }
   }, 400);
 
+  // ---- Tutoriales guiados ----
+  const TOURS = {
+    inicio: { title: "Recorrido inicial", steps: [
+      { el: "#status-pill", t: "Tu estado", x: "Acá ves y cambiás tu estado en warframe.market. Mientras estés online se cuentan las horas de cada riven." },
+      { el: "#bell", t: "Alertas", x: "Te avisa cuando la baja automática le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
+      { el: "#gear", t: "Configuración", x: "Los valores globales de la baja automática: horas sin vender, cuánto baja y el piso mínimo." },
+      { el: "#views", t: "Mis ventas y Mercado", x: "Mis ventas es tu stock; Mercado sirve para mirar lo que se vende de cada arma." },
+      { el: "#mine", t: "Tus rivens", x: "Tocá el nombre de uno para ver su resumen: precio estimado, comparables, tendencia del arma e historial. Desde el resumen lo editás." },
+      { el: "#fab", t: "Nuevo riven", x: "Para consultar el precio de referencia y publicar un contrato nuevo." },
+      { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
+    ] },
+  };
+  let tour = null;
+  const tourState = () => settings.tutorials || { done: {}, off: false };
+  const saveTour = (st) => { settings.tutorials = st; api().set_setting("tutorials", st); };
+  function endTour(completed) {
+    if (!tour) return;
+    const st = tourState(), never = $("#tour-never")?.checked;
+    if (completed) st.done[tour.id] = true;
+    if (never) st.off = true;
+    saveTour(st);
+    $("#tour-hole").remove(); $("#tour-tip").remove(); tour = null;
+  }
+  function tourStep(i) {
+    const T = TOURS[tour.id], st = T.steps[i];
+    const el = document.querySelector(st.el);
+    if (!el || !el.offsetParent) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
+    tour.i = i;
+    el.scrollIntoView({ block: "center" });
+    const r = el.getBoundingClientRect(), hole = $("#tour-hole"), tip = $("#tour-tip");
+    Object.assign(hole.style, { top: r.top - 6 + "px", left: r.left - 6 + "px", width: r.width + 12 + "px", height: r.height + 12 + "px" });
+    const last = i === T.steps.length - 1;
+    tip.innerHTML = `<h5>${st.t}</h5><p>${st.x}</p><label><input type="checkbox" id="tour-never"> No volver a mostrar tutoriales</label>
+      <div class="tt-row"><span class="tt-n">${i + 1} de ${T.steps.length}</span><button class="ghost" id="tt-skip">Saltar</button>${i ? `<button class="ghost" id="tt-prev">Atrás</button>` : ""}<button id="tt-next">${last ? "Listo" : "Siguiente"}</button></div>`;
+    const th = tip.offsetHeight, below = r.bottom + 14 + th < innerHeight;
+    tip.style.top = Math.max(8, below ? r.bottom + 14 : r.top - th - 14) + "px";
+    tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 160), innerWidth - 336) + "px";
+    $("#tt-skip").onclick = () => endTour(false);
+    $("#tt-prev")?.addEventListener("click", () => tourStep(i - 1));
+    $("#tt-next").onclick = () => (last ? endTour(true) : tourStep(i + 1));
+  }
+  function startTour(id) {
+    if (tour) return;
+    $("#help-dialog").close();
+    document.body.insertAdjacentHTML("beforeend", `<div id="tour-hole"></div><div id="tour-tip"></div>`);
+    tour = { id, i: 0 }; tourStep(0);
+  }
+  window.addEventListener("keydown", (e) => { if (tour && e.key === "Escape") { e.preventDefault(); endTour(false); } });
   window.addEventListener("pywebviewready", async () => {
     api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; const sv = $("#sp-ver"); if (sv) sv.textContent = "v" + v; });
     try {
@@ -2367,6 +2415,7 @@ document.addEventListener('mousedown', (e) => {
     if (settings.mine_sort) sort = settings.mine_sort;
     await loadMine();
     hideSplash();
+    { const ts = tourState(); if (!ts.off && !ts.done.inicio) setTimeout(() => startTour("inicio"), 2000); }
     loadAlerts();
     setTimeout(() => checkUpdate(false), 1500);
     setInterval(() => checkUpdate(false), 3600 * 1000);
@@ -2385,6 +2434,17 @@ document.addEventListener('mousedown', (e) => {
   #splash h2 { margin: 10px 0 0; font-size: 28px; letter-spacing: .5px; }
   #splash p { margin: 0; color: #b9a6dd; font-size: 14px; }
   @keyframes sp-in { from { opacity: 0; transform: translateY(8px); } }
+  #tour-hole { position: fixed; z-index: 10001; border-radius: 10px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(8,3,18,.72), 0 0 0 2px var(--accent-2);
+    transition: all .25s; }
+  #tour-tip { position: fixed; z-index: 10002; width: 320px; max-width: 90vw; background: #1d0f3a; border: 1px solid var(--accent); border-radius: 12px;
+    padding: 14px 16px; color: #fff; box-shadow: 0 10px 30px #0008; transition: top .25s, left .25s; }
+  #tour-tip h5 { margin: 0 0 6px; font-size: 15px; color: var(--accent-2); }
+  #tour-tip p { margin: 0 0 12px; font-size: 13.5px; line-height: 1.45; }
+  #tour-tip .tt-row { display: flex; align-items: center; gap: 8px; }
+  #tour-tip .tt-n { margin-right: auto; font-size: 12px; color: #9a86c4; }
+  #tour-tip label { display: flex; gap: 6px; align-items: center; font-size: 12px; color: #b9a6dd; margin-bottom: 10px; cursor: pointer; }
+  #tour-tip button { padding: 6px 12px; }
+  .help .tour-btn { margin: 2px 0 10px; }
   .help h4 { margin: 18px 0 4px; color: var(--accent-2); font-size: 15px; }
   .help h4:first-child { margin-top: 0; }
   .help p { margin: 0 0 6px; line-height: 1.5; font-size: 14px; }
@@ -2406,7 +2466,9 @@ document.addEventListener('mousedown', (e) => {
     ["Límite de pedidos", "warframe.market permite pocos pedidos por segundo. La app los pone en fila y te avisa cuánto falta; si ves el aviso de espera, solo hay que esperar un momento."],
   ];
   document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("help-body").innerHTML = HELP.map(([t, x]) => `<h4>${t}</h4><p>${x}</p>`).join("");
+    document.getElementById("help-body").innerHTML = `<h4>Recorridos guiados</h4><p>Te muestran la app paso a paso.</p><button class="ghost tour-btn" data-tour="inicio">Ver el recorrido inicial</button>`
+      + HELP.map(([t, x]) => `<h4>${t}</h4><p>${x}</p>`).join("");
+    document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
     document.getElementById("help-btn").addEventListener("click", () => document.getElementById("help-dialog").showModal());
     document.getElementById("help-x").addEventListener("click", () => document.getElementById("help-dialog").close());
     document.getElementById("help-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });

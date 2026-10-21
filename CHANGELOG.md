@@ -3,6 +3,7 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado semántico.
 
 ## [Sin publicar]
+- Recorrido guiado inicial (se muestra solo la primera vez, se puede saltar o desactivar, y se repite desde Ayuda).
 n- Mercado: foto diaria por arma (cantidad, mínimo y mediana) de tus rivens en stock, tomada en idle por la cola central. Base para las tendencias.
 n- Resumen de un riven: tarjeta de tendencia del arma (mediana y mínimo de los últimos 90 días, con variación).
 n- Tendencia: estrella para seguir un arma aunque no la tengas en stock; se le saca una foto diaria igual.
