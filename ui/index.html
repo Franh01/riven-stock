@@ -968,10 +968,12 @@ document.addEventListener('mousedown', (e) => {
     }
   }
 
+  let demoRowOn = false;   // fila de ejemplo del tutorial, solo en pantalla
   function sortedMine() {
-    if (!sort.key) return mine;
+    const base = demoRowOn ? mine.filter((a) => a.id !== "demo") : mine;
     const val = (a) => (sort.key === "price" ? a.price : new Date(a.updated || 0).getTime());
-    return [...mine].sort((a, b) => (val(a) - val(b)) * sort.dir);
+    const rows = sort.key ? [...base].sort((a, b) => (val(a) - val(b)) * sort.dir) : base;
+    return demoRowOn ? [{ ...demoRiven(), updated: new Date().toISOString(), stats: demoRiven().stats }, ...rows] : rows;
   }
 
   function sortHeader(key, label) {
@@ -1031,7 +1033,7 @@ document.addEventListener('mousedown', (e) => {
     const rows = sortedMine().filter(matchesQuery);
     $("#mine-title").textContent = `Mis ventas directas · ${visibles} visibles · ${mine.length - visibles} ocultas` +
       (queryTokens.length ? ` · ${rows.length} coinciden` : "");
-    if (!mine.length) { $("#mine").innerHTML = `<div class="state">No tenés ventas directas publicadas.</div>`; return; }
+    if (!mine.length && !demoRowOn) { $("#mine").innerHTML = `<div class="state">No tenés ventas directas publicadas.</div>`; return; }
     if (!rows.length) { $("#mine").innerHTML = `<div class="state">Ningún contrato coincide con “${esc($("#search").value.trim())}”.</div>`; return; }
     $("#mine").innerHTML = `<table>
       <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Costo</th>${sortHeader("price", "Precio")}<th title="Horas online efectivas desde la publicación o la última baja">Horas</th>${sortHeader("updated", "Actualizado")}<th>Estado</th><th></th></tr></thead>
@@ -1172,7 +1174,7 @@ document.addEventListener('mousedown', (e) => {
     if (act === "sold") askClose(a, true);
     if (act === "close") askClose(a, false);
   });
-  document.addEventListener("mousedown", (e) => { if (!menu.hidden && !menu.contains(e.target) && !e.target.closest("[data-act=menu]")) closeMenu(); });
+  document.addEventListener("mousedown", (e) => { if (!demoOpen && !menu.hidden && !menu.contains(e.target) && !e.target.closest("[data-act=menu]")) closeMenu(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) closeMenu(); });
   $("main").addEventListener("scroll", closeMenu);
 
@@ -2376,6 +2378,8 @@ document.addEventListener('mousedown', (e) => {
       { el: "#name-chips", demo: "new", t: "Nombre", x: "El nombre sale de los stats; elegís entre las combinaciones posibles." },
       { el: "#ref-section", demo: "new", t: "Precio de referencia", x: "Compara con las más baratas en venta del arma (acá son datos de ejemplo). Tocá Mínimo, Mediana o Promedio para usarlo como precio y pasamos al siguiente paso." },
       { el: "#publish-section", demo: "new", t: "Publicar", x: "Precio, costo (solo se guarda en la app), visibilidad y nota. Publicar te pide confirmación. En el recorrido está desactivado." },
+      { el: '#mine tr[data-id="demo"] button.more', demo: "list", click: true, t: "Menú de acciones", x: "Así aparece en tu lista el riven que acabamos de crear (de ejemplo). Cada fila tiene un menú de tres puntos a la derecha: tocalo." },
+      { el: '#row-menu [data-menu="edit"]', demo: "menu", click: true, t: "Editar", x: "Desde acá editás, ocultás o mostrás, y marcás como vendido o cerrado. Tocá Editar para ver el editor." },
       { el: ".grid-riven", demo: "edit", t: "Editar uno publicado", x: "Así queda el mismo riven ya publicado. Arma, stats, MR, rango y rolls quedan fijos; solo podés cambiar la polaridad." },
       { el: "#rd-auto", demo: "edit", t: "Baja automática", x: "El switch activa la [[Baja automática]] solo para este riven; los campos de al lado pisan los valores globales." },
       { el: "#publish-section", demo: "edit", t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
@@ -2398,12 +2402,22 @@ document.addEventListener('mousedown', (e) => {
   }
   let demoOpen = "";
   function closeDemo() {
-    if (!demoOpen) return; demoOpen = "";
+    if (!demoOpen) return;
+    const wasList = demoOpen === "list" || demoOpen === "menu"; demoOpen = "";
+    if (wasList) { demoRowOn = false; closeMenu(); renderMine(); return; }
     $("#publish-go").disabled = false; $("#est-go").disabled = false; $("#riven-dialog").close();
   }
   function openDemo(mode = "edit") {   // "new": el formulario de alta con datos de ejemplo; "edit": el editor de un riven ya publicado
     if (demoOpen === mode) return; $("#sum-dialog").open && $("#sum-dialog").close();
     if ($("#riven-dialog").open) $("#riven-dialog").close();
+    if (mode === "list" || mode === "menu") {   // el riven de ejemplo en la lista; "menu" ademas deja abierto su menu de tres puntos
+      $("#publish-go").disabled = false; $("#est-go").disabled = false;
+      demoRowOn = true; renderMine();
+      const btn = document.querySelector('#mine tr[data-id="demo"] button.more');
+      if (mode === "menu" && btn) openMenu(btn, sortedMine()[0]); else closeMenu();
+      demoOpen = mode; return;
+    }
+    if (demoOpen === "list" || demoOpen === "menu") { demoRowOn = false; closeMenu(); renderMine(); }
     if (mode === "edit") openRiven({ existing: demoRiven() });
     else {
       const d = demoRiven();
