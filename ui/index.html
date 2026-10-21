@@ -2209,7 +2209,7 @@ document.addEventListener('mousedown', (e) => {
         toast(tr("rd.estNeed"), true);
         return;
       }
-      const r = await api().estimate_draft(f.item), es = r.estimate;
+      const r = await api().estimate_draft(f.item, editing ? editing.id : null), es = r.estimate;
       if (r.error) { $("#est-results").innerHTML = `<div class="state error">${esc(r.error)}</div>`; return; }
       if (!es) { $("#est-results").innerHTML = `<div class="state">${tr("rd.estNone")}</div>`; return; }
       renderEstimate(es);

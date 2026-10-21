@@ -655,7 +655,7 @@ class Api:
             est["partial"] = True
         return view, orders, est
 
-    def estimate_draft(self, item):
+    def estimate_draft(self, item, exclude_id=None):
         """Estimado de un riven que todavía no se publicó, con lo que hay en el formulario."""
         try:
             a = {"id": "draft", "buyout_price": 0, "item": dict(item)}
@@ -664,7 +664,7 @@ class Api:
             a["item"]["re_rolls"] = int(item.get("re_rolls") or 0)
             a["item"]["mod_rank"] = int(item.get("mod_rank") or 0)
             a["item"]["mastery_level"] = int(item.get("mastery_level") or 8)
-            view, orders, est = self._estimate_for(a, "draft")
+            view, orders, est = self._estimate_for(a, exclude_id or "draft")
             return {"auction": view, "estimate": est}
         except (WFMError, requests.RequestException, KeyError, ValueError) as e:
             return {"error": str(e)}
