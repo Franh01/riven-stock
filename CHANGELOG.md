@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Al editar un riven, el estimado ya no cuenta tu propia publicación como comparable.
+- La confirmación de edición muestra los stats antes y después, con el aviso de republicación arriba en naranja y botones simétricos.
+- Los rechazos de warframe.market (ej. precio fuera de rango) se muestran en español indicando qué campo falló.
+
+#### English
+- When editing a riven, the estimate no longer counts your own listing as a comparable.
+- The edit confirmation shows stats before and after, with the republish warning on top in orange and symmetric buttons.
+- warframe.market rejections (e.g. out-of-range price) are shown clearly, naming the failing field.
+
 ## [0.8.3] - 2026-10-21
 
 #### Español
