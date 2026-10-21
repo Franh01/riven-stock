@@ -2370,7 +2370,7 @@ document.addEventListener('mousedown', (e) => {
     const d = $("#help-dialog"); if (!d.open) d.showModal();
     const h = [...d.querySelectorAll("h4")].find((x) => x.textContent === title);
     d.querySelectorAll(".hflash").forEach((x) => x.classList.remove("hflash"));
-    if (h) { h.classList.add("hflash"); h.nextElementSibling?.classList.add("hflash"); h.scrollIntoView({ block: "start", behavior: "smooth" }); }
+    if (h) { h.parentElement.classList.add("hflash"); h.scrollIntoView({ block: "start", behavior: "smooth" }); }
   }
   function demoRiven() {
     const W = Object.values(weaponBySlug), S = Object.values(statBySlug);
@@ -2486,6 +2486,8 @@ document.addEventListener('mousedown', (e) => {
   .help h4:first-child { margin-top: 0; }
   .help p { margin: 0 0 6px; line-height: 1.5; font-size: 14px; }
   #tour-tip a.hlink { color: var(--accent-2); text-decoration: underline dotted; cursor: pointer; }
+  .help .hsec { padding: 2px 10px 6px; margin: 0 -10px; }
+  .help .hsec h4 { margin-top: 10px; }
   .help .hflash { background: #7c3aed33; border-radius: 6px; box-shadow: 0 0 0 6px #7c3aed33; animation: hf 2.4s ease-out; }
   @keyframes hf { 0%,60% { background: #7c3aed66; } 100% { background: #7c3aed33; } }
   #help-dialog { width: min(640px, 92vw); }
@@ -2507,7 +2509,7 @@ document.addEventListener('mousedown', (e) => {
   ];
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("help-body").innerHTML = `<h4>Recorridos guiados</h4><p>Te muestran la app paso a paso.</p><button class="ghost tour-btn" data-tour="inicio">Ver el recorrido inicial</button>`
-      + HELP.map(([t, x]) => `<h4>${t}</h4><p>${x}</p>`).join("");
+      + HELP.map(([t, x]) => `<div class="hsec"><h4>${t}</h4><p>${x}</p></div>`).join("");
     document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
     document.getElementById("help-btn").addEventListener("click", () => document.getElementById("help-dialog").showModal());
     document.getElementById("help-x").addEventListener("click", () => document.getElementById("help-dialog").close());
