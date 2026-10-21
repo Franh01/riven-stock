@@ -2430,7 +2430,7 @@ document.addEventListener('mousedown', (e) => {
     document.body.insertAdjacentHTML("beforeend", `<div id="tour-hole"></div><div id="tour-tip"></div>`);
     tour = { id, i: 0 }; tourStep(0);
   }
-  window.addEventListener("resize", () => tour?.place?.());
+  let rzT; window.addEventListener("resize", () => { clearTimeout(rzT); rzT = setTimeout(() => tour && tourStep(tour.i), 120); });
   window.addEventListener("keydown", (e) => { if (tour && e.key === "Escape") { e.preventDefault(); endTour(false); } });
   window.addEventListener("pywebviewready", async () => {
     api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; const sv = $("#sp-ver"); if (sv) sv.textContent = "v" + v; });
