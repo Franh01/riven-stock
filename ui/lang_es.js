@@ -277,6 +277,8 @@ window.LANGS.es = {
   "pub.fail": "No se pudo publicar: {e}",
   "pub.done": "Publicado: {n} · {p}p",
   "st.offline": "Offline",
+  "mkf.status": "Vendedor", "mkf.on": "En juego u online", "mkf.ingame": "Solo en juego", "mkf.all": "Todos",
+  "mkf.maxPrice": "Precio máx.", "mkf.maxRolls": "Rolls máx.", "mkf.neg": "Negativo", "mkf.any": "Cualquiera", "mkf.none": "Sin negativo", "mkf.has": "Con negativo",
   "mkt.none": "No hay ventas directas con esos filtros.",
   "mkt.info": "{n} de {t} publicaciones, de la más barata a la más cara. Tocá una para ver el estimado.",
   "mkt.seller": "Vendedor",

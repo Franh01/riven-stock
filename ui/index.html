@@ -650,6 +650,12 @@
       <button id="mk-go" data-i18n="mk.go">Buscar</button>
     </div>
     <div class="hint" id="mk-info" style="margin:10px 0 4px" data-i18n="mk.hint">Elegí un arma y buscá. Tocá un riven para ver su precio estimado y si está barato.</div>
+    <div class="mk-filters" id="mk-post" style="display:none;margin:0 0 8px">
+      <label><span data-i18n="mkf.status">Vendedor</span> <select id="mkf-status"><option value="on" data-i18n="mkf.on">En juego u online</option><option value="ingame" data-i18n="mkf.ingame">Solo en juego</option><option value="all" data-i18n="mkf.all">Todos</option></select></label>
+      <label><span data-i18n="mkf.maxPrice">Precio máx.</span> <input id="mkf-price" type="number" min="0" placeholder="—"></label>
+      <label><span data-i18n="mkf.maxRolls">Rolls máx.</span> <input id="mkf-rolls" type="number" min="0" placeholder="—"></label>
+      <label><span data-i18n="mkf.neg">Negativo</span> <select id="mkf-neg"><option value="any" data-i18n="mkf.any">Cualquiera</option><option value="none" data-i18n="mkf.none">Sin negativo</option><option value="has" data-i18n="mkf.has">Con negativo</option></select></label>
+    </div>
     <div id="mk-results"></div>
   </section>
 
@@ -2634,6 +2640,20 @@ document.addEventListener('mousedown', (e) => {
     });
   }
   const stTxt = (s) => tr(s === "ingame" || s === "online" ? "st." + s : "st.offline");
+  let mkRows = [];
+  function renderMarket() {
+    const st = $("#mkf-status").value, mp = +$("#mkf-price").value, mr = $("#mkf-rolls").value, ng = $("#mkf-neg").value;
+    const rows = mkRows.filter((a) => (st === "all" || (st === "ingame" ? a.status === "ingame" : a.status === "ingame" || a.status === "online"))
+      && (!mp || a.price <= mp) && (mr === "" || (a.rolls ?? 0) <= +mr)
+      && (ng === "any" || (ng === "has") === a.stats.some((x) => !x.positive)));
+    $("#mk-info").textContent = tr("mkt.info", { n: rows.length, t: mkRows.length });
+    $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>${tr("mkt.seller")}</th><th>${tr("th.price")}</th></tr></thead><tbody>${
+      rows.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
+        <td><div class="stats">${a.stats.map((s) => formatStat(s)).join("")}</div></td><td>${a.rolls ?? "—"}</td>
+        <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${stTxt(a.status)}</span></small></td>
+        <td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>`;
+  }
+  ["#mkf-status", "#mkf-price", "#mkf-rolls", "#mkf-neg"].forEach((s) => $(s).addEventListener("input", renderMarket));
   async function runMarket() {
     if (!mkWeapon.value) { toast(tr("common.pickWeapon"), true); $("#mk-weapon").focus(); return; }
     $("#mk-go").disabled = true; $("#mk-go").textContent = tr("common.searching");
@@ -2641,13 +2661,8 @@ document.addEventListener('mousedown', (e) => {
     try {
       const r = await api().market_search(mkWeapon.value, mkStats.map((c) => c.value).filter(Boolean));
       if (r.error) { $("#mk-results").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
-      if (!r.results.length) { $("#mk-results").innerHTML = `<div class="state">${tr("mkt.none")}</div>`; return; }
-      $("#mk-info").textContent = tr("mkt.info", { n: r.results.length, t: r.total });
-      $("#mk-results").innerHTML = `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>${tr("mkt.seller")}</th><th>${tr("th.price")}</th></tr></thead><tbody>${
-        r.results.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
-          <td><div class="stats">${a.stats.map((st) => formatStat(st)).join("")}</div></td><td>${a.rolls ?? "—"}</td>
-          <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${stTxt(a.status)}</span></small></td>
-          <td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>`;
+      if (!r.results.length) { $("#mk-post").style.display = "none"; $("#mk-results").innerHTML = `<div class="state">${tr("mkt.none")}</div>`; return; }
+      mkRows = r.results; $("#mk-post").style.display = ""; renderMarket();
     } catch (e) {
       $("#mk-results").innerHTML = `<div class="state">${esc(e.message || String(e))}</div>`;
     } finally {
