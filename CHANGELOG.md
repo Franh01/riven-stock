@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.5] - 2026-10-21
+
 #### Español
 - El precio máximo al publicar o editar es 900000p: el campo lo limita y avisa.
 - El error de datos inválidos de warframe.market ahora se explica en español.
