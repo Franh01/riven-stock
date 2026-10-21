@@ -526,6 +526,12 @@
   .rp-half.b { justify-content: flex-start; }
   .rp-labels { display: flex; justify-content: flex-start; gap: 4px; color: var(--muted); font-size: .7rem; }
   .rp-labels span { flex: 1; min-width: 6px; max-width: 40px; text-align: center; overflow: hidden; white-space: nowrap; }
+  .rp-heat { display: flex; flex-direction: column; gap: 3px; margin: 6px 0; }
+  .rp-hrow { display: grid; grid-template-columns: 38px repeat(24, 1fr); gap: 3px; align-items: center; font-size: .72rem; color: var(--muted); }
+  .rp-hrow b { height: 18px; border-radius: 3px; background: var(--card2, rgba(255,255,255,.05)); }
+  .rp-hrow i { font-style: normal; text-align: left; }
+  .rp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 800px) { .rp-two { grid-template-columns: 1fr; } }
   .rp-rank td.bar-cell { width: 34%; }
   .rp-rank .rbar { height: 8px; border-radius: 4px; background: var(--accent); min-width: 2px; }
   .mk-filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
@@ -1210,7 +1216,7 @@ document.addEventListener('mousedown', (e) => {
   // Cerrar (con o sin venta): la fila pasa a "Cerrados" ya, con "Cerrando…" hasta que confirma.
   async function runClose(a, soldPrice) {
     const index = mine.findIndex((x) => x.id === a.id);
-    const entry = { ...a, sold_price: soldPrice, closed_at: new Date().toISOString(), pending: true };
+    const entry = { ...a, sold_price: soldPrice, closed_at: new Date().toISOString(), hours_online: hours[a.id]?.hours ?? null, pending: true };
     mine = mine.filter((x) => x.id !== a.id);
     closed = [entry, ...closed];
     renderAll();
@@ -1499,7 +1505,7 @@ document.addEventListener('mousedown', (e) => {
       return true;
     }).map((c) => {
       const cost = costs[c.id]?.cost;
-      return { weapon: c.weapon, at: new Date(c.closed_at), sold: c.sold_price, cost, profit: cost === undefined ? null : c.sold_price - cost };
+      return { weapon: c.weapon, at: new Date(c.closed_at), sold: c.sold_price, hours: c.hours_online ?? null, cost, profit: cost === undefined ? null : c.sold_price - cost };
     });
   }
 
@@ -1525,6 +1531,48 @@ document.addEventListener('mousedown', (e) => {
     for (let k = keys[0]; k <= keys[keys.length - 1] && out.length < 400; k = step(k)) out.push({ k, v: m.get(k) || 0 });
     const fmt = span === "month" ? { month: "short", year: "2-digit" } : { day: "numeric", month: "short" };
     return out.map((b) => ({ ...b, label: new Date(b.k).toLocaleDateString(I18N.locale, fmt) }));
+  }
+
+  // Cuándo se vende (hora del día x día de la semana) y cuántas horas online tarda cada venta.
+  const PRICE_BANDS = [[0, 25], [26, 50], [51, 100], [101, 200], [201, Infinity]];
+  const median = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  const fmtH = (h) => h.toLocaleString(I18N.locale, { maximumFractionDigits: 1 }) + " h";
+
+  function reportTiming(sales) {
+    const grid = Array.from({ length: 7 }, () => new Array(24).fill(0));
+    for (const s of sales) grid[(s.at.getDay() + 6) % 7][s.at.getHours()]++;
+    const top = Math.max(1, ...grid.flat());
+    const dayNames = [...Array(7)].map((_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(I18N.locale, { weekday: "short" }));
+    const hourTot = grid[0].map((_, h) => grid.reduce((t, r) => t + r[h], 0));
+    const dayTot = grid.map((r) => r.reduce((t, n) => t + n, 0));
+    let bestH = 0, bestN = -1;
+    for (let h = 0; h < 24; h++) { const n = hourTot[h] + hourTot[(h + 1) % 24]; if (n > bestN) { bestN = n; bestH = h; } }
+    const bestD = dayTot.indexOf(Math.max(...dayTot));
+    const pad = (h) => String(h % 24).padStart(2, "0") + ":00";
+    const heat = `<h3 style="margin:16px 0 4px;font-size:.95rem">${tr("rp.when")}</h3>
+      <div class="rp-heat"><div class="rp-hrow rp-hhead"><span></span>${[...Array(24).keys()].map((h) => `<i>${h % 3 ? "" : h}</i>`).join("")}</div>
+      ${grid.map((r, d) => `<div class="rp-hrow"><span>${esc(dayNames[d])}</span>${r.map((n, h) => `<b title="${esc(dayNames[d])} ${pad(h)}: ${tr("rp.nSales", { n })}" style="${n ? `background:color-mix(in srgb,var(--accent) ${20 + (n / top) * 80}%,transparent)` : ""}"></b>`).join("")}</div>`).join("")}</div>
+      ${bestN > 0 && sales.length >= 5 ? `<div class="hint">${tr("rp.bestTime", { from: pad(bestH), to: pad(bestH + 2), day: dayNames[bestD] })}</div>` : `<div class="hint">${tr("rp.fewForTime")}</div>`}`;
+
+    const timed = sales.filter((s) => s.hours !== null);
+    if (!timed.length) return heat + `<div class="hint" style="margin-top:10px">${tr("rp.noHours")}</div>`;
+    const bandRows = PRICE_BANDS.map(([lo, hi]) => {
+      const g = timed.filter((s) => s.sold >= lo && s.sold <= hi);
+      return g.length ? `<tr><td>${hi === Infinity ? lo + "+" : lo === 0 ? "≤ " + hi : lo + "–" + hi} p</td><td>${g.length}</td><td>${fmtH(median(g.map((s) => s.hours)))}</td></tr>` : "";
+    }).join("");
+    const byW = new Map();
+    for (const s of timed) { const a = byW.get(s.weapon) || []; a.push(s.hours); byW.set(s.weapon, a); }
+    const wRows = [...byW].sort((a, b) => b[1].length - a[1].length).slice(0, 8)
+      .map(([w, a]) => `<tr><td>${esc(weaponName(w))}</td><td>${a.length}</td><td>${fmtH(median(a))}</td></tr>`).join("");
+    const med = median(timed.map((s) => s.hours));
+    const cur = Number(cfgVal("autodrop_hours")) || 0;
+    const sugg = timed.length >= 5
+      ? `<div class="hint" style="margin-top:8px">${tr("rp.suggest", { med: fmtH(med), h: Math.max(1, Math.round(med)), cur: cur ? fmtH(cur) : "—" })}</div>`
+      : `<div class="hint" style="margin-top:8px">${tr("rp.suggestFew", { n: timed.length })}</div>`;
+    const th = (a, b, c) => `<thead><tr><th>${a}</th><th>${b}</th><th>${c}</th></tr></thead>`;
+    return heat + `<h3 style="margin:16px 0 4px;font-size:.95rem">${tr("rp.timeToSell")}</h3>
+      <div class="rp-two"><table class="rp-rank">${th(tr("rp.byPrice"), tr("rp.sales"), tr("rp.medianH"))}<tbody>${bandRows}</tbody></table>
+      <table class="rp-rank">${th(tr("common.weapon"), tr("rp.sales"), tr("rp.medianH"))}<tbody>${wRows}</tbody></table></div>${sugg}`;
   }
 
   function renderReport() {
@@ -1580,7 +1628,7 @@ document.addEventListener('mousedown', (e) => {
         <td class="bar-cell">${r.known && r.profit > 0 ? `<div class="rbar" style="width:${(r.profit / rmax) * 100}%"></div>` : ""}</td></tr>`).join("")}
       </tbody></table>`;
 
-    $("#report").innerHTML = filters + kpis + chart + ranking;
+    $("#report").innerHTML = filters + kpis + chart + ranking + reportTiming(sales);
   }
   $("#report").addEventListener("change", (e) => {
     const f = e.target.dataset?.f; if (!f) return;

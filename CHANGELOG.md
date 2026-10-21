@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Reporte: mapa de calor de cuándo vendés (día de la semana y hora) con sugerencia de en qué franja conviene estar online, y tiempo hasta vender (mediana de horas online) por rango de precio y por arma, con sugerencia de tiempo para la baja automática. Las horas se registran desde esta versión.
+
 ## [0.6.0] - 2026-10-21
 
 - Instalador para Windows (Setup.exe): se puede usar sin tener Python. Se instala por usuario, sin permisos de administrador, y se actualiza solo desde la app.

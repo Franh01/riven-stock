@@ -240,7 +240,16 @@ def _m1_from_transmute(conn):
 
 # Migraciones en orden: la posición + 1 es la versión del esquema (PRAGMA user_version).
 # Solo se agregan al final, nunca se reordenan ni se editan las ya publicadas.
-MIGRATIONS = [_m1_from_transmute]
+def _m2_sale_hours(conn):
+    # Horas online efectivas que llevaba cada riven al venderse (la fila de riven_online_hours se borra al cerrar).
+    conn.execute("""CREATE TABLE IF NOT EXISTS sale_hours (
+        auction_id TEXT PRIMARY KEY,
+        hours      REAL NOT NULL,
+        at         TEXT NOT NULL
+    )""")
+
+
+MIGRATIONS = [_m1_from_transmute, _m2_sale_hours]
 
 
 def _migrate(conn, path=DB_PATH):
@@ -273,6 +282,16 @@ def log_event(conn, auction, action, sold_price=None, at=None):
         (auction["id"], action, sold_price, json.dumps(auction, ensure_ascii=False), at or now_iso()),
     )
     conn.commit()
+
+
+def log_sale_hours(conn, auction_id, hours, at=None):
+    conn.execute("INSERT OR REPLACE INTO sale_hours (auction_id, hours, at) VALUES (?, ?, ?)",
+                 (auction_id, float(hours), at or now_iso()))
+    conn.commit()
+
+
+def sale_hours(conn):
+    return {r["auction_id"]: r["hours"] for r in conn.execute("SELECT auction_id, hours FROM sale_hours")}
 
 
 def closed_auctions(conn):

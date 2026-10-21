@@ -710,9 +710,11 @@ class Api:
     def local(self):
         """Solo los datos locales (no llama a la API)."""
         with store.connect() as conn:
+            sh = store.sale_hours(conn)
             return {
                 "closed": [{**auction_view(c["auction"]), "sold_price": c["sold_price"],
-                            "closed_at": c["closed_at"]} for c in store.closed_auctions(conn)],
+                            "closed_at": c["closed_at"], "hours_online": sh.get(c["auction"]["id"])}
+                           for c in store.closed_auctions(conn)],
                 "costs": store.costs(conn),
                 "lots": store.lots(conn),
                 "invested": store.invested(conn),
@@ -937,6 +939,9 @@ class Api:
         with store.connect() as conn:
             store.log_event(conn, {**cur, "closed": True}, "close",
                             sold_price=int(sold_price) if sold_price else None, at=closed_at)
+            h = store.riven_hours(conn).get(auction_id)
+            if sold_price and h:
+                store.log_sale_hours(conn, auction_id, h["hours"], at=closed_at)
         return {"closed": auction_id, "closed_at": closed_at}
 
 
