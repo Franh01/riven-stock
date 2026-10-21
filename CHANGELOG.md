@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.3] - 2026-10-21
+
 #### Español
 - Corregido: el idioma elegido y las armas seguidas no se guardaban al reiniciar.
 - El botón del estimado ahora es "¿Cuánto vale este riven?", el estimado muestra el rango del mod en los comparables y, si faltan stats, marca los campos y avisa.
