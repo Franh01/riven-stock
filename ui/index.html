@@ -475,6 +475,9 @@
   .cf-rows { display: grid; gap: 10px; margin-top: 14px; }
   .cf-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 14px; background: #ffffff08; border: 1px solid var(--line); border-radius: 10px; }
   .cf-row > span:first-child { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .cf-row.cf-warn { background: #ff9f4a1f; border-color: #ff9f4a88; }
+  .cf-row.cf-warn > span:first-child { color: #ffb066; font-weight: 700; }
+  .cf-row.cf-warn > span:last-child { color: #ffd2a3; }
   .cf-val { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
   .cf-val .old { color: var(--neg); text-decoration: line-through; text-decoration-thickness: 2px; opacity: .85; }
   .cf-val .arrow { color: var(--muted); }
@@ -2298,7 +2301,7 @@ document.addEventListener('mousedown', (e) => {
         }
         const stk = (v) => `<span class="stats-col">${v.stats.map((s) => formatStat(s)).join("")}</span>`;
         for (const [k, o, n] of changes.fields) rows.push(row(k, o && o.stats ? `<span class="old-stats">${stk(o)}</span><span class="arrow">→</span>${stk(n)}` : chg(esc(String(o)), esc(String(n)))));
-        rows.push(row(tr("pub.notice"), `<span class="muted">${tr("pub.republishNote")}</span>`));
+        rows.unshift(`<div class="cf-row cf-warn"><span>${tr("pub.notice")}</span><span>${tr("pub.republishNote")}</span></div>`);
       }
       if ("price" in changes) { const d = changes.price - editing.price; rows.push(row(tr("rd.price"), chg(`${editing.price}p`, `${changes.price}p`) + `<span class="diff ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${Math.abs(d)}p</span>`)); }
       if ("visible" in changes) rows.push(row(tr("pub.visibility"), changes.visible ? `<span class="on">${tr("pub.shown")}</span>` : `<span class="off">${tr("pub.hidden")}</span>`));
