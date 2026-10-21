@@ -588,8 +588,16 @@
       </div>
       <div class="row-actions">
         <button id="ref-go">Ver precio de referencia</button>
+        <button id="est-go" class="ghost" hidden title="Compara con rivens parecidos al tuyo (mismos stats)">Calcular estimado con comparables</button>
+        <span class="hint" id="est-hint" hidden>Puede tardar: hace varias búsquedas en warframe.market.</span>
         <span class="hint" id="rd-info">Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.</span>
       </div>
+    </section>
+
+    <section id="est-section" hidden>
+      <div class="section-title"><span class="step">2</span><h2>Estimado según comparables</h2></div>
+      <div class="summary" id="est-summary"></div>
+      <div id="est-results"></div>
     </section>
 
     <section id="ref-section" hidden>
@@ -1632,6 +1640,7 @@ document.addEventListener('mousedown', (e) => {
       $("#f-cost").value = Math.round(lot.unit_cost * 100) / 100;
     }
     refreshSlots();
+    $("#est-go").hidden = !existing; $("#est-hint").hidden = !existing; $("#est-section").hidden = true;
     $("#riven-dialog").showModal();
     if (existing) runReference(); else $("#f-weapon").focus();
   }
@@ -1686,6 +1695,33 @@ document.addEventListener('mousedown', (e) => {
     $("#confirm").hidden = true;
   });
   $("#ref-go").addEventListener("click", runReference);
+
+  async function runEstimate() {
+    if (!editing) return;
+    const btn = $("#est-go"); btn.disabled = true; btn.textContent = "Calculando… puede tardar";
+    $("#est-section").hidden = false; $("#est-summary").innerHTML = ""; $("#est-results").innerHTML = skelRows(4);
+    try {
+      const r = await api().riven_summary(editing.id), es = r.estimate;
+      if (r.error) { $("#est-results").innerHTML = `<div class="state error">${esc(r.error)}</div>`; return; }
+      if (!es) { $("#est-results").innerHTML = `<div class="state">Sin comparables suficientes.</div>`; return; }
+      $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="Usar como precio"><b>${es.price}p</b><span>Estimado · usar</span></button>` +
+        `<div class="chip"><b>${es.low}–${es.high}p</b><span>Rango</span></div><div class="chip"><b>${es.n}</b><span>Comparables · ${esc(es.confidence)}</span></div>` +
+        (es.partial ? `<div class="state error">Incompleto: warframe.market limitó los pedidos. Probá de nuevo en un minuto.</div>` : "");
+      $("#est-results").innerHTML = `<table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
+        <td class="price">${x.price}p</td>
+        <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
+        <td class="muted">${esc(x.rolls ?? "?")} rolls · ${Math.round(x.sim * 100)}% parecido</td>
+        <td>${esc(x.seller)}</td></tr>`).join("")}</tbody></table>`;
+    } finally {
+      btn.disabled = false; btn.textContent = "Calcular estimado con comparables";
+    }
+  }
+  $("#est-go").addEventListener("click", runEstimate);
+  $("#est-summary").addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-price]");
+    if (!chip) return;
+    $("#f-price").value = chip.dataset.price; $("#confirm").hidden = true;
+  });
 
   // Cambios del modo editar: lo que va a warframe.market y el costo (local).
   function editChanges() {

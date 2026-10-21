@@ -4,6 +4,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Editar un riven: botón "Calcular estimado con comparables" (avisa que puede tardar) que muestra el estimado, el rango y los comparables, y permite usar el estimado como precio.
 ## [0.2.0] - 2026-10-20
 
 - Resumen: esqueleto con el mismo layout que el diálogo final, estimado de espera (n de total y segundos) desde la cola, expansión vertical animada al cargar y al navegar, y breadcrumbs destacados con botón Volver debajo del título.
