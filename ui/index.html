@@ -434,6 +434,8 @@
     border: 2px solid #c99bff44; border-top-color: var(--accent-2); border-radius: 50%;
     animation: spin .7s linear infinite;
   }
+  @keyframes flash { 0%, 100% { box-shadow: 0 0 0 0 #a066f600; } 25%, 75% { box-shadow: 0 0 0 6px #a066f6aa; } 50% { box-shadow: 0 0 0 2px #a066f655; } }
+  label.flash .unit, label.flash input { animation: flash .65s ease-in-out 2; border-color: var(--accent-2); border-radius: 10px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .skel { display: block; border-radius: 8px; height: 14px; background: linear-gradient(90deg, #ffffff08 25%, #ffffff18 50%, #ffffff08 75%); background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; }
   .skel.big { height: 38px; width: 45%; }
@@ -1690,10 +1692,17 @@ document.addEventListener('mousedown', (e) => {
       </tr>`).join("")}</tbody></table>`;
   }
 
+  function usePrice(v) {   // pone el precio, baja hasta el campo y lo hace parpadear
+    const inp = $("#f-price"), box = inp.closest("label");
+    inp.value = v;
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash");
+    setTimeout(() => box.classList.remove("flash"), 1300);
+  }
   $("#summary").addEventListener("click", (e) => {
     const chip = e.target.closest("[data-price]");
     if (!chip) return;
-    $("#f-price").value = chip.dataset.price;
+    usePrice(chip.dataset.price);
     $("#confirm").hidden = true;
   });
   $("#ref-go").addEventListener("click", runReference);
@@ -1722,7 +1731,7 @@ document.addEventListener('mousedown', (e) => {
   $("#est-summary").addEventListener("click", (e) => {
     const chip = e.target.closest("[data-price]");
     if (!chip) return;
-    $("#f-price").value = chip.dataset.price; $("#confirm").hidden = true;
+    usePrice(chip.dataset.price); $("#confirm").hidden = true;
   });
 
   // Cambios del modo editar: lo que va a warframe.market y el costo (local).
