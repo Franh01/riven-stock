@@ -657,4 +657,12 @@ window.LANGS.en = {
   "opp.off": "Opportunity alerts off",
   "help.15.t": "Opportunity alerts",
   "help.15.x": "In Settings you can turn on alerts for riven listings far below their estimate. Pick the minimum discount, minimum gain and weapons to watch; the notification has a button to open the listing.",
+  "help.tourOpp": "See the opportunities tour",
+  "tour.opp.title": "Opportunity alerts",
+  "tour.opp.1.t": "Opportunity alerts",
+  "tour.opp.1.x": "Turn this card on and the app checks online listings in the background for your weapons and the ones you watch. If one is far below its estimated value, you get a notification.",
+  "tour.opp.2.t": "How worthwhile it must be",
+  "tour.opp.2.x": "The minimum discount is how far below the estimate the price must be, and the minimum gain is the difference in platinum. Both must be met.",
+  "tour.opp.3.t": "Watched weapons",
+  "tour.opp.3.x": "Weapons in your stock are watched automatically. Add others here. In the bell, View listing opens the ad on warframe.market.",
 };

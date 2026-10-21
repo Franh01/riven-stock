@@ -657,4 +657,12 @@ window.LANGS.es = {
   "opp.off": "Alertas de oportunidad desactivadas",
   "help.15.t": "Alertas de oportunidad",
   "help.15.x": "En Ajustes podés activar avisos cuando aparece una publicación de riven muy por debajo de su estimado. Elegís el descuento mínimo, la ganancia mínima y las armas a vigilar; la notificación trae un botón para abrir la publicación.",
+  "help.tourOpp": "Ver el recorrido de las oportunidades",
+  "tour.opp.title": "Alertas de oportunidad",
+  "tour.opp.1.t": "Avisos de oportunidad",
+  "tour.opp.1.x": "Activá esta tarjeta y la app revisa en segundo plano las publicaciones online de tus armas y de las que vigiles. Si una está muy por debajo de su valor estimado, te llega una notificación.",
+  "tour.opp.2.t": "Cuánto tiene que valer la pena",
+  "tour.opp.2.x": "El descuento mínimo es qué tan por debajo del estimado tiene que estar el precio, y la ganancia mínima es la diferencia en platino. Se tienen que cumplir las dos.",
+  "tour.opp.3.t": "Armas vigiladas",
+  "tour.opp.3.x": "Se vigilan solas las armas de tu stock. Acá agregás otras. En la campana, el botón Ver publicación abre el anuncio en warframe.market.",
 };

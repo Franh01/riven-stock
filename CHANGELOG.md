@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+### Agregado
+- Recorrido guiado de las alertas de oportunidad (botón ? en la tarjeta y en la Ayuda), en español e inglés.
+
+### Corregido
+- Alertas de oportunidad: el estimado ya no sale tachado y los textos de cada fila quedan alineados al centro.
+
 ## [0.8.0] - 2026-10-21
 
 ### Agregado

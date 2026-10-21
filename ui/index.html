@@ -233,6 +233,7 @@
   #cfg-dialog { width: min(560px, 92vw); }
   .cfg-grid { display: grid; gap: 14px; }
   .cfg-row { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; }
+  #opp-params .cfg-row { padding: 8px 0; }
   .cfg-row small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
   .cfg-row .val { font-weight: 700; font-size: 18px; color: var(--accent-2); min-width: 64px; text-align: right; }
   .cfg-row input[type=range] { grid-column: 1 / -1; accent-color: var(--accent); width: 100%; }
@@ -338,6 +339,7 @@
   .al-card .al-name small { font-weight: 500; color: var(--muted); font-size: 13px; margin-left: 6px; }
   .al-prices { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-variant-numeric: tabular-nums; }
   .al-prices .old { color: var(--neg); text-decoration: line-through; text-decoration-thickness: 2px; font-size: 15px; opacity: .85; }
+  .al-prices > * { line-height: 1; display: inline-flex; align-items: center; }
   .al-prices .est { color: var(--muted); font-size: 15px; }
   .al-prices .arrow { color: var(--muted); }
   .al-prices .new { color: var(--pos); font-weight: 800; font-size: 20px; }
@@ -2666,11 +2668,11 @@ document.addEventListener('mousedown', (e) => {
           <input type="range" id="cfg-amount" min="1" max="50" value="${cfgVal("autodrop_amount")}"></div>
         <div class="cfg-row"><span>${tr("cfg.floor")}<small>${tr("cfg.floorSub")}</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
-      <div class="sum-card" id="opp-card"><label class="switch-row"><span><b>${tr("opp.title")}</b><small>${tr("opp.sub")}</small></span>${sw("opp-enabled", !!settings.opp_enabled)}</label>
+      <div class="sum-card" id="opp-card"><label class="switch-row"><span><b>${tr("opp.title")}</b><small>${tr("opp.sub")}</small></span><span style="display:flex;align-items:center;gap:10px"><button class="ghost" id="opp-tour" type="button" title="${tr("stock.tourTip")}" style="padding:4px 10px">?</button>${sw("opp-enabled", !!settings.opp_enabled)}</span></label>
         <div id="opp-params" class="${settings.opp_enabled ? "" : "cfg-off"}" style="margin-top:10px">
-          <div class="cfg-row"><span>${tr("opp.thr")}<small>${tr("opp.thrSub")}</small></span><span><input type="number" id="opp-thr" min="5" max="90" value="${oppVal("opp_threshold")}"> %</span></div>
+          <div class="cfg-row" id="opp-thr-row"><span>${tr("opp.thr")}<small>${tr("opp.thrSub")}</small></span><span><input type="number" id="opp-thr" min="5" max="90" value="${oppVal("opp_threshold")}"> %</span></div>
           <div class="cfg-row"><span>${tr("opp.gain")}<small>${tr("opp.gainSub")}</small></span><span><input type="number" id="opp-gain" min="1" value="${oppVal("opp_min_gain")}"> p</span></div>
-          <div style="margin-top:8px"><span class="muted" style="font-size:12px">${tr("opp.weapons")}</span>
+          <div id="opp-wp" style="margin-top:8px"><span class="muted" style="font-size:12px">${tr("opp.weapons")}</span>
             <div id="opp-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"></div>
             <input id="opp-add" type="text" placeholder="${tr("opp.addPh")}" style="max-width:260px">
             <small class="muted" style="display:block;margin-top:6px">${tr("opp.weaponsSub")}</small></div>
@@ -2711,6 +2713,7 @@ document.addEventListener('mousedown', (e) => {
   $("#cfg-body").addEventListener("click", async (e) => {
     const id = e.target.closest("button")?.id;
     if (id === "bk-tour") { startTour("backup"); return; }
+    if (id === "opp-tour") { startTour("opp"); return; }
     if (id && id.startsWith("cl-")) {
       if (id === "cl-on") { const r = await api().cloud_enable(); if (r.error) toast(r.error); else loadCloud(true); }
       else if (id === "cl-now") { const r = await api().cloud_upload(); toast(r.error ? r.error : tr("cl.done")); loadCloud(); }
@@ -2884,6 +2887,11 @@ document.addEventListener('mousedown', (e) => {
       { cfg: true, el: "#cl-body", t: "tour.backup.4.t", x: "tour.backup.4.x" },
       { cfg: true, el: "#cl-code", t: "tour.backup.5.t", x: "tour.backup.5.x" },
       { cfg: true, el: "#cl-card", t: "tour.backup.6.t", x: "tour.backup.6.x" },
+    ] },
+    opp: { title: "tour.opp.title", steps: [
+      { cfg: true, el: "#opp-card", t: "tour.opp.1.t", x: "tour.opp.1.x" },
+      { cfg: true, el: "#opp-thr-row", t: "tour.opp.2.t", x: "tour.opp.2.x" },
+      { cfg: true, el: "#opp-wp", t: "tour.opp.3.t", x: "tour.opp.3.x" },
     ] },
     reporte: { title: "tour.reporte.title", steps: [
       { el: "#report .rp-filters", t: "tour.reporte.1.t", x: "tour.reporte.1.x" },
@@ -3267,7 +3275,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
   const HELP_N = 15;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
-      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button>`;
+      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button> <button class="ghost tour-btn" data-tour="opp">${tr("help.tourOpp")}</button>`;
       for (let k = 1; k <= HELP_N; k++) h += `<div class="hsec"><h4>${tr("help." + k + ".t")}</h4><p>${tr("help." + k + ".x")}</p></div>`;
       document.getElementById("help-body").innerHTML = h;
       document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
