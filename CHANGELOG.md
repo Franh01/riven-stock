@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.1] - 2026-10-21
+
 ### Agregado
 - Recorrido guiado de las alertas de oportunidad (botón ? en la tarjeta y en la Ayuda), en español e inglés.
 - Ajustes rediseñados: ventana más ancha en dos columnas ("Precios y alertas" y "General"), con iconos y una sección de datos y copias.
