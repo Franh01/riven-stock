@@ -209,7 +209,7 @@
   .qbar .qtop { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; color: var(--muted); }
   .qbar .qtop b { color: var(--text); }
   .qbar .track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
-  .qbar .fill { height: 100%; width: 0; background: var(--accent-2); transition: width .3s; }
+  .qbar .fill { height: 100%; width: 0; background: var(--accent-2); transition: width .4s linear; }
   .qbar.wait .fill { background: #e5a54b; }
   .toast {
     position: fixed; inset: auto auto 30px 50%; margin: 0; color: var(--text); overflow: visible; transform: translateX(-50%) translateY(20px); z-index: 50;
@@ -332,7 +332,7 @@
   .crumbs b { flex: none; position: static; color: var(--text); font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #ffffff12; }
   .skel-note { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
   .skel-bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 6px; }
-  .skel-bar u { display: block; height: 100%; width: 0; background: var(--accent-2); transition: width .3s; }
+  .skel-bar u { display: block; height: 100%; width: 0; background: var(--accent-2); transition: width .4s linear; }
   #sum-dialog.resizing { transition: height .2s ease-out; overflow: hidden; }
   .comp-side .comp-sim { margin-top: 8px; }
   .comp-sim b { font-size: 12px; }
@@ -3068,7 +3068,7 @@ document.addEventListener('mousedown', (e) => {
   setInterval(loadAlerts, 15000);
 
   // Barra global: avance de la cola de pedidos (máx. 3 por segundo, en orden de llegada).
-  let qBusy = false;
+  let qBusy = false, cdMax = 0;
   setInterval(async () => {
     if (qBusy || !window.pywebview) return;
     qBusy = true;
@@ -3083,7 +3083,10 @@ document.addEventListener('mousedown', (e) => {
         $("#q-title").textContent = q.cooldown_s > 0
           ? tr(q.reason === "net" ? "q.net" : "q.wait")
           : tr("q.asking", { d: q.done, t: q.total });
-        $("#q-fill").style.width = q.percent + "%";
+        // En espera el tiempo es fijo: la barra avanza con la cuenta regresiva.
+        if (q.cooldown_s > 0) { cdMax = Math.max(cdMax, q.cooldown_s); }
+        else cdMax = 0;
+        $("#q-fill").style.width = (q.cooldown_s > 0 ? Math.min(100, (1 - q.cooldown_s / cdMax) * 100) : q.percent) + "%";
         $("#q-eta").textContent = q.eta_s >= 1 ? `~${Math.ceil(q.eta_s)} s` : tr("q.almost");
       }
     } catch (e) {} finally { qBusy = false; }
