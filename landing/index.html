@@ -36,6 +36,10 @@
   .meta { margin-top:14px; color:var(--muted); font-size:13.5px; display:flex; gap:16px; flex-wrap:wrap; }
   .meta span::before { content:"✓ "; color:var(--ok); }
 
+  .shot { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 30px 80px -20px rgba(0,0,0,.8); overflow:hidden; }
+  .shot img { display:block; width:100%; height:auto; }
+  .shot.small { max-width:760px; margin:26px 0 12px; }
+  .hero .shot { transform:perspective(1200px) rotateY(-6deg) rotateX(2deg); }
   .mock { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 30px 80px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.03); overflow:hidden; transform:perspective(1200px) rotateY(-6deg) rotateX(2deg); }
   .mock-bar { display:flex; gap:7px; padding:12px 14px; background:var(--bg2); border-bottom:1px solid var(--line); }
   .mock-bar b { width:11px; height:11px; border-radius:50%; background:#2b3345; }
@@ -69,7 +73,7 @@
   .t b { display:block; font-size:22px; margin-bottom:2px; } .t span { color:var(--muted); font-size:13.5px; }
 
   footer { margin:50px 0 40px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
-  @media (max-width: 860px) { .hero { grid-template-columns:1fr; } .mock { transform:none; } .grid3, .trust { grid-template-columns:1fr 1fr; } }
+  @media (max-width: 860px) { .hero { grid-template-columns:1fr; } .hero .shot { transform:none; } .grid3, .trust { grid-template-columns:1fr 1fr; } }
   @media (max-width: 560px) { .grid3, .trust { grid-template-columns:1fr; } .nav-r a { display:none; } }
 </style>
 </head>
@@ -96,15 +100,7 @@
       </a>
       <div class="meta"><span id="dl-info"></span><span data-i18n="m.free"></span><span data-i18n="m.noadmin"></span></div>
     </div>
-    <div class="mock" aria-hidden="true">
-      <div class="mock-bar"><b></b><b></b><b></b></div>
-      <div class="mock-body">
-        <div class="row"><div>Soma Vectis<small>Crit Dmg · Toxin · Sin Zoom</small></div><span class="tag">En venta</span><span class="pr">320 p</span></div>
-        <div class="row"><div>Torid Cronus<small>Multishot · Cold</small></div><span class="tag w">Ajustar</span><span class="pr">180 p</span></div>
-        <div class="row"><div>Rubico Acri<small>Crit Chance · Speed</small></div><span class="tag">En venta</span><span class="pr">95 p</span></div>
-        <div class="row"><div>Kuva Bramma<small>Damage · Status</small></div><span class="tag">Vendido</span><span class="pr">410 p</span></div>
-      </div>
-    </div>
+    <div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/app-ventas.jpg" alt="Riven Stock" width="1164" height="741"></div>
   </header>
 
   <section>
@@ -118,6 +114,10 @@
       <div class="feat"><div class="ico">☁️</div><h3 data-i18n="f5.t"></h3><p data-i18n="f5.p"></p></div>
       <div class="feat"><div class="ico">🌐</div><h3 data-i18n="f6.t"></h3><p data-i18n="f6.p"></p></div>
     </div>
+  </section>
+
+  <section>
+    <div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/app-reporte.jpg" alt="Report" loading="lazy" width="1164" height="741"></div>
   </section>
 
   <section>
@@ -145,6 +145,8 @@
     <h2 data-i18n="tk.h"></h2>
     <p class="sub" data-i18n="tk.p"></p>
     <ol class="steps" data-i18n-html="tk.ol"></ol>
+    <div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/app-token.jpg" alt="Token" loading="lazy" width="1164" height="741"></div>
+    <p class="note" data-i18n="tk.cap"></p>
     <div class="warn" data-i18n="tk.w"></div>
   </section>
 
@@ -180,6 +182,7 @@ const T = {
     "tk.eye":"Primer uso","tk.h":"Cómo obtener tu token (JWT) de warframe.market",
     "tk.p":"La primera vez, Riven Stock te pide un token para conectarse a tu cuenta. Se saca desde el navegador en menos de un minuto:",
     "tk.ol":"<li>Entrá a <a href=\"https://warframe.market\" target=\"_blank\" rel=\"noopener\">warframe.market</a> e iniciá sesión con tu cuenta.</li><li>Apretá <kbd>F12</kbd> para abrir las herramientas de desarrollador (Chrome, Edge o Brave).</li><li>Arriba elegí la pestaña <b>Application</b> (o <b>Aplicación</b>). Si no la ves, tocá <kbd>&gt;&gt;</kbd> para ver más pestañas. En Firefox se llama <b>Almacenamiento</b>.</li><li>A la izquierda abrí <b>Cookies</b> y elegí <code>https://warframe.market</code>.</li><li>Buscá la fila llamada <code>JWT</code>, hacé clic y copiá el contenido completo de <b>Value</b> (un texto largo que empieza con <code>eyJ</code>).</li><li>En Riven Stock tocá el botón de la llave (arriba), pegá el token y guardalo.</li>",
+    "tk.cap":"Así se ve el cuadro donde pegás el token en Riven Stock.",
     "tk.w":"Tratá el token como una contraseña: no lo compartas ni lo publiques. Se guarda solo en tu PC y la app únicamente lo manda a warframe.market. Si algún día deja de funcionar, venció: repetí estos pasos y pegá uno nuevo.",
     ft:"Proyecto personal, sin relación oficial con Digital Extremes ni warframe.market.",
     info:"Versión {v} · Windows 10 / 11", info0:"Windows 10 / 11"
@@ -208,6 +211,7 @@ const T = {
     "tk.eye":"First run","tk.h":"How to get your warframe.market token (JWT)",
     "tk.p":"The first time, Riven Stock asks for a token to connect to your account. You can get it from your browser in under a minute:",
     "tk.ol":"<li>Go to <a href=\"https://warframe.market\" target=\"_blank\" rel=\"noopener\">warframe.market</a> and log in.</li><li>Press <kbd>F12</kbd> to open the developer tools (Chrome, Edge or Brave).</li><li>At the top choose the <b>Application</b> tab. If you don't see it, click <kbd>&gt;&gt;</kbd> for more tabs. In Firefox it is called <b>Storage</b>.</li><li>On the left open <b>Cookies</b> and pick <code>https://warframe.market</code>.</li><li>Find the row named <code>JWT</code>, click it and copy the full <b>Value</b> (a long text starting with <code>eyJ</code>).</li><li>In Riven Stock press the key button (top bar), paste the token and save it.</li>",
+    "tk.cap":"This is the box where you paste the token in Riven Stock.",
     "tk.w":"Treat the token like a password: don't share or publish it. It is stored only on your PC and the app sends it only to warframe.market. If it ever stops working it has expired: repeat these steps and paste a new one.",
     ft:"Personal project, not officially related to Digital Extremes or warframe.market.",
     info:"Version {v} · Windows 10 / 11", info0:"Windows 10 / 11"
