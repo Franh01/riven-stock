@@ -40,6 +40,11 @@ def main():
         sys.exit("La sección [Sin publicar] del CHANGELOG está vacía.")
     cl = cl.replace("## [Sin publicar]\n", f"## [Sin publicar]\n\n## [{ver}] - {date.today()}\n", 1)
 
+    if not dry:   # tabla de armas al día en cada release; si no hay internet se publica la que ya está
+        try:
+            run(sys.executable, "tools/build_weapon_data.py")
+        except subprocess.CalledProcessError:
+            print("Aviso: no se pudo actualizar data/weapon_stats.json; se usa la anterior.")
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
     zpath = dist / f"riven-stock-v{ver}.zip"
@@ -74,7 +79,7 @@ def main():
     setup = dist / f"RivenStock-v{ver}-Setup.exe"
     setupsha = dist / (setup.name + ".sha256")
 
-    run("git", "add", "VERSION", "CHANGELOG.md")
+    run("git", "add", "VERSION", "CHANGELOG.md", "data/weapon_stats.json")
     run("git", "commit", "-m", f"Version {ver}\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>")
     run("git", "tag", f"v{ver}")
     run("git", "push", "origin", "HEAD", f"v{ver}")
