@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.6] - 2026-10-21
+
 #### Español
 - El estimado ahora propone tres precios (rápido, estimado, alto) y muestra cuánto tardaron en venderse tus ventas anteriores, con un botón ? que explica cada precio.
 
