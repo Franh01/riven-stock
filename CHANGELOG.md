@@ -4,7 +4,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
-- Editar riven: acceso a la configuración de la baja automática desde el encabezado del diálogo.
+- Editar riven: el encabezado trae el switch de baja automática y sus ajustes (horas, baja, piso) de ese riven.
+- Editar riven: botón Cancelar junto a Guardar; si venías del resumen, vuelve a él.
+- Editar riven: una sola barra de scroll.
+- Resumen de un riven propio: engranaje junto a los íconos para editarlo.
+- Confirmación de guardar/publicar como modal, con filas de colores (viejo tachado en rojo, nuevo en verde, diferencia).
+- Órdenes: estado y nombre del vendedor centrados.
+
 ## [0.2.4] - 2026-10-20
 
 - Los avisos (toast) ahora se ven por encima de los diálogos abiertos.
