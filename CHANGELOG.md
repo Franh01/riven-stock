@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Recorrido inicial: se quitó el paso «Editar uno publicado», que describía solo la edición de polaridad.
+
 - Ayuda y recorrido: se explica en detalle cómo se cuentan las horas online de cada riven y su relación con el Ajuste automático de precio.
 
 ## [0.3.2] - 2026-10-21
