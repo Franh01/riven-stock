@@ -43,6 +43,32 @@ HEADERS = {
 }
 
 
+_FIELDS = {
+    "buyout_price": "El precio", "price": "El precio", "note": "La nota", "name": "El nombre",
+    "mod_rank": "El rango", "mastery_level": "El MR", "re_rolls": "Los rolls",
+    "polarity": "La polaridad", "attributes": "Los stats", "minimal_reputation": "La reputación mínima",
+}
+
+
+def _explain_error(res, method, path):
+    """Mensaje claro en español para un rechazo de warframe.market (ej. precio fuera de rango)."""
+    try:
+        err = res.json().get("error")
+    except ValueError:
+        err = None
+    parts = []
+    if isinstance(err, dict):
+        for field, msgs in err.items():
+            msgs = msgs if isinstance(msgs, list) else [msgs]
+            detail = "; ".join(str(m) for m in msgs)
+            parts.append(f"{_FIELDS.get(field, field)}: {detail}")
+    elif err:
+        parts.append(str(err))
+    if parts:
+        return "warframe.market rechazó los datos. " + " | ".join(parts)
+    return f"{method} {path} -> {res.status_code}: {res.text[:300]}"
+
+
 class WFMError(Exception):
     pass
 
@@ -84,7 +110,7 @@ class WFMClient:
             # Cloudflare (error 1015) bloquea un rato si hay muchas búsquedas seguidas.
             raise WFMError("warframe.market está limitando los pedidos (429). Esperá un minuto y probá de nuevo.")
         if not res.ok:
-            raise WFMError(f"{method} {path} -> {res.status_code}: {res.text[:300]}")
+            raise WFMError(_explain_error(res, method, path))
         return res.json()
 
     def get(self, path, **kwargs):

@@ -593,6 +593,7 @@ window.LANGS.en = {
   "e.23": "Unknown preference: {a}",
   "e.24": "Couldn't check for updates: {a}",
   "e.25": "warframe.market rejected the token on the WebSocket ({a})",
+  "e.90": "warframe.market rejected the data. {a}",
   "conf.alta": "high",
   "conf.media": "medium",
   "conf.baja": "low",
