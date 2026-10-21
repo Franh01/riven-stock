@@ -51,7 +51,7 @@ window.LANGS.es = {
   "rd.namePh": "Escribí el nombre tal como figura en el juego",
   "rd.refGo": "Ver precio de referencia",
   "rd.estTip": "Compara con rivens parecidos al tuyo (mismos stats) Puede tardar: hace varias búsquedas.",
-  "rd.estGo": "Calcular estimado con comparables",
+  "rd.estGo": "¿Cuánto vale este riven?",
   "rd.estHint": "Puede tardar: hace varias búsquedas en warframe.market.",
   "rd.info": "Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.",
   "rd.estTitle": "Estimado según comparables",

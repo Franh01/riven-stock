@@ -51,7 +51,7 @@ window.LANGS.en = {
   "rd.namePh": "Type the name exactly as it appears in the game",
   "rd.refGo": "See reference price",
   "rd.estTip": "Compares with rivens similar to yours (same stats) May take a while: several searches.",
-  "rd.estGo": "Calculate estimate from comparables",
+  "rd.estGo": "What's it worth?",
   "rd.estHint": "May take a while: it runs several searches on warframe.market.",
   "rd.info": "The weapon is enough for the reference. Stats and values (as they appear in the game) are needed to publish.",
   "rd.estTitle": "Estimate from comparables",
