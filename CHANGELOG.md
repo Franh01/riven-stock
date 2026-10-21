@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.3.1] - 2026-10-21
+
 - «Baja automática» pasa a llamarse «Ajuste automático de precio» en toda la app.
 - Botón «Buscar actualizaciones» en Novedades.
 - Ayuda: aclarado el botón Nuevo riven, el estado de warframe.market y el límite de pedidos.
