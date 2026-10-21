@@ -1760,6 +1760,7 @@ document.addEventListener('mousedown', (e) => {
     if (!chip) return;
     usePrice(chip.dataset.price);
     $("#confirm").hidden = true;
+    if (typeof tour !== "undefined" && tour) setTimeout(() => tour && tourStep(tour.i), 600);   // el scroll al precio descoloca el resaltado: se vuelve a centrar
   });
   $("#ref-go").addEventListener("click", runReference);
 
