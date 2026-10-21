@@ -580,6 +580,10 @@
   tr.busy td:not(.actions) { opacity: .7; }
   tr.busy .editable { cursor: default; }
   tr.busy .editable:hover { background: none; }
+.est-help { width:24px; height:24px; padding:0; border-radius:50%; align-self:center; font-size:13px; line-height:1; background:transparent; border:1px solid var(--muted,#8a8f98); color:var(--muted,#8a8f98); cursor:pointer; }
+.est-help:hover { color:#fff; border-color:#fff; }
+.est-info { flex-basis:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 12px; font-size:12.5px; line-height:1.45; }
+.est-info p { margin:4px 0; }
 </style>
 </head>
 <body>
@@ -2245,7 +2249,7 @@ document.addEventListener('mousedown', (e) => {
     {
       $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
         `<button class="chip" data-price="${es.low}" title="${tr("rd.useTip")}"><b>${es.low}p</b><span>${tr("rd.fast")} · ${tr("rd.use")}</span></button><button class="chip" data-price="${es.high}" title="${tr("rd.useTip")}"><b>${es.high}p</b><span>${tr("rd.high")} · ${tr("rd.use")}</span></button><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>` +
-        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + sellSpeedHtml(es);
+        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + sellSpeedHtml(es) + `<button type="button" class="est-help" aria-label="${tr("rd.helpBtn")}" title="${tr("rd.helpBtn")}">?</button><div class="est-info" hidden><p><b>${tr("rd.fast")}</b> — ${tr("rd.hFast")}</p><p><b>${tr("rd.estimated")}</b> — ${tr("rd.hMid")}</p><p><b>${tr("rd.high")}</b> — ${tr("rd.hHigh")}</p><p class="muted">${tr("rd.hNote")}</p></div>`;
       $("#est-results").innerHTML = `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
         <td class="price">${x.price}p</td>
         <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
@@ -2262,6 +2266,7 @@ document.addEventListener('mousedown', (e) => {
   }
   $("#est-go").addEventListener("click", runEstimate);
   $("#est-summary").addEventListener("click", (e) => {
+    if (e.target.closest(".est-help")) { const i = $("#est-summary .est-info"); i.hidden = !i.hidden; return; }
     const chip = e.target.closest("[data-price]");
     if (!chip) return;
     usePrice(chip.dataset.price); $("#confirm").hidden = true;
