@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Instalador para Windows (Setup.exe): se puede usar sin tener Python. Se instala por usuario, sin permisos de administrador, y se actualiza solo desde la app.
+- Nuevo botón de la llave en la barra de arriba: pegás tu token de warframe.market (se comprueba y se guarda en tu PC) con un link al tutorial para sacarlo. Aparece solo si falta.
 - Actualizador: si una actualización falla y vuelve atrás, también borra los archivos que la versión nueva había agregado.
 
 ## [0.5.0] - 2026-10-21

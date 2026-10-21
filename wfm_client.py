@@ -8,6 +8,7 @@ central de ratelimit.py (todo pedido, REST o WebSocket, pasa por ahí).
 import http.cookiejar
 import json
 import os
+import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -16,10 +17,14 @@ import requests
 import websocket
 from dotenv import load_dotenv
 
+import store
 from ratelimit import QUEUE
 
 BASE_URL = "https://api.warframe.market"
-CACHE_DIR = Path(__file__).parent / "cache"
+# Instalado (exe) la carpeta de la app no es escribible ni guarda datos: token y cache van a la carpeta de datos.
+_BASE = store.DATA_DIR if getattr(sys, "frozen", False) else Path(__file__).parent
+CACHE_DIR = _BASE / "cache"
+ENV_FILE = _BASE / ".env"
 CATALOG_MAX_AGE_HOURS = 24
 WS_URL = "wss://ws.warframe.market/socket"
 # Estado del usuario (Invisible / Online / Online in game): va por WebSocket, no por REST.
@@ -48,7 +53,7 @@ class AuthError(WFMError):
 
 class WFMClient:
     def __init__(self, jwt=None):
-        load_dotenv(Path(__file__).parent / ".env")
+        load_dotenv(ENV_FILE)
         self.jwt = jwt if jwt is not None else (os.getenv("WFM_JWT") or "").strip() or None
         self.session = requests.Session()
         self.session.headers.update(HEADERS)
@@ -88,7 +93,7 @@ class WFMClient:
     # ---- Catálogo (v2, cacheado) -------------------------------------
 
     def _cached(self, name, path):
-        CACHE_DIR.mkdir(exist_ok=True)
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
         file = CACHE_DIR / f"{name}.json"
         if file.exists() and (time.time() - file.stat().st_mtime) / 3600 < CATALOG_MAX_AGE_HOURS:
             return json.loads(file.read_text(encoding="utf-8"))

@@ -18,3 +18,4 @@ dist/
 # Nube
 cloud/node_modules/
 cloud/.serverless/
+build/

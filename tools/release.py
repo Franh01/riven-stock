@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 INCLUIR = ["app.py", "cloud_backup.py", "orders.py", "pricing.py", "store.py", "wfm_client.py", "updater.py", "requirements.txt",
-           "VERSION", "CHANGELOG.md", "README.md", "instalar.bat", "assets", "data", "tools", "ui"]
+           "VERSION", "CHANGELOG.md", "README.md", "instalar.bat", "assets", "data", "tools", "ui", "installer"]
 
 
 def run(*cmd, capture=False):
@@ -68,11 +68,17 @@ def main():
         print("--dry-run: no se tocó el repo ni se publicó nada.")
         return
 
+    # Instalador para Windows sin Python (PyInstaller + Inno Setup), con el VERSION ya actualizado.
+    py = ROOT / ".venv" / "Scripts" / "python.exe"
+    run(str(py if py.exists() else sys.executable), "tools/build_exe.py")
+    setup = dist / f"RivenStock-v{ver}-Setup.exe"
+    setupsha = dist / (setup.name + ".sha256")
+
     run("git", "add", "VERSION", "CHANGELOG.md")
     run("git", "commit", "-m", f"Version {ver}\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>")
     run("git", "tag", f"v{ver}")
     run("git", "push", "origin", "HEAD", f"v{ver}")
-    run("gh", "release", "create", f"v{ver}", str(zpath), str(shafile),
+    run("gh", "release", "create", f"v{ver}", str(zpath), str(shafile), str(setup), str(setupsha),
         "--title", f"Riven Stock {ver}", "--notes", notas)
     print(f"Release v{ver} publicado.")
 

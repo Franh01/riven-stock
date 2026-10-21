@@ -562,6 +562,7 @@
     <span class="count" id="bell-count" hidden></span>
   </button>
   <button class="bell ver" id="ver" title="Novedades y actualizaciones" data-i18n-title="hdr.verTip"><span id="ver-txt">v</span><span class="count" id="ver-dot" hidden>!</span></button>
+  <button class="bell" id="tok-btn" title="Token de warframe.market" data-i18n-title="tok.tip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 14a4 4 0 1 1 3.9-5H21v3h-2v2h-3v-2h-5.100A4 4 0 0 1 7 14zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
   <button class="bell" id="help-btn" title="Ayuda: qué hace la app y cómo usarla" data-i18n-title="hdr.helpTip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.5h-2V15.4h2v2.1zm1.9-6.2-.9.9c-.7.7-1 1.2-1 2.3h-2v-.5c0-1 .3-1.8 1-2.5l1.2-1.2c.4-.3.6-.8.6-1.300 0-1.100-.9-2-2-2s-2 .9-2 2H8c0-2.200 1.800-4 4-4s4 1.800 4 4c0 .9-.4 1.700-1.100 2.300z"/></svg></button>
   <button class="bell" id="gear" title="Configuración del ajuste automático de precio" data-i18n-title="hdr.gearTip">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>
@@ -721,6 +722,16 @@
   <div class="dlg-head"><h3 data-i18n="help.title">Ayuda</h3><button class="icon" id="help-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <div class="dlg-body"><div id="help-body" class="help"></div></div>
 </dialog>
+<dialog id="token-dialog">
+  <div class="dlg-head"><h3 data-i18n="tok.title">Token de warframe.market</h3><button class="icon" id="tok-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
+  <div class="dlg-body">
+    <p data-i18n="tok.intro">Riven Stock necesita tu token (JWT) de warframe.market para leer y manejar tus rivens. Se guarda solo en tu PC.</p>
+    <p><a href="#" id="tok-help" data-i18n="tok.help">Cómo sacar el token, paso a paso</a></p>
+    <textarea id="tok-input" rows="4" style="width:100%" spellcheck="false" placeholder="eyJ..." data-i18n-placeholder="tok.ph"></textarea>
+    <div class="muted" id="tok-msg" style="min-height:1.4em"></div>
+    <div class="upd-actions"><button class="ghost" id="tok-later" data-i18n="upd.later">Más tarde</button><button id="tok-save" data-i18n="tok.save">Guardar y comprobar</button></div>
+  </div>
+</dialog>
 <dialog id="news-dialog">
   <div class="dlg-head"><h3>Novedades <button class="ghost" id="news-check" style="font-size:12px;padding:3px 10px;margin-left:10px;font-weight:500" title="Buscar si hay una versión nueva" data-i18n-title="news.checkTip" data-i18n="news.check">Buscar actualizaciones</button></h3><button class="icon" id="news-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <div class="dlg-body">
@@ -865,7 +876,8 @@ document.addEventListener('mousedown', (e) => {
     [/^no_cloud_backup$/, "e.28"],
     [/^bad_code$/, "e.29"],
     [/^invalid_code$/, "e.30"],
-    [/^cloud_error$/, "e.31"]
+    [/^cloud_error$/, "e.31"],
+    [/^Falta WFM_JWT/, "e.32"]
   ];
   const trErr = (m) => {
     for (const [rx, k] of ERRS) { const x = rx.exec(m); if (x) return tr(k, { a: x[1], b: x[2] }); }
@@ -2982,6 +2994,7 @@ document.addEventListener('mousedown', (e) => {
     hideSplash();
     { const ts = tourState(); if (!ts.off && !ts.done.inicio) setTimeout(() => startTour("inicio"), 2000); }
     loadAlerts();
+    checkToken();
     setTimeout(() => checkUpdate(false), 1500);
     setInterval(() => checkUpdate(false), 3600 * 1000);
     // Al abrir: En juego por 4 h (se desactiva desde el menú del estado).
@@ -3028,7 +3041,25 @@ document.addEventListener('mousedown', (e) => {
   const hideSplash = () => setTimeout(() => { const e = document.getElementById("splash"); e.classList.add("out"); setTimeout(() => e.remove(), 400); },
     Math.max(0, 1600 - (Date.now() - splashAt)));
   setTimeout(hideSplash, 8000);   // por si la carga falla: nunca dejar la pantalla tapada
-  const HELP_N = 11;
+  // ---- Token de warframe.market ----
+  let tokHelpUrl = "";
+  async function openToken() { $("#tok-msg").textContent = ""; $("#tok-input").value = ""; $("#token-dialog").showModal(); }
+  $("#tok-btn").addEventListener("click", async () => { if (!tokHelpUrl) tokHelpUrl = (await api().token_status()).help_url; openToken(); });
+  $("#tok-x").addEventListener("click", () => $("#token-dialog").close());
+  $("#tok-later").addEventListener("click", () => $("#token-dialog").close());
+  $("#tok-help").addEventListener("click", (e) => { e.preventDefault(); api().open_url(tokHelpUrl); });
+  $("#tok-save").addEventListener("click", async () => {
+    const msg = $("#tok-msg"); msg.textContent = tr("tok.checking");
+    const r = await api().token_save($("#tok-input").value);
+    if (r.error) { msg.textContent = tr("tok." + r.error); return; }
+    $("#token-dialog").close(); toast(tr("tok.ok", { a: r.name }));
+    loadMine(); loadStatus();
+  });
+  async function checkToken() {
+    const s = await api().token_status(); tokHelpUrl = s.help_url;
+    if (!s.has) openToken();
+  }
+  const HELP_N = 12;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button>`;

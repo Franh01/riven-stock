@@ -12,6 +12,10 @@ from pathlib import Path
 
 # Log de arranque: con pythonw.exe no hay consola, así que los errores (incluso de los imports de abajo) van a este archivo.
 LOG_FILE = Path(__file__).parent / "riven-stock.log"
+if getattr(sys, "frozen", False):   # instalado: la carpeta de la app no es escribible
+    import os
+    LOG_FILE = Path(os.environ.get("RIVEN_STOCK_DATA") or Path(os.environ.get("APPDATA", Path.home())) / "RivenStock") / "riven-stock.log"
+    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 try:
     logging.basicConfig(filename=LOG_FILE, filemode="w", level=logging.INFO, encoding="utf-8",
                         format="%(asctime)s %(levelname)s %(message)s")
@@ -31,10 +35,13 @@ import updater
 from orders import OrderCache
 from pricing import estimate
 from ratelimit import QUEUE
-from wfm_client import SEARCH_CAP, WFMClient, WFMError, cheapest_ingame
+from wfm_client import SEARCH_CAP, AuthError, WFMClient, WFMError, cheapest_ingame
 
 # API de lectura de tendencias (Lambda en AWS, pública y solo de lectura); ver cloud/
 CLOUD_API_URL = "https://2gxvgmytrqarivabthxybzfsn40iuyyw.lambda-url.us-east-1.on.aws/"
+
+# Landing con la descarga y el tutorial para sacar el token (JWT) de warframe.market
+LANDING_URL = "https://riven-stock.vercel.app"
 
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
 ICON = ROOT / "assets" / "icon.ico"
@@ -84,6 +91,40 @@ class Api:
 
     SETTING_KEYS = {"cloud_auto", "auto_ingame", "mine_sort", "invisible_on_close",
                     "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials"}
+
+    # ---- Token de warframe.market ----
+    def token_status(self):
+        return {"has": bool(self.client.jwt), "help_url": LANDING_URL + "/#token"}
+
+    def token_save(self, raw):
+        """Valida el token pegado contra warframe.market y, si sirve, lo guarda en el .env."""
+        t = (raw or "").strip().strip('"').strip("'")
+        if t.upper().startswith("JWT="):
+            t = t[4:].strip()
+        if t.lower().startswith("bearer "):
+            t = t[7:].strip()
+        if t.count(".") != 2 or not t.startswith("eyJ") or len(t) < 60:
+            return {"error": "token_format"}
+        try:
+            me = WFMClient(t).me()
+        except AuthError:
+            return {"error": "token_invalid"}
+        except Exception:
+            return {"error": "token_offline"}
+        from wfm_client import ENV_FILE
+        lineas = []
+        if ENV_FILE.exists():
+            lineas = [l for l in ENV_FILE.read_text(encoding="utf-8").splitlines() if not l.startswith("WFM_JWT=")]
+        lineas.append(f"WFM_JWT={t}")
+        ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
+        ENV_FILE.write_text(chr(10).join(lineas) + chr(10), encoding="utf-8")
+        self.client.jwt = t
+        return {"ok": True, "name": me.get("ingameName") or me.get("ingame_name") or me.get("slug") or ""}
+
+    def open_url(self, url):
+        if str(url).startswith("https://"):
+            import webbrowser
+            webbrowser.open(url)
 
     # ---- Actualizaciones ----
     def get_version(self):

@@ -20,7 +20,8 @@ import requests
 
 REPO = "Franh01/riven-stock"
 API = f"https://api.github.com/repos/{REPO}/releases/latest"
-APP_DIR = Path(__file__).resolve().parent
+FROZEN = getattr(sys, "frozen", False)   # instalado con el Setup.exe (sin Python)
+APP_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 
 # Nunca se pisan ni se borran: datos del usuario y entorno local.
 PRESERVAR = {".env", ".venv", "cache", "_backup", ".git", "__pycache__", "riven_stock.db",
@@ -55,10 +56,11 @@ def buscar_actualizacion(timeout=10):
     if _tupla(nueva) <= _tupla(version_actual()):
         return None
     zip_url = sha_url = None
+    paquete = "Setup.exe" if FROZEN else ".zip"   # instalado se actualiza con el instalador; con Python, con el zip
     for a in rel.get("assets", []):
-        if a["name"].endswith(".zip"):
+        if a["name"].endswith(paquete):
             zip_url = a["browser_download_url"]
-        elif a["name"].endswith(".sha256"):
+        elif a["name"].endswith(paquete + ".sha256"):
             sha_url = a["browser_download_url"]
     if not zip_url or not sha_url:
         return None                   # release sin los assets esperados: no se ofrece
@@ -69,7 +71,7 @@ def preparar(info, timeout=60):
     """Descarga el zip, verifica el sha256 y lo extrae. Devuelve la carpeta de staging."""
     staging = Path(tempfile.mkdtemp(prefix="rivenstock_upd_"))
     esperado = requests.get(info["sha_url"], timeout=timeout).text.split()[0].strip().lower()
-    zpath = staging / "paquete.zip"
+    zpath = staging / ("RivenStock-Setup.exe" if FROZEN else "paquete.zip")
     h = hashlib.sha256()
     with requests.get(info["zip_url"], timeout=timeout, stream=True) as r:
         r.raise_for_status()
@@ -80,6 +82,8 @@ def preparar(info, timeout=60):
     if h.hexdigest() != esperado:
         shutil.rmtree(staging, ignore_errors=True)
         raise RuntimeError("El paquete descargado no coincide con su sha256; no se instala.")
+    if FROZEN:
+        return staging, zpath
     nuevo = staging / "nuevo"
     with zipfile.ZipFile(zpath) as z:
         z.extractall(nuevo)
@@ -97,6 +101,10 @@ def preparar(info, timeout=60):
 
 def lanzar_aplicador(staging, nuevo):
     """Copia este archivo fuera de la app y lo ejecuta aparte. La app debe cerrarse después."""
+    if FROZEN:   # el instalador reemplaza los archivos y vuelve a abrir la app
+        subprocess.Popen([str(nuevo), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CLOSEAPPLICATIONS"],
+                         creationflags=0x00000008 | 0x00000200, close_fds=True, cwd=str(staging))
+        return
     copia = Path(staging) / "aplicar_update.py"
     shutil.copy2(__file__, copia)
     pyw = APP_DIR / ".venv" / "Scripts" / "pythonw.exe"
