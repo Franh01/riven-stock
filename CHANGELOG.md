@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- El diálogo de "Nuevo riven" es más simple: origen, MR, rango y rolls quedan plegados en "Más detalles", y costo, visibilidad y nota en "Opciones" al publicar.
+
+#### English
+- The "New riven" dialog is simpler: origin, MR, rank and rolls are folded into "More details", and cost, visibility and note into "Options" when publishing.
+
 ## [0.8.1] - 2026-10-21
 
 #### Español
