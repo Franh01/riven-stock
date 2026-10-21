@@ -338,6 +338,7 @@
   .al-card .al-name small { font-weight: 500; color: var(--muted); font-size: 13px; margin-left: 6px; }
   .al-prices { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-variant-numeric: tabular-nums; }
   .al-prices .old { color: var(--neg); text-decoration: line-through; text-decoration-thickness: 2px; font-size: 15px; opacity: .85; }
+  .al-prices .est { color: var(--muted); font-size: 15px; }
   .al-prices .arrow { color: var(--muted); }
   .al-prices .new { color: var(--pos); font-weight: 800; font-size: 20px; }
   .al-prices .diff { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #7ee2a81f; color: var(--pos); }
@@ -2333,7 +2334,7 @@ document.addEventListener('mousedown', (e) => {
   };
   const oppInfo = (n) => { if (n.kind !== "opp") return null; try { return JSON.parse(n.text); } catch (e) { return null; } };
   const oppWeapon = (o) => weaponBySlug[o.weapon]?.name || o.weapon;
-  const oppLine = (o) => `<div class="al-prices"><span class="old">${tr("opp.est")} ${fmtPt(o.estimate)}</span><span class="arrow">→</span><span class="new">${fmtPt(o.price)} pt</span><span class="diff">−${fmtPt(o.gain)}</span></div>`;
+  const oppLine = (o) => `<div class="al-prices"><span class="est">${tr("opp.est")} ${fmtPt(o.estimate)}</span><span class="arrow">→</span><span class="new">${fmtPt(o.price)} pt</span><span class="diff">−${fmtPt(o.gain)}</span></div>`;
   function groupAlerts(items) {
     const out = [], byAuc = {};
     for (const n of items) {   // items vienen de la más nueva a la más vieja
