@@ -2110,7 +2110,7 @@ document.addEventListener('mousedown', (e) => {
     const d0 = $("#sum-dialog"), from0 = d0.open ? d0.offsetHeight : 0;
     $("#sum-body").innerHTML = skelSummary();
     if (!d0.open) d0.showModal(); else growFrom(from0);
-    const poll = aid === "demo" ? 0 : setInterval(async () => {
+    const poll = aid.startsWith("demo") ? 0 : setInterval(async () => {
       const q = await api().queue_status().catch(() => null), n = $("#skel-note");
       if (!q || !n) return;
       const txt = q.cooldown_s > 0 ? `warframe.market limitó los pedidos: reintentando en ${Math.ceil(q.cooldown_s)} s`
@@ -2118,7 +2118,7 @@ document.addEventListener('mousedown', (e) => {
       n.firstChild.textContent = txt; $("#skel-fill").style.width = (q.total > 1 ? q.percent : 8) + "%";
     }, 400);
     let r;
-    try { r = aid === "demo" ? demoSummary() : await api().riven_summary(aid); } finally { clearInterval(poll); }
+    try { r = aid.startsWith("demo") ? demoSummary(aid) : await api().riven_summary(aid); } finally { clearInterval(poll); }
     const fromLoaded = d0.offsetHeight;
     if (r.error) { $("#sum-body").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
     const a = r.auction, h = r.hours, o = r.orders;
@@ -2184,13 +2184,13 @@ document.addEventListener('mousedown', (e) => {
       </div>
       <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
-    if (aid !== "demo") document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
-    (aid === "demo" ? Promise.resolve(demoTrend()) : api().market_trend(a.weapon, 90)).then((t) => {
+    document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
+    (aid.startsWith("demo") ? Promise.resolve(demoTrend()) : api().market_trend(a.weapon, 90)).then((t) => {
       const c = $("#trend-card"); if (!c) return;
       const tracked = () => (settings.tracked_weapons || []).includes(a.weapon);
       const star = () => `<button class="icon" id="trk" title="${tracked() ? "Dejar de seguir esta arma" : "Seguir esta arma: se registra su mercado cada día"}" style="float:right;font-size:18px;color:${tracked() ? "var(--accent-2)" : "var(--muted)"}">${tracked() ? "★" : "☆"}</button>`;
       const bindStar = () => $("#trk")?.addEventListener("click", () => {
-        if (aid === "demo") return;
+        if (aid.startsWith("demo")) return;
         const l = new Set(settings.tracked_weapons || []); l.has(a.weapon) ? l.delete(a.weapon) : l.add(a.weapon);
         saveCfg("tracked_weapons", [...l]); $("#trk").outerHTML = star(); bindStar();
       });
@@ -2221,7 +2221,7 @@ document.addEventListener('mousedown', (e) => {
     document.querySelectorAll(".sum-tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
     $("#est-card")?.addEventListener("click", () => showTab("comps"));
     if (mk) return;
-    if (aid === "demo") { document.querySelectorAll("#sum-auto, #ov-h, #ov-a, #ov-f").forEach((x) => (x.disabled = true)); return; }   // tutorial: datos de ejemplo
+    if (aid.startsWith("demo")) { document.querySelectorAll("#sum-auto, #ov-h, #ov-a, #ov-f").forEach((x) => (x.disabled = true)); return; }   // tutorial: datos de ejemplo
     $("#sum-auto").addEventListener("change", (e) => api().set_autodrop(aid, e.target.checked).then(loadMine));
     for (const id of ["#ov-h", "#ov-a", "#ov-f"]) $(id).addEventListener("change", () => api().set_overrides(aid, $("#ov-h").value, $("#ov-a").value, $("#ov-f").value).then(loadMine));
   }
@@ -2415,6 +2415,8 @@ document.addEventListener('mousedown', (e) => {
       { el: "#sum-hist-card", demo: "summary", t: "Historial de precios", x: "Cada cambio de precio, si fue manual o automático." },
       { el: "#sum-dialog .sum-tabs", demo: "summary", t: "Órdenes y comparables", x: "Alterná entre las publicaciones más baratas del arma y los comparables del estimado. Tocá cualquiera para abrir su propio resumen." },
       { el: "#sum-edit", demo: "summary", t: "Editar", x: "El engranaje abre el editor de este riven, el mismo que acabamos de ver." },
+      { el: "#sum-dialog .ord", demo: "summary", click: true, t: "Abrir otra publicación", x: "Tocá cualquiera de las órdenes para abrir su propio resumen. Probá con la primera." },
+      { el: "#sum-crumbs", demo: "summary2", t: "Migas de pan", x: "Arriba queda el camino que recorriste. Tocá Volver, o cualquier paso del camino, para regresar sin perderte." },
       { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
     ] },
   };
@@ -2432,12 +2434,17 @@ document.addEventListener('mousedown', (e) => {
     const neg = by("Zoom") && { slug: by("Zoom").slug, value: -40.5, positive: false };
     return { id: "demo", weapon: w.slug, name: "Ejemplo", polarity: "madurai", mr: 8, rank: 8, rolls: 5, price: 100, visible: true, note: "", stats: [...pick, neg].filter(Boolean) };
   }
-  function demoSummary() {   // detalle de ejemplo del riven de ejemplo, sin red
+  function demoSummary(aid = "demo") {   // detalle de ejemplo del riven de ejemplo, sin red
     const d = demoRiven(), iso = (min) => new Date(Date.now() - min * 60000).toISOString();
     const nm = ["caiwan7", "syalsim", "Kibbleray", "Souza", "Biker27893"], sts = ["ingame", "online", "ingame", "offline", "online"];
     const mkOrd = (price, i, sim) => ({ id: "demo-o" + i, price, rolls: [2, 6, 0, 14, 41][i], rank: i === 3 ? 4 : 8, created: iso(300 + i * 900), status: sts[i], last_seen: iso(60 * (i + 1)), seller: nm[i], sim,
       stats: d.stats.map((x, j) => ({ ...x, value: Math.round(x.value * (0.75 + 0.07 * ((i + j) % 5)) * 10) / 10 })) });
     const orders = [70, 85, 95, 110, 120].map((p, i) => mkOrd(p, i)), comps = [80, 90, 95, 100, 110].map((p, i) => mkOrd(p, i, 0.92 - i * 0.04));
+    if (aid !== "demo") {   // resumen de una publicación ajena (se abre tocando una orden)
+      const o = orders[+aid.slice(6)] || orders[0];
+      return { auction: { ...d, id: aid, price: o.price, stats: o.stats, updated: iso(30) }, hours: null, orders: { orders: orders.filter((x) => x.id !== o.id), age_s: 120 }, estimate: null,
+        market: { seller: o.seller, status: o.status, last_seen: o.last_seen }, history: [] };
+    }
     return { auction: { ...d, updated: iso(30) }, hours: { hours: 12.4, autodrop_on: true, hours_override: null, amount_override: null, floor_override: null },
       orders: { orders, age_s: 120 }, estimate: { price: 95, low: 80, high: 110, n: 5, confidence: "media", partial: false, comps }, market: null,
       history: [{ at: iso(60 * 24 * 3), price: 130, source: "manual" }, { at: iso(60 * 24), price: 115, source: "auto" }, { at: iso(60 * 5), price: 100, source: "auto" }] };
@@ -2448,14 +2455,18 @@ document.addEventListener('mousedown', (e) => {
   let demoOpen = "";
   function closeDemo() {
     if (!demoOpen) return;
-    const wasList = ["list", "menu", "summary"].includes(demoOpen); demoOpen = "";
+    const wasList = ["list", "menu", "summary", "summary2"].includes(demoOpen); demoOpen = "";
     if (wasList) $("#sum-dialog").open && $("#sum-dialog").close();
     if (wasList) { demoRowOn = false; closeMenu(); renderMine(); return; }
     $("#publish-go").disabled = false; $("#est-go").disabled = false; $("#riven-dialog").close();
   }
   function openDemo(mode = "edit") {   // "new": el formulario de alta con datos de ejemplo; "edit": el editor de un riven ya publicado
-    if (demoOpen === mode) return; if (mode !== "summary") $("#sum-dialog").open && $("#sum-dialog").close();
+    if (demoOpen === mode) return; if (!mode.startsWith("summary")) $("#sum-dialog").open && $("#sum-dialog").close();
     if ($("#riven-dialog").open) $("#riven-dialog").close();
+    if (mode === "summary2") {   // detalle de ejemplo -> otra publicación, para mostrar las migas de pan
+      $("#publish-go").disabled = false; $("#est-go").disabled = false;
+      demoRowOn = true; renderMine(); closeMenu(); openSummary("demo"); openSummary("demo-o0", true); demoOpen = mode; return;
+    }
     if (mode === "summary") {
       $("#publish-go").disabled = false; $("#est-go").disabled = false;
       demoRowOn = true; renderMine(); closeMenu(); openSummary("demo"); demoOpen = mode; return;
@@ -2467,7 +2478,7 @@ document.addEventListener('mousedown', (e) => {
       if (mode === "menu" && btn) openMenu(btn, sortedMine()[0]); else closeMenu();
       demoOpen = mode; return;
     }
-    if (["list", "menu", "summary"].includes(demoOpen)) { demoRowOn = false; closeMenu(); renderMine(); }
+    if (["list", "menu", "summary", "summary2"].includes(demoOpen)) { demoRowOn = false; closeMenu(); renderMine(); }
     if (mode === "edit") openRiven({ existing: demoRiven() });
     else {
       const d = demoRiven();
@@ -2501,7 +2512,7 @@ document.addEventListener('mousedown', (e) => {
   function tourStep(i) {
     const T = TOURS[tour.id], st = T.steps[i];
     if (st.demo) openDemo(st.demo); else closeDemo();
-    document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.demo && d.id === (st.demo === "summary" ? "sum-dialog" : "riven-dialog"))) d.close(); });
+    document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.demo && d.id === (st.demo.startsWith("summary") ? "sum-dialog" : "riven-dialog"))) d.close(); });
     if (st.pre) st.pre();
     const el = document.querySelector(st.el);
     if (!el || !el.getClientRects().length) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
@@ -2522,7 +2533,7 @@ document.addEventListener('mousedown', (e) => {
     tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 160), innerWidth - 336) + "px";
     tip.querySelectorAll(".hlink").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openHelp(a.dataset.help); }));
     requestAnimationFrame(() => requestAnimationFrame(() => { r = place(); const h2 = tip.offsetHeight; tip.style.top = Math.max(8, r.bottom + 14 + h2 < innerHeight ? r.bottom + 14 : r.top - h2 - 14) + "px"; }));
-    if (st.demo === "summary") [150, 500].forEach((ms) => setTimeout(() => { if (tour && tour.i === i && tour.place === place) { r = place(); const h2 = tip.offsetHeight; tip.style.top = Math.max(8, r.bottom + 14 + h2 < innerHeight ? r.bottom + 14 : r.top - h2 - 14) + "px"; } }, ms));   // el detalle termina de acomodarse tras abrir
+    if (st.demo && st.demo.startsWith("summary")) [150, 500].forEach((ms) => setTimeout(() => { if (tour && tour.i === i && tour.place === place) { r = place(); const h2 = tip.offsetHeight; tip.style.top = Math.max(8, r.bottom + 14 + h2 < innerHeight ? r.bottom + 14 : r.top - h2 - 14) + "px"; } }, ms));   // el detalle termina de acomodarse tras abrir
     if (tour.clickOff) tour.clickOff();
     tour.clickOff = null;
     if (st.click) {   // el paso pide tocar el elemento: se intercepta el clic y se avanza en vez de abrir el formulario de verdad
