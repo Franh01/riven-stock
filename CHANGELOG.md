@@ -5,9 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
+- Corregido: el idioma elegido y las armas seguidas no se guardaban al reiniciar.
+- El botón del estimado ahora es "¿Cuánto vale este riven?", el estimado muestra el rango del mod en los comparables y, si faltan stats, marca los campos y avisa.
 - Nuevo riven: el origen vuelve arriba, MR, rango y rolls quedan a la vista, y el estimado con comparables también está al crear (usa los stats que cargaste).
 
 #### English
+- Fixed: the chosen language and tracked weapons were not saved across restarts.
+- The estimate button is now "What's it worth?", comparables show the mod rank and, if stats are missing, the fields are highlighted with a warning.
 - New riven: origin is back on top, MR, rank and rolls are visible again, and the comparables estimate is available when creating (uses the stats you entered).
 
 ## [0.8.2] - 2026-10-21

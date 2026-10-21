@@ -104,7 +104,7 @@ class Api:
 
     # ---- Preferencias (locales) -------------------------------------------
 
-    SETTING_KEYS = {"cloud_auto", "auto_ingame", "mine_sort", "invisible_on_close",
+    SETTING_KEYS = {"cloud_auto", "lang", "tracked_weapons", "auto_ingame", "mine_sort", "invisible_on_close",
                     "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials",
                     "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain"}
 

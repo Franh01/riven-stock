@@ -527,6 +527,8 @@
   }
   @keyframes flash { 0%, 100% { background-color: transparent; } 50% { background-color: #a066f66b; } }
   label.flash input { animation: flash 1s ease-in-out 2; }
+  @keyframes need-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .need { animation: need-shake .35s; } .need input { border-color: #f87171 !important; box-shadow: 0 0 0 2px rgba(248,113,113,.35); }
   @keyframes spin { to { transform: rotate(360deg); } }
   .skel { display: block; border-radius: 8px; height: 14px; background: linear-gradient(90deg, #ffffff08 25%, #ffffff18 50%, #ffffff08 75%); background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; }
   .skel.big { height: 38px; width: 45%; }
@@ -2185,7 +2187,14 @@ document.addEventListener('mousedown', (e) => {
     $("#est-section").hidden = false; $("#est-summary").innerHTML = ""; $("#est-results").innerHTML = skelRows(4);
     try {
       const f = readForm();
-      if (!f.item || f.attributes.filter((x) => x.positive).length < 2) { $("#est-results").innerHTML = `<div class="state">${tr("rd.estNeed")}</div>`; return; }
+      if (!f.item || f.attributes.filter((x) => x.positive).length < 2) {
+        $("#est-results").innerHTML = `<div class="state error">${tr("rd.estNeed")}</div>`;
+        const miss = slotEls.slice(0, 2).filter((el) => !el.querySelector(".slot-stat").value.trim() || !el.querySelector(".slot-value").value.trim());
+        miss.forEach((el) => { el.classList.remove("need"); void el.offsetWidth; el.classList.add("need"); });
+        if (miss[0]) { miss[0].scrollIntoView({ block: "center", behavior: "smooth" }); miss[0].querySelector(!miss[0].querySelector(".slot-stat").value.trim() ? ".slot-stat" : ".slot-value").focus(); }
+        toast(tr("rd.estNeed"), true);
+        return;
+      }
       const r = await api().estimate_draft(f.item), es = r.estimate;
       if (r.error) { $("#est-results").innerHTML = `<div class="state error">${esc(r.error)}</div>`; return; }
       if (!es) { $("#est-results").innerHTML = `<div class="state">${tr("rd.estNone")}</div>`; return; }
