@@ -787,14 +787,14 @@ document.addEventListener('mousedown', (e) => {
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const api = () => window.pywebview.api;
   const UNIT = { percent: "%", multiply: "x", seconds: "s" };
-  const fmtP = (n) => `${Number(n).toLocaleString("es-AR", { maximumFractionDigits: 1 })}p`;
+  const fmtP = (n) => `${Number(n).toLocaleString(I18N.locale, { maximumFractionDigits: 1 })}p`;
   // Placeholders animados mientras carga: filas de tabla, bloque de resumen, lista de ajustes.
   const skelRows = (n = 5) => `<div aria-busy="true">${Array.from({ length: n }, (_, i) => `<span class="skel row" style="width:${100 - (i % 3) * 6}%"></span>`).join("")}</div>`;
-  const skelSummary = () => `<div aria-busy="true"><div class="skel-note" id="skel-note">Consultando warframe.market…<div class="skel-bar"><u id="skel-fill"></u></div></div>
+  const skelSummary = () => `<div aria-busy="true"><div class="skel-note" id="skel-note">${tr("common.askingWfm")}<div class="skel-bar"><u id="skel-fill"></u></div></div>
     <div class="sum-grid"><div class="sum-side"><span class="skel" style="height:150px"></span><span class="skel" style="height:130px"></span></div>
     <div><span class="skel" style="width:55%;height:30px;margin-bottom:14px"></span>${Array.from({ length: 6 }, () => `<span class="skel" style="height:62px;margin:0 0 10px"></span>`).join("")}</div></div></div>`;
   const skelForm = () => `<div aria-busy="true">${Array.from({ length: 4 }, () => `<span class="skel card"></span>`).join("")}</div>`;
-  const spinner = `<span class="spinner" title="Esperando a warframe.market…"></span>`;
+  const spinner = { toString: () => `<span class="spinner" title="${tr("common.waitingWfm")}"></span>` };
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
   function toast(msg, isError = false) {
@@ -822,13 +822,13 @@ document.addEventListener('mousedown', (e) => {
   function ago(iso) {
     if (!iso) return "";
     const min = (Date.now() - new Date(iso)) / 60000;
-    if (min < 1) return "recién";
-    if (min < 60) return `hace ${Math.floor(min)} min`;
-    if (min < 60 * 24) return `hace ${Math.floor(min / 60)} h`;
-    if (min < 60 * 24 * 30) return `hace ${Math.floor(min / 60 / 24)} d`;
-    return new Date(iso).toLocaleDateString("es-AR");
+    if (min < 1) return tr("time.now");
+    if (min < 60) return tr("time.minAgo", { n: Math.floor(min) });
+    if (min < 60 * 24) return tr("time.hAgo", { n: Math.floor(min / 60) });
+    if (min < 60 * 24 * 30) return tr("time.dAgo", { n: Math.floor(min / 60 / 24) });
+    return new Date(iso).toLocaleDateString(I18N.locale);
   }
-  const fullDate = (iso) => (iso ? new Date(iso).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "");
+  const fullDate = (iso) => (iso ? new Date(iso).toLocaleString(I18N.locale, { dateStyle: "short", timeStyle: "short" }) : "");
 
   function applyLocal(data) {
     if (data.closed) closed = [...closed.filter((c) => c.pending), ...data.closed];
@@ -842,17 +842,17 @@ document.addEventListener('mousedown', (e) => {
 
   // ---- Estado del usuario (Invisible / Online / En juego) -------------------
   // Va por el WebSocket de warframe.market; el servidor lo mantiene hasta `statusUntil` (máx. 4 h).
-  const STATUS_LABEL = { ingame: "En juego", online: "Online", invisible: "Invisible" };
+  const statusLabel = (s) => (["ingame", "online", "invisible"].includes(s) ? tr("st." + s) : s);
   const DURATIONS = [[30, "30 min"], [60, "1 h"], [120, "2 h"], [240, "4 h"]];
   let myStatus = null;          // {status, statusUntil, statusSetAt}
   let settings = {};            // preferencias locales (auto_ingame, mine_sort)
   const autoIngame = () => settings.auto_ingame !== false;   // por defecto, activado
   let statusBusy = false;
 
-  const hhmm = (iso) => new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const hhmm = (iso) => new Date(iso).toLocaleTimeString(I18N.locale, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
   function remaining(iso) {
     const min = Math.round((new Date(iso) - Date.now()) / 60000);
-    if (min <= 0) return "vencido";
+    if (min <= 0) return tr("status.expired");
     return min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min`;
   }
 
@@ -860,15 +860,15 @@ document.addEventListener('mousedown', (e) => {
     const pill = $("#status-pill");
     const st = myStatus?.status;
     pill.className = `status-pill ${st ? `st-${st}` : ""}`;
-    $("#status-label").textContent = st ? STATUS_LABEL[st] ?? st : "Estado…";
+    $("#status-label").textContent = st ? statusLabel(st) : tr("status.loading");
     const until = st === "invisible" ? null : myStatus?.statusUntil;
-    $("#status-until").innerHTML = statusBusy ? spinner : until ? `· hasta ${esc(hhmm(until))}` : "";
-    pill.title = until ? `Tu estado en warframe.market · vence a las ${hhmm(until)} (en ${remaining(until)})` : "Tu estado en warframe.market";
+    $("#status-until").innerHTML = statusBusy ? spinner : until ? `· ${tr("status.until", { t: esc(hhmm(until)) })}` : "";
+    pill.title = until ? tr("status.pillTip", { t: hhmm(until), r: remaining(until) }) : tr("hdr.statusTip");
   }
 
   async function loadStatus() {
     const res = await api().status();
-    if (res.error) { toast(`No se pudo leer tu estado: ${res.error}`, true); return; }
+    if (res.error) { toast(tr("status.readFail", { e: res.error }), true); return; }
     myStatus = res.status;
     renderStatus();
   }
@@ -883,14 +883,14 @@ document.addEventListener('mousedown', (e) => {
     if (res.error) {
       myStatus = before;
       renderStatus();
-      toast(`No se pudo cambiar el estado: ${res.error}`, true);
+      toast(tr("status.setFail", { e: res.error }), true);
       return;
     }
     const until = myStatus.statusUntil;   // si la API no devolvió la hora, se conserva la optimista
     myStatus = { ...myStatus, ...res.status };
     if (!myStatus.statusUntil) myStatus.statusUntil = until;
     renderStatus();
-    toast(status === "invisible" ? "Estado: Invisible" : `Estado: ${STATUS_LABEL[status]} hasta las ${hhmm(myStatus.statusUntil)}`);
+    toast(status === "invisible" ? tr("status.nowInvisible") : tr("status.nowUntil", { s: statusLabel(status), t: hhmm(myStatus.statusUntil) }));
   }
 
   const statusMenu = $("#status-menu");
@@ -898,13 +898,13 @@ document.addEventListener('mousedown', (e) => {
     if (!statusMenu.hidden) { statusMenu.hidden = true; return; }
     statusMenu.innerHTML = ["ingame", "online", "invisible"].map((s) => `
       <div class="status-row st-${s} ${myStatus?.status === s ? "current" : ""}">
-        <span class="name"><span class="dot"></span>${STATUS_LABEL[s]}</span>
-        ${s === "invisible" ? `<button style="grid-column: span 4" data-status="invisible" data-min="240" title="Ponerte invisible">Ponerme invisible</button>`
-          : DURATIONS.map(([m, label]) => `<button data-status="${s}" data-min="${m}" title="${STATUS_LABEL[s]} por ${label}">${label}</button>`).join("")}
+        <span class="name"><span class="dot"></span>${statusLabel(s)}</span>
+        ${s === "invisible" ? `<button style="grid-column: span 4" data-status="invisible" data-min="240" title="${tr("status.goInvisibleTip")}">${tr("status.goInvisible")}</button>`
+          : DURATIONS.map(([m, label]) => `<button data-status="${s}" data-min="${m}" title="${tr("status.forTip", { s: statusLabel(s), d: label })}">${label}</button>`).join("")}
       </div>`).join("") +
-      `<label class="auto-row"><input type="checkbox" id="auto-ingame" ${autoIngame() ? "checked" : ""}> Al abrir la app, ponerme <b>En juego</b> por 4 h</label>` +
-      `<label class="auto-row"><input type="checkbox" id="invisible-close" ${settings.invisible_on_close !== false ? "checked" : ""}> Al cerrar la app, ponerme <b>Invisible</b></label>` +
-      `<div class="hint">warframe.market no deja más de 4 h. Al vencer, vuelve a tu estado por defecto, aunque la app esté cerrada.</div>`;
+      `<label class="auto-row"><input type="checkbox" id="auto-ingame" ${autoIngame() ? "checked" : ""}> ${tr("status.autoOpen")}</label>` +
+      `<label class="auto-row"><input type="checkbox" id="invisible-close" ${settings.invisible_on_close !== false ? "checked" : ""}> ${tr("status.autoClose")}</label>` +
+      `<div class="hint">${tr("status.hint")}</div>`;
     statusMenu.hidden = false;
   });
   statusMenu.addEventListener("click", (e) => {
@@ -917,13 +917,13 @@ document.addEventListener('mousedown', (e) => {
     if (e.target.id === "invisible-close") {
       settings.invisible_on_close = e.target.checked;
       api().set_setting("invisible_on_close", e.target.checked);
-      toast(e.target.checked ? "Al cerrar la app vas a quedar Invisible" : "Al cerrar la app no cambia tu estado");
+      toast(tr(e.target.checked ? "status.closeOn" : "status.closeOff"));
       return;
     }
     if (e.target.id !== "auto-ingame") return;
     settings.auto_ingame = e.target.checked;
     api().set_setting("auto_ingame", e.target.checked);
-    toast(e.target.checked ? "Al abrir la app te va a poner En juego por 4 h" : "Al abrir la app ya no cambia tu estado");
+    toast(tr(e.target.checked ? "status.openOn" : "status.openOff"));
   });
   document.addEventListener("mousedown", (e) => {
     if (!statusMenu.hidden && !e.target.closest(".status-wrap")) statusMenu.hidden = true;
@@ -950,11 +950,11 @@ document.addEventListener('mousedown', (e) => {
     const onSale = mine.filter((a) => a.visible).reduce((s, a) => s + a.price, 0);
     const stock = lots.reduce((s, l) => s + l.remaining, 0);
     $("#totals").innerHTML = [
-      ["Vendido", fmtP(sold), "good", "Suma de lo vendido desde la app"],
-      ["Invertido", fmtP(invested), "", "Lotes de stock + costos de rivens sueltos"],
-      ["Balance", (balance > 0 ? "+" : "") + fmtP(balance), balance >= 0 ? "good" : "bad", "Vendido − invertido"],
-      ["En venta", fmtP(onSale), "accent", "Suma de los precios de tus contratos visibles"],
-      ["Stock", `${stock} sin abrir`, "", "Rivens unveiled sin abrir"],
+      [tr("tot.sold"), fmtP(sold), "good", tr("tot.soldTip")],
+      [tr("tot.invested"), fmtP(invested), "", tr("tot.investedTip")],
+      [tr("tot.balance"), (balance > 0 ? "+" : "") + fmtP(balance), balance >= 0 ? "good" : "bad", tr("tot.balanceTip")],
+      [tr("tot.onSale"), fmtP(onSale), "accent", tr("tot.onSaleTip")],
+      [tr("tot.stock"), tr("tot.unopened", { n: stock }), "", tr("tot.stockTip")],
     ].map(([k, v, cls, title]) => `<div class="total ${cls}" title="${title}"><b>${v}</b><span>${k}</span></div>`).join("");
   }
 
@@ -990,7 +990,7 @@ document.addEventListener('mousedown', (e) => {
 
   function sortHeader(key, label) {
     const on = sort.key === key;
-    return `<th class="sortable ${on ? "sorted" : ""}" data-sort="${key}" title="Ordenar por ${label.toLowerCase()}">${label}<span class="arrow">${on ? (sort.dir > 0 ? "↑" : "↓") : ""}</span></th>`;
+    return `<th class="sortable ${on ? "sorted" : ""}" data-sort="${key}" title="${tr("sort.by", { l: label.toLowerCase() })}">${label}<span class="arrow">${on ? (sort.dir > 0 ? "↑" : "↓") : ""}</span></th>`;
   }
 
   const DOTS = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="13" cy="8" r="1.6" fill="currentColor"/></svg>`;
@@ -1944,7 +1944,7 @@ document.addEventListener('mousedown', (e) => {
   // ---- Arranque ---------------------------------------------------------
 
   // ---- Alertas del ajuste automático de precio y resumen de un riven ----
-  const when = (iso) => new Date(iso).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
+  const when = (iso) => new Date(iso).toLocaleString(I18N.locale, { dateStyle: "short", timeStyle: "short" });
   let alerts = { items: [], unread: 0 };
   function renderBell() {
     $("#bell-count").hidden = !alerts.unread;
