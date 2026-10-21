@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.0] - 2026-10-21
+
 ### Agregado
 - Alertas de oportunidad: la app busca en segundo plano publicaciones muy por debajo del estimado (descuento y ganancia mínimos configurables, armas vigiladas a elección) y avisa con un botón a la publicación.
 
