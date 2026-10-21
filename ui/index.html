@@ -385,6 +385,11 @@
     animation: spin .7s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .skel { display: block; border-radius: 8px; height: 14px; background: linear-gradient(90deg, #ffffff08 25%, #ffffff18 50%, #ffffff08 75%); background-size: 200% 100%; animation: shimmer 1.3s ease-in-out infinite; }
+  .skel.big { height: 38px; width: 45%; }
+  .skel.row { height: 40px; margin: 8px 0; }
+  .skel.card { height: 90px; margin-bottom: 10px; }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
   tr.busy td:not(.actions) { opacity: .7; }
   tr.busy .editable { cursor: default; }
   tr.busy .editable:hover { background: none; }
@@ -439,7 +444,7 @@
         <button class="ghost" id="reload">Actualizar</button>
       </div>
     </div>
-    <div id="mine"><div class="state">Cargando…</div></div>
+    <div id="mine"><div style="padding:6px 0"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div></div>
   </section>
 
   <section class="card">
@@ -648,6 +653,10 @@ document.addEventListener('mousedown', (e) => {
   const api = () => window.pywebview.api;
   const UNIT = { percent: "%", multiply: "x", seconds: "s" };
   const fmtP = (n) => `${Number(n).toLocaleString("es-AR", { maximumFractionDigits: 1 })}p`;
+  // Placeholders animados mientras carga: filas de tabla, bloque de resumen, lista de ajustes.
+  const skelRows = (n = 5) => `<div aria-busy="true">${Array.from({ length: n }, (_, i) => `<span class="skel row" style="width:${100 - (i % 3) * 6}%"></span>`).join("")}</div>`;
+  const skelSummary = () => `<div aria-busy="true"><span class="skel big"></span><span class="skel" style="width:30%;margin:10px 0 18px"></span>${skelRows(4)}</div>`;
+  const skelForm = () => `<div aria-busy="true">${Array.from({ length: 4 }, () => `<span class="skel card"></span>`).join("")}</div>`;
   const spinner = `<span class="spinner" title="Esperando a warframe.market…"></span>`;
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -1549,9 +1558,11 @@ document.addEventListener('mousedown', (e) => {
     const weapon = currentWeapon();
     if (!weapon) { toast("Elegí un arma de la lista", true); $("#f-weapon").focus(); return; }
     $("#ref-go").disabled = true; $("#ref-go").textContent = "Buscando…";
+    $("#results").innerHTML = skelRows(5);
     try {
       renderReference(weapon, await api().search(weapon.slug));
     } finally {
+      if ($("#results").querySelector("[aria-busy]")) $("#results").innerHTML = "";
       $("#ref-go").disabled = false; $("#ref-go").textContent = "Ver precio de referencia";
     }
   }
@@ -1815,7 +1826,7 @@ document.addEventListener('mousedown', (e) => {
   }
   async function openSummary(aid) {
     $("#sum-title").textContent = "Cargando…";
-    $("#sum-body").innerHTML = `<div class="state">Cargando…</div>`;
+    $("#sum-body").innerHTML = skelSummary();
     $("#sum-dialog").showModal();
     const r = await api().riven_summary(aid);
     if (r.error) { $("#sum-body").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
@@ -1875,7 +1886,7 @@ document.addEventListener('mousedown', (e) => {
   const cfgVal = (k) => (settings[k] === undefined || settings[k] === null ? CFG_DEF[k] : settings[k]);
   const sw = (id, on) => `<span class="switch"><input type="checkbox" id="${id}" ${on ? "checked" : ""}><i></i></span>`;
   async function openConfig() {
-    $("#cfg-body").innerHTML = `<div class="state">Cargando…</div>`;
+    $("#cfg-body").innerHTML = skelForm();
     $("#cfg-dialog").showModal();
     const oh = await api().online_hours();
     const total = oh && oh.hours != null ? oh.hours : 0;
