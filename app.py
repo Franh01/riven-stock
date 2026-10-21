@@ -25,6 +25,7 @@ import requests
 import websocket
 import webview
 
+import cloud_backup
 import store
 import updater
 from orders import OrderCache
@@ -81,7 +82,7 @@ class Api:
 
     # ---- Preferencias (locales) -------------------------------------------
 
-    SETTING_KEYS = {"auto_ingame", "mine_sort", "invisible_on_close",
+    SETTING_KEYS = {"cloud_auto", "auto_ingame", "mine_sort", "invisible_on_close",
                     "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials"}
 
     # ---- Actualizaciones ----
@@ -169,6 +170,104 @@ class Api:
             return {"error": str(e)}
         return {"ok": True}
 
+    # ---- Copia en la nube (cifrada del lado del cliente) -------------------
+
+    CLOUD_EVERY_S = 20 * 3600
+
+    def _cloud_set(self, **kv):
+        with store.connect() as conn:
+            for k, v in kv.items():
+                store.set_setting(conn, k, v)
+
+    def cloud_info(self):
+        with store.connect() as conn:
+            st = store.settings(conn)
+        return {"code": st.get("cloud_code"), "auto": st.get("cloud_auto", True), "last": st.get("cloud_last"),
+                "active": st.get("cloud_active")}
+
+    def cloud_enable(self):
+        """Crea el código de recuperación y sube la primera copia."""
+        code = cloud_backup.new_code()
+        try:
+            r = cloud_backup.upload(code, updater.version_actual())
+        except cloud_backup.CloudError as e:
+            return {"error": str(e)}
+        self._cloud_set(cloud_code=code, cloud_auto=True, cloud_last=r["at"])
+        return {"ok": True, "code": code, "last": r["at"]}
+
+    def cloud_upload(self):
+        code = self.cloud_info()["code"]
+        if not code:
+            return {"error": "no_cloud_backup"}
+        try:
+            r = cloud_backup.upload(code, updater.version_actual())
+        except cloud_backup.CloudError as e:
+            return {"error": str(e)}
+        self._cloud_set(cloud_last=r["at"])
+        return {"ok": True, "last": r["at"]}
+
+    def cloud_restore(self, code):
+        """Baja la copia con ese código y reemplaza los datos locales (antes deja una copia de seguridad)."""
+        try:
+            code = cloud_backup.normalize(code)
+            tmp = cloud_backup.download_to_file(code)
+        except cloud_backup.CloudError as e:
+            return {"error": str(e)}
+        try:
+            store.restore_db(tmp)
+        except Exception as e:
+            return {"error": str(e)}
+        finally:
+            try:
+                Path(tmp).unlink()
+            except OSError:
+                pass
+        self._cloud_set(cloud_code=code, cloud_auto=True)
+        return {"ok": True}
+
+    def cloud_disable(self):
+        """Borra la copia del servidor y olvida el código."""
+        code = self.cloud_info()["code"]
+        if code:
+            try:
+                cloud_backup.delete(code)
+            except cloud_backup.CloudError as e:
+                if str(e) != "no_cloud_backup":
+                    return {"error": str(e)}
+        self._cloud_set(cloud_code=None, cloud_last=None)
+        return {"ok": True}
+
+    def cloud_stats(self):
+        try:
+            r = cloud_backup.stats()
+        except cloud_backup.CloudError:
+            return {"active": self.cloud_info()["active"]}
+        self._cloud_set(cloud_active=r.get("active"))
+        return {"active": r.get("active"), "total": r.get("total")}
+
+    def _cloud_loop(self):
+        """Cada ~30 min: un ping diario anónimo (conteo de instalaciones activas) y la subida automática."""
+        if self._stop.wait(60):
+            return
+        while True:
+            try:
+                today = datetime.now().strftime("%Y-%m-%d")
+                with store.connect() as conn:
+                    st = store.settings(conn)
+                    iid = cloud_backup.install_id(conn)
+                if st.get("cloud_ping") != today:
+                    cloud_backup.ping(iid, updater.version_actual())
+                    self._cloud_set(cloud_ping=today)
+                    self.cloud_stats()
+                last = st.get("cloud_last")
+                due = not last or (datetime.now(timezone.utc) - datetime.fromisoformat(last.replace("Z", "+00:00"))).total_seconds() > self.CLOUD_EVERY_S
+                if st.get("cloud_code") and st.get("cloud_auto", True) and due:
+                    self.cloud_upload()
+            except Exception:
+                logging.info("Copia en la nube: se reintenta más tarde", exc_info=True)
+            if self._stop.wait(1800):
+                return
+
     def open_data_folder(self):
         import os
         os.startfile(str(store.DATA_DIR))
@@ -207,6 +306,7 @@ class Api:
         threading.Thread(target=self._counter_loop, daemon=True).start()
         threading.Thread(target=self._drop_loop, daemon=True).start()
         threading.Thread(target=self._snapshot_loop, daemon=True).start()
+        threading.Thread(target=self._cloud_loop, daemon=True).start()
         self._cache.start()
 
     def stop_counter(self):
@@ -500,6 +600,13 @@ class Api:
             store.make_backup(tag="-cierre")
         except Exception:
             logging.exception("Backup al cerrar")
+        try:
+            with store.connect() as conn:
+                st = store.settings(conn)
+            if st.get("cloud_code") and st.get("cloud_auto", True):
+                self.cloud_upload()
+        except Exception:
+            logging.info("Copia en la nube al cerrar: no se pudo", exc_info=True)
         self._close_ok = True
         self._window.destroy()
 
