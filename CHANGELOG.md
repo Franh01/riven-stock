@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.2.3] - 2026-10-20
+
 - Editar: al tocar un precio sugerido (mínimo, mediana, promedio o estimado) la ventana baja con scroll suave hasta el campo Precio y lo hace parpadear.
 ## [0.2.2] - 2026-10-20
 
