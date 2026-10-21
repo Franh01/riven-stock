@@ -4,6 +4,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Editar riven: acceso a la configuración de la baja automática desde el encabezado del diálogo.
 ## [0.2.4] - 2026-10-20
 
 - Los avisos (toast) ahora se ven por encima de los diálogos abiertos.
