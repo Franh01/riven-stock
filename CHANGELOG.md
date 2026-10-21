@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Editar un riven publicado ahora permite cambiar todos los datos (arma, nombre, stats, MR, rango, rolls y polaridad). Por detrás se republica el contrato y se cierra el anterior; el costo y el vínculo con el lote pasan al nuevo.
+
 - Recorrido inicial: se quitó el paso «Editar uno publicado», que describía solo la edición de polaridad.
 
 - Ayuda y recorrido: se explica en detalle cómo se cuentan las horas online de cada riven y su relación con el Ajuste automático de precio.

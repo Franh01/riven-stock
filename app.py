@@ -604,23 +604,41 @@ class Api:
         with store.connect() as conn:
             return {"history": store.price_history(conn, auction_id)}
 
-    def repolarize(self, auction_id, polarity, price=None, visible=None, note=None):
-        """La API no deja cambiar la polaridad de un contrato publicado: se publica uno igual con
-        la polaridad nueva, se cierra el viejo (sin ensuciar el historial de cerrados) y el costo
-        y el vínculo con el lote pasan al nuevo. Si falla la publicación, el viejo no se toca."""
+    def republish(self, auction_id, item=None, price=None, visible=None, note=None, polarity=None):
+        """La API no deja editar los datos de un contrato publicado (polaridad, arma, stats, MR,
+        rango, rolls, nombre): se publica uno nuevo con los datos cambiados, se cierra el viejo (sin
+        ensuciar el historial de cerrados) y el costo y el vínculo con el lote pasan al nuevo.
+        `item` es el del formulario; sin `item` se copia el viejo (y `polarity` lo pisa).
+        Si falla la publicación, el viejo no se toca."""
         try:
             cur = self._current(auction_id)
             old = cur["item"]
-            new = self.client.create_direct_sale(
-                {
+            if item is None:
+                item = {
                     "weapon_url_name": old["weapon_url_name"],
                     "name": old.get("name", ""),
-                    "attributes": [{"url_name": s["url_name"], "positive": bool(s["positive"]),
-                                    "value": float(s["value"])} for s in old["attributes"]],
-                    "mastery_level": int(old["mastery_level"]),
-                    "mod_rank": int(old["mod_rank"]),
-                    "re_rolls": int(old["re_rolls"]),
-                    "polarity": polarity,
+                    "attributes": old["attributes"],
+                    "mastery_level": old["mastery_level"],
+                    "mod_rank": old["mod_rank"],
+                    "re_rolls": old["re_rolls"],
+                    "polarity": polarity or old.get("polarity"),
+                }
+            positives = [x for x in item["attributes"] if x["positive"]]
+            negatives = [x for x in item["attributes"] if not x["positive"]]
+            if not 2 <= len(positives) <= 3 or len(negatives) > 1:
+                raise ValueError("Un riven tiene 2 o 3 stats positivos y como mucho 1 negativo")
+            if not str(item.get("name", "")).strip():
+                raise ValueError("Falta el nombre del riven")
+            new = self.client.create_direct_sale(
+                {
+                    "weapon_url_name": item["weapon_url_name"],
+                    "name": item["name"].strip(),
+                    "attributes": [{"url_name": t["url_name"], "positive": bool(t["positive"]),
+                                    "value": float(t["value"])} for t in item["attributes"]],
+                    "mastery_level": int(item["mastery_level"]),
+                    "mod_rank": int(item["mod_rank"]),
+                    "re_rolls": int(item["re_rolls"]),
+                    "polarity": item["polarity"],
                 },
                 price=int(price) if price is not None else cur["buyout_price"],
                 visible=bool(visible) if visible is not None else cur.get("visible", True),
@@ -645,6 +663,9 @@ class Api:
                 conn.commit()
         return {"auction": auction_view(new), "replaced": None if warning else auction_id,
                 "warning": warning, **self.local()}
+
+    def repolarize(self, auction_id, polarity, price=None, visible=None, note=None):
+        return self.republish(auction_id, None, price, visible, note, polarity)
 
     def create(self, item, price, visible=True, note="", cost=None, lot_id=None):
         """Publica una venta directa. `item` viene del formulario del modal. `cost` y `lot_id`

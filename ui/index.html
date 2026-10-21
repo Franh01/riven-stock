@@ -1572,10 +1572,6 @@ document.addEventListener('mousedown', (e) => {
 
   function refreshNames() {
     const box = $("#name-chips");
-    if (editing) {
-      box.innerHTML = `<span class="name-chip selected">${esc(cap(editing.name))}</span>`;
-      return;
-    }
     const positives = [0, 1, 2]
       .map((i) => {
         const raw = slotEls[i].querySelector(".slot-value").value.trim();
@@ -1610,7 +1606,7 @@ document.addEventListener('mousedown', (e) => {
 
   $("#name-chips").addEventListener("click", (e) => {
     const chip = e.target.closest("[data-name]");
-    if (!chip || editing) return;
+    if (!chip) return;
     const name = chip.dataset.name;
     $("#f-name").hidden = name !== "";
     if (name) {
@@ -1661,10 +1657,9 @@ document.addEventListener('mousedown', (e) => {
     $("#publish-title").textContent = existing ? "Editar contrato" : "Publicar venta directa";
     $("#publish-go").textContent = existing ? "Guardar cambios" : "Publicar";
     $("#origin-row").hidden = !!existing;
-    // La polaridad sigue editable: cambiarla republica el contrato por detrás (ver repolarize).
-    document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value")
-      .forEach((el) => (el.disabled = !!existing));
-    document.querySelectorAll(".pol-btn").forEach((el) => (el.disabled = false));
+    // Todo es editable: cambiar los datos del riven republica el contrato por detrás (ver republish).
+    document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value, .pol-btn")
+      .forEach((el) => (el.disabled = false));
     $("#confirm").hidden = true;
     $("#ref-section").hidden = true;
     $("#publish-step").textContent = "2";
@@ -1675,6 +1670,7 @@ document.addEventListener('mousedown', (e) => {
       weaponCombo.set(existing.weapon);
       setPolarity(existing.polarity);
       $("#f-mr").value = existing.mr; $("#f-rank").value = existing.rank; $("#f-rolls").value = existing.rolls;
+      $("#f-name").value = existing.name; nameAuto = false;
       refreshSlots();
       const pos = existing.stats.filter((s) => s.positive), neg = existing.stats.filter((s) => !s.positive);
       [pos[0], pos[1], pos[2], neg[0]].forEach((s, i) => {
@@ -1819,8 +1815,19 @@ document.addEventListener('mousedown', (e) => {
   function editChanges() {
     const price = parseInt($("#f-price").value, 10);
     const changes = {};
-    const polarity = $("#f-polarity").value;
-    if (polarity !== editing.polarity) changes.polarity = polarity;
+    const { item } = readForm();
+    const sig = (st) => st.map((x) => `${x.slug ?? x.url_name}:${x.positive ? 1 : 0}:${Number(x.value)}`).sort().join("|");
+    const fields = [];
+    if (item) {
+      if (item.polarity !== editing.polarity) fields.push(["Polaridad", cap(editing.polarity), cap(item.polarity)]);
+      if (item.weapon_url_name !== editing.weapon) fields.push(["Arma", weaponName(editing.weapon), weaponName(item.weapon_url_name)]);
+      if (item.name !== editing.name) fields.push(["Nombre", cap(editing.name), cap(item.name)]);
+      if (Number(item.mastery_level) !== editing.mr) fields.push(["MR", editing.mr, item.mastery_level]);
+      if (Number(item.mod_rank) !== editing.rank) fields.push(["Rango", editing.rank, item.mod_rank]);
+      if (Number(item.re_rolls) !== editing.rolls) fields.push(["Rolls", editing.rolls, item.re_rolls]);
+      if (sig(item.attributes) !== sig(editing.stats)) fields.push(["Stats", "los actuales", "los nuevos"]);
+    }
+    if (fields.length) { changes.item = item; changes.fields = fields; }
     if (price !== editing.price) changes.price = price;
     if ($("#f-visible").checked !== editing.visible) changes.visible = $("#f-visible").checked;
     if ($("#f-note").value.trim() !== (editing.note ?? "").trim()) changes.note = $("#f-note").value.trim();
@@ -1846,7 +1853,15 @@ document.addEventListener('mousedown', (e) => {
       const row = (k, v) => `<div class="cf-row"><span>${k}</span><span class="cf-val">${v}</span></div>`;
       const chg = (o, n) => `<span class="old">${o}</span><span class="arrow">→</span><span class="new">${n}</span>`;
       const rows = [];
-      if ("polarity" in changes) rows.push(row("Polaridad", chg(cap(editing.polarity), cap(changes.polarity))));
+      if (changes.fields) {
+        const { attributes } = readForm();
+        const npos = attributes.filter((x) => x.positive).length;
+        if (npos < 2 || attributes.length - npos > 1 || attributes.some((x) => Number.isNaN(x.value)) || !changes.item.name) {
+          toast("Completá el arma, el nombre y los stats (2 o 3 positivos, máximo 1 negativo, con valores)", true); return;
+        }
+        for (const [k, o, n] of changes.fields) rows.push(row(k, chg(esc(String(o)), esc(String(n)))));
+        rows.push(row("Aviso", `<span class="muted">Cambiar los datos republica el contrato: se publica uno nuevo y se cierra el actual</span>`));
+      }
       if ("price" in changes) { const d = changes.price - editing.price; rows.push(row("Precio", chg(`${editing.price}p`, `${changes.price}p`) + `<span class="diff ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${Math.abs(d)}p</span>`)); }
       if ("visible" in changes) rows.push(row("Visibilidad", changes.visible ? `<span class="on">Se muestra</span>` : `<span class="off">Se oculta</span>`));
       if ("note" in changes) rows.push(row("Nota", chg(esc(editing.note || "—"), esc(changes.note || "—"))));
@@ -1878,14 +1893,14 @@ document.addEventListener('mousedown', (e) => {
         // Optimista: se cierra el modal ya y la fila muestra los cambios con spinner.
         const a = mine.find((x) => x.id === editing.id) ?? editing;
         const { changes, costChanged, costRaw } = editChanges();
-        if ("polarity" in changes) {
-          // Cambiar la polaridad republica el contrato: no puede ser optimista (el id nuevo lo da la API).
+        if (changes.item) {
+          // Cambiar los datos republica el contrato: no puede ser optimista (el id nuevo lo da la API).
           $("#confirm-ok").innerHTML = `Guardando…${spinner}`;
           $("#confirm-back").disabled = true;
           if (costChanged) await saveCost(a.id, costRaw === "" ? null : costRaw);
-          const res = await api().repolarize(a.id, changes.polarity, changes.price ?? null,
+          const res = await api().republish(a.id, changes.item, changes.price ?? null,
             changes.visible ?? null, changes.note ?? null);
-          if (res.error) { toast(`No se pudo cambiar la polaridad: ${res.error}`, true); return; }
+          if (res.error) { toast(`No se pudo cambiar los datos: ${res.error}`, true); return; }
           mine = mine.map((x) => (x.id === a.id ? res.auction : x));
           if (res.warning) mine = [a, ...mine];
           applyLocal(res);
