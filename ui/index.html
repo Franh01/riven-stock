@@ -695,24 +695,21 @@
   <div class="dlg-body">
     <section>
       <div class="section-title"><span class="step">1</span><h2 data-i18n="rd.sec1">Riven</h2></div>
+      <div class="origin-row" id="origin-row">
+        <span class="tag" data-i18n="rd.origin">Origen</span>
+        <select id="f-origin"></select>
+      </div>
       <div class="grid-riven">
         <label><span data-i18n="common.weapon">Arma</span> <input id="f-weapon" placeholder="Escribí el arma…" data-i18n-placeholder="common.weaponPh"></label>
         <label><span data-i18n="rd.polarity">Polaridad</span>
           <div class="polarity-group" id="f-polarity-group"><button type="button" class="pol-btn" data-value="madurai" title="Madurai"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M8 3.5 L11.2 2.8 L11 11.5 C13.5 9.8 16 7.5 18.5 5.2 C19.6 4.4 20.4 4.8 19.6 5.8 C16.5 10 12 13.5 9 20.5 L7.6 21 C8 14 8 8 8 3.5 Z"/></svg><span>Madurai</span></button><button type="button" class="pol-btn" data-value="naramon" title="Naramon"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M3 9.5 L18.5 9 L19.2 6.8 L20.2 7 L20.6 13 L9.5 12.8 L6.8 15.5 L5.2 15 L6.2 12.5 L3.2 12 Z"/></svg><span>Naramon</span></button><button type="button" class="pol-btn" data-value="vazarin" title="Vazarin"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" fill-rule="evenodd" d="M3 6 L18 6 L20 7 C20 13 19 17 17.5 21 C13 17 7 11 3 6 Z M10.5 8.8 L15 8.5 L15.5 12.5 Z"/></svg><span>Vazarin</span></button></div><input type="hidden" id="f-polarity" value="madurai">
         </label>
       </div>
-      <details class="more" id="rd-more">
-        <summary id="rd-more-sum"></summary>
-        <div class="origin-row" id="origin-row">
-          <span class="tag" data-i18n="rd.origin">Origen</span>
-          <select id="f-origin"></select>
-        </div>
-        <div class="grid-riven grid-extra">
+      <div class="grid-riven grid-extra">
           <label><span data-i18n="rd.mr">MR</span> <input id="f-mr" type="number" min="8" max="16" value="8"></label>
           <label><span data-i18n="rd.rank">Rango</span> <input id="f-rank" type="number" min="0" max="8" value="0"></label>
           <label><span data-i18n="rd.rolls">Rolls</span> <input id="f-rolls" type="number" min="0" value="0"></label>
         </div>
-      </details>
       <div class="grid-stats" id="stat-slots"></div>
       <div class="name-row">
         <span class="tag" data-i18n="rd.name">Nombre</span>
@@ -2044,7 +2041,6 @@ document.addEventListener('mousedown', (e) => {
   }
 
   function syncMore() {
-    $("#rd-more-sum").textContent = tr("rd.moreSum", { mr: $("#f-mr").value, rank: $("#f-rank").value, rolls: $("#f-rolls").value });
     const cost = $("#f-cost").value.trim();
     $("#pub-more-sum").textContent = tr("rd.optsSum", { cost: cost ? cost + "p" : "-", vis: tr($("#f-visible").checked ? "rd.visYes" : "rd.visNo") });
   }
@@ -2105,8 +2101,8 @@ document.addEventListener('mousedown', (e) => {
       $("#rd-ov-f").value = h && h.floor_override ? h.floor_override : "";
       $("#rd-ov-h").placeholder = cfgVal("autodrop_hours"); $("#rd-ov-a").placeholder = cfgVal("autodrop_amount"); $("#rd-ov-f").placeholder = cfgVal("autodrop_floor");
     }
-    $("#est-go").hidden = !existing; $("#est-hint").hidden = !existing; $("#est-section").hidden = true;
-    $("#rd-more").open = !!existing; $("#pub-more").open = false;
+    $("#est-go").hidden = false; $("#est-hint").hidden = false; $("#est-section").hidden = true;
+    $("#pub-more").open = false;
     syncMore();
     $("#riven-dialog").showModal();
     if (existing && existing.id === "demo") demoReference();
@@ -2184,12 +2180,13 @@ document.addEventListener('mousedown', (e) => {
   $("#ref-go").addEventListener("click", runReference);
 
   async function runEstimate() {
-    if (!editing) return;
-    if (editing.id === "demo") return demoEstimate();
+    if (editing && editing.id === "demo") return demoEstimate();
     const btn = $("#est-go"); btn.disabled = true; btn.textContent = tr("rd.estRunning");
     $("#est-section").hidden = false; $("#est-summary").innerHTML = ""; $("#est-results").innerHTML = skelRows(4);
     try {
-      const r = await api().riven_summary(editing.id), es = r.estimate;
+      const f = readForm();
+      if (!f.item || f.attributes.filter((x) => x.positive).length < 2) { $("#est-results").innerHTML = `<div class="state">${tr("rd.estNeed")}</div>`; return; }
+      const r = await api().estimate_draft(f.item), es = r.estimate;
       if (r.error) { $("#est-results").innerHTML = `<div class="state error">${esc(r.error)}</div>`; return; }
       if (!es) { $("#est-results").innerHTML = `<div class="state">${tr("rd.estNone")}</div>`; return; }
       renderEstimate(es);
@@ -3070,7 +3067,7 @@ document.addEventListener('mousedown', (e) => {
     }
     demoOpen = mode;
     $("#f-weapon").blur(); document.querySelectorAll("#riven-dialog .combo-list").forEach((l) => (l.hidden = true));   // openRiven enfoca el arma y abre su lista; el recorrido no la quiere
-    $("#publish-go").disabled = true; $("#est-go").disabled = mode === "new";   // en la edicion de ejemplo el estimado si se puede tocar (muestra datos falsos)
+    $("#publish-go").disabled = true; $("#est-go").disabled = false;   // en la edicion de ejemplo el estimado si se puede tocar (muestra datos falsos)
   }
   let tour = null;
   const tourState = () => settings.tutorials || { done: {}, off: false };

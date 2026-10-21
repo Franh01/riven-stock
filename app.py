@@ -623,20 +623,8 @@ class Api:
             store.set_overrides(conn, auction_id, num(hours, float), num(amount, int), num(floor, int))
         return {"ok": True}
 
-    def riven_summary(self, auction_id):
-        """Resumen de un riven: historial de precios, horas y órdenes online más baratas del caché."""
-        a = self._seen.get(auction_id)
-        foreign = a is None
-        if foreign:
-            a = self._market.get(auction_id)
-        if not a:
-            return {"error": "Riven no encontrado."}
-        if foreign:
-            hist, h = [], None
-        else:
-            with store.connect() as conn:
-                hist = store.price_history(conn, auction_id)
-                h = store.riven_hours(conn).get(auction_id)
+    def _estimate_for(self, a, exclude_id):
+        """Vista, órdenes y estimado de un contrato (guardado o borrador)."""
         weapon = a["item"]["weapon_url_name"]
         orders = self.weapon_orders(weapon)
         view = auction_view(a)
@@ -657,7 +645,7 @@ class Api:
             rtype = self._rtype(weapon)
         except (WFMError, requests.RequestException):
             rtype = None
-        est = estimate(view, list(pool.values()), exclude_id=auction_id, rtype=rtype)
+        est = estimate(view, list(pool.values()), exclude_id=exclude_id, rtype=rtype)
         if est:   # los comparables también se abren: se reconstruye el contrato desde lo guardado
             for c in est["comps"]:
                 o = pool.get(c["id"])
@@ -665,6 +653,37 @@ class Api:
                     self._market[c["id"]] = slim_to_raw(o, weapon)
         if est and failed:
             est["partial"] = True
+        return view, orders, est
+
+    def estimate_draft(self, item):
+        """Estimado de un riven que todavía no se publicó, con lo que hay en el formulario."""
+        try:
+            a = {"id": "draft", "buyout_price": 0, "item": dict(item)}
+            a["item"]["attributes"] = [{"url_name": x["url_name"], "positive": bool(x["positive"]),
+                                        "value": float(x["value"])} for x in item["attributes"]]
+            a["item"]["re_rolls"] = int(item.get("re_rolls") or 0)
+            a["item"]["mod_rank"] = int(item.get("mod_rank") or 0)
+            a["item"]["mastery_level"] = int(item.get("mastery_level") or 8)
+            view, orders, est = self._estimate_for(a, "draft")
+            return {"auction": view, "estimate": est}
+        except (WFMError, requests.RequestException, KeyError, ValueError) as e:
+            return {"error": str(e)}
+
+    def riven_summary(self, auction_id):
+        """Resumen de un riven: historial de precios, horas y órdenes online más baratas del caché."""
+        a = self._seen.get(auction_id)
+        foreign = a is None
+        if foreign:
+            a = self._market.get(auction_id)
+        if not a:
+            return {"error": "Riven no encontrado."}
+        if foreign:
+            hist, h = [], None
+        else:
+            with store.connect() as conn:
+                hist = store.price_history(conn, auction_id)
+                h = store.riven_hours(conn).get(auction_id)
+        view, orders, est = self._estimate_for(a, auction_id)
         out = {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
         if foreign:
             out["market"] = {"seller": a["owner"]["ingame_name"], "status": a["owner"].get("status"),

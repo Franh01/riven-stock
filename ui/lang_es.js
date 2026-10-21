@@ -214,6 +214,7 @@ window.LANGS.es = {
   "rd.rep": "rep",
   "rd.estRunning": "Calculando… puede tardar",
   "rd.estNone": "Sin comparables suficientes.",
+  "rd.estNeed": "Cargá al menos 2 stats positivos para estimar.",
   "rd.estimated": "Estimado",
   "rd.range": "Rango",
   "rd.partial": "Incompleto: warframe.market limitó los pedidos. Probá de nuevo en un minuto.",

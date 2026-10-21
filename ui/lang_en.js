@@ -214,6 +214,7 @@ window.LANGS.en = {
   "rd.rep": "rep",
   "rd.estRunning": "Calculating… may take a while",
   "rd.estNone": "Not enough comparables.",
+  "rd.estNeed": "Enter at least 2 positive stats to estimate.",
   "rd.estimated": "Estimate",
   "rd.range": "Range",
   "rd.partial": "Incomplete: warframe.market throttled the requests. Try again in a minute.",

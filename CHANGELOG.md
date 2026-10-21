@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Nuevo riven: el origen vuelve arriba, MR, rango y rolls quedan a la vista, y el estimado con comparables también está al crear (usa los stats que cargaste).
+
+#### English
+- New riven: origin is back on top, MR, rank and rolls are visible again, and the comparables estimate is available when creating (uses the stats you entered).
+
 ## [0.8.2] - 2026-10-21
 
 #### Español
