@@ -5,10 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
-- El estimado ahora propone tres precios (rápido, estimado, alto) y muestra cuánto tardaron en venderse tus ventas anteriores.
+- El estimado ahora propone tres precios (rápido, estimado, alto) y muestra cuánto tardaron en venderse tus ventas anteriores, con un botón ? que explica cada precio.
 
 #### English
-- The estimate now suggests three prices (fast, estimate, high) and shows how long your previous sales took to sell.
+- The estimate now suggests three prices (fast, estimate, high) and shows how long your previous sales took to sell, with a ? button explaining each price.
 
 ## [0.8.5] - 2026-10-21
 
