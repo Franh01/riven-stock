@@ -857,7 +857,8 @@ document.addEventListener('mousedown', (e) => {
     [/^Estado inválido: (.*)$/, "e.22"],
     [/^Preferencia desconocida: (.*)$/, "e.23"],
     [/^No se pudo buscar actualizaciones: (.*)$/, "e.24"],
-    [/^warframe\.market rechazó el token en el WebSocket \((.*)\)$/, "e.25"]
+    [/^warframe\.market rechazó el token en el WebSocket \((.*)\)$/, "e.25"],
+    [/^invalid_backup$/, "e.26"]
   ];
   const trErr = (m) => {
     for (const [rx, k] of ERRS) { const x = rx.exec(m); if (x) return tr(k, { a: x[1], b: x[2] }); }
@@ -2518,6 +2519,7 @@ document.addEventListener('mousedown', (e) => {
   async function openConfig() {
     $("#cfg-body").innerHTML = skelForm();
     $("#cfg-dialog").showModal();
+    setTimeout(loadBackupInfo, 0);
     const oh = await api().online_hours();
     const total = oh && oh.hours != null ? oh.hours : 0;
     const on = cfgVal("autodrop_enabled");
@@ -2532,9 +2534,30 @@ document.addEventListener('mousedown', (e) => {
       </div></div>
       <div class="sum-card"><label class="switch-row"><span>${tr("cfg.invis")}<small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row"><span>${tr("lang.label")}<small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
+      <div class="sum-card"><b>${tr("bk.title")}</b><small style="display:block;margin:2px 0 8px" class="muted">${tr("bk.sub")}</small>
+        <div id="bk-info" class="muted" style="font-size:12px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="bk-now">${tr("bk.now")}</button><button class="ghost" id="bk-export">${tr("bk.export")}</button><button class="ghost" id="bk-import">${tr("bk.import")}</button><button class="ghost" id="bk-folder">${tr("bk.folder")}</button></div></div>
       <div class="muted" style="font-size:12px">${tr("cfg.total", { h: "<b>" + total.toFixed(1) + " h</b>" })}</div>
     </div>`;
   }
+  async function loadBackupInfo() {
+    const el = $("#bk-info"); if (!el) return;
+    const i = await api().backup_info();
+    const last = i.backups[0];
+    el.textContent = last ? tr("bk.last", { n: i.backups.length, d: new Date(last.at * 1000).toLocaleString(I18N.locale) }) : tr("bk.none");
+  }
+  $("#cfg-body").addEventListener("click", async (e) => {
+    const id = e.target.closest("button")?.id;
+    if (!id || !id.startsWith("bk-")) return;
+    if (id === "bk-now") { const r = await api().backup_now(); toast(r.error ? r.error : tr("bk.done")); loadBackupInfo(); }
+    else if (id === "bk-folder") api().open_data_folder();
+    else if (id === "bk-export") { const r = await api().export_backup(); if (r.error) toast(r.error); else if (r.ok) toast(tr("bk.exported")); }
+    else if (id === "bk-import") {
+      if (!confirm(tr("bk.confirm"))) return;
+      const r = await api().import_backup();
+      if (r.error) toast(r.error); else if (r.ok) { toast(tr("bk.restored")); setTimeout(() => location.reload(), 900); }
+    }
+  });
   const saveCfg = (k, v) => { settings[k] = v; api().set_setting(k, v); };
   $("#gear").addEventListener("click", openConfig);
   $("#rd-auto-on").addEventListener("change", (e) => editing && api().set_autodrop(editing.id, e.target.checked).then(loadMine));
@@ -2946,7 +2969,7 @@ document.addEventListener('mousedown', (e) => {
   const hideSplash = () => setTimeout(() => { const e = document.getElementById("splash"); e.classList.add("out"); setTimeout(() => e.remove(), 400); },
     Math.max(0, 1600 - (Date.now() - splashAt)));
   setTimeout(hideSplash, 8000);   // por si la carga falla: nunca dejar la pantalla tapada
-  const HELP_N = 9;
+  const HELP_N = 10;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button>`;

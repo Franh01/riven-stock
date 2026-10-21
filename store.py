@@ -7,13 +7,29 @@
 """
 
 import json
+import os
 import shutil
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "riven_stock.db"
+LEGACY_DB = Path(__file__).parent / "riven_stock.db"   # ubicación vieja: dentro de la carpeta de la app
+
+
+def _data_dir():
+    """Carpeta de datos del usuario, fuera de la instalación: reinstalar o actualizar no la toca."""
+    env = os.environ.get("RIVEN_STOCK_DATA")
+    if env:
+        return Path(env)
+    base = os.environ.get("APPDATA")
+    return (Path(base) if base else Path.home()) / "RivenStock"
+
+
+DATA_DIR = _data_dir()
+DB_PATH = DATA_DIR / "riven_stock.db"
+BACKUP_DIR = DATA_DIR / "backups"
+BACKUP_KEEP = 10
 RIVEN_TYPES = ("rifle", "shotgun", "pistol", "melee", "zaw", "kitgun")
 
 SCHEMA = """
@@ -123,6 +139,83 @@ CREATE TABLE IF NOT EXISTS settings (
     value       TEXT NOT NULL       -- JSON
 );
 """
+
+
+def _copy_db(src, dst):
+    """Copia consistente de una base SQLite (incluye lo que esté en el WAL)."""
+    a = sqlite3.connect(src)
+    b = sqlite3.connect(dst)
+    try:
+        a.backup(b)
+    finally:
+        b.close()
+        a.close()
+
+
+def migrate_legacy():
+    """Primera vez con la carpeta nueva: copia la base de la ubicación vieja (la vieja queda como respaldo)."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    if DB_PATH.exists() or not LEGACY_DB.exists():
+        return False
+    _copy_db(LEGACY_DB, DB_PATH)
+    return True
+
+
+def make_backup(path=DB_PATH, tag=""):
+    """Copia fechada en backups/, dejando solo las últimas BACKUP_KEEP. Devuelve la ruta o None."""
+    if not Path(path).exists():
+        return None
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    dest = BACKUP_DIR / f"riven_stock-{datetime.now().strftime('%Y%m%d-%H%M%S')}{tag}.db"
+    _copy_db(path, dest)
+    for old in sorted(BACKUP_DIR.glob("riven_stock-*.db"))[:-BACKUP_KEEP]:
+        try:
+            old.unlink()
+        except OSError:
+            pass
+    return dest
+
+
+def list_backups():
+    if not BACKUP_DIR.exists():
+        return []
+    return [{"name": p.name, "path": str(p), "size": p.stat().st_size, "at": p.stat().st_mtime}
+            for p in sorted(BACKUP_DIR.glob("riven_stock-*.db"), reverse=True)]
+
+
+def backup_if_due(hours=24):
+    """Backup automático si el último tiene más de `hours` horas (y hay datos). Devuelve la ruta o None."""
+    last = list_backups()
+    if last and datetime.now().timestamp() - last[0]["at"] < hours * 3600:
+        return None
+    return make_backup()
+
+
+def validate_db(path):
+    """True si `path` es una base de Riven Stock legible."""
+    try:
+        c = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        try:
+            if c.execute("PRAGMA quick_check").fetchone()[0] != "ok":
+                return False
+            tablas = {r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            return "auction_events" in tablas
+        finally:
+            c.close()
+    except sqlite3.Error:
+        return False
+
+
+def restore_db(src):
+    """Reemplaza el contenido de la base actual por el de `src`. Antes deja un backup de seguridad."""
+    make_backup(tag="-antes-de-restaurar")
+    a = sqlite3.connect(src)
+    b = sqlite3.connect(DB_PATH)
+    try:
+        a.backup(b)
+    finally:
+        b.close()
+        a.close()
 
 
 @contextmanager

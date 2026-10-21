@@ -45,6 +45,12 @@ class Api:
     """Métodos que la interfaz llama con window.pywebview.api.<método>()."""
 
     def __init__(self):
+        try:
+            if store.migrate_legacy():
+                logging.info("Base migrada a %s", store.DB_PATH)
+            store.backup_if_due()
+        except Exception:
+            logging.exception("No se pudo migrar o respaldar la base")
         self.client = WFMClient()
         self._seen = {}  # id -> último contrato propio leído de la API (crudo)
         self._market = {}  # id -> contrato ajeno visto en la pestaña Mercado (crudo)
@@ -119,6 +125,53 @@ class Api:
             return {"error": f"Preferencia desconocida: {key}"}
         with store.connect() as conn:
             store.set_setting(conn, key, value)
+        return {"ok": True}
+
+    # ---- Copias de seguridad locales ---------------------------------------
+
+    def backup_info(self):
+        return {"dir": str(store.DATA_DIR), "backups": store.list_backups()}
+
+    def backup_now(self):
+        try:
+            p = store.make_backup(tag="-manual")
+        except Exception as e:
+            return {"error": str(e)}
+        return {"ok": True, "path": str(p)}
+
+    def export_backup(self):
+        """Guarda una copia de la base donde elija el usuario."""
+        name = f"riven-stock-{datetime.now().strftime('%Y-%m-%d')}.db"
+        dest = self._window.create_file_dialog(webview.FileDialog.SAVE, save_filename=name,
+                                               file_types=("Base de Riven Stock (*.db)",))
+        if not dest:
+            return {"cancelled": True}
+        dest = dest if isinstance(dest, str) else dest[0]
+        try:
+            Path(dest).unlink(missing_ok=True)
+            store._copy_db(store.DB_PATH, dest)
+        except Exception as e:
+            return {"error": str(e)}
+        return {"ok": True, "path": str(dest)}
+
+    def import_backup(self, path=None):
+        """Restaura la base desde un archivo (el elegido o `path`). Deja antes un backup de seguridad."""
+        if not path:
+            sel = self._window.create_file_dialog(webview.FileDialog.OPEN, file_types=("Base de Riven Stock (*.db)",))
+            if not sel:
+                return {"cancelled": True}
+            path = sel if isinstance(sel, str) else sel[0]
+        if not store.validate_db(path):
+            return {"error": "invalid_backup"}
+        try:
+            store.restore_db(path)
+        except Exception as e:
+            return {"error": str(e)}
+        return {"ok": True}
+
+    def open_data_folder(self):
+        import os
+        os.startfile(str(store.DATA_DIR))
         return {"ok": True}
 
     # ---- Estado del usuario (Invisible / Online / En juego) ----------------
@@ -443,6 +496,10 @@ class Api:
                     self.client.set_status("invisible", 60)
         except Exception:
             pass   # si falla, el estado vence solo
+        try:
+            store.make_backup(tag="-cierre")
+        except Exception:
+            logging.exception("Backup al cerrar")
         self._close_ok = True
         self._window.destroy()
 
