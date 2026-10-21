@@ -513,15 +513,15 @@
   .rp-kpi { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
   .rp-kpi small { display: block; color: var(--muted); font-size: .75rem; margin-bottom: 2px; }
   .rp-kpi b { font-size: 1.15rem; }
-  .rp-chart { display: flex; align-items: stretch; gap: 4px; height: 170px; margin: 6px 0 4px; border-bottom: 1px solid var(--line); }
-  .rp-col { flex: 1; min-width: 6px; max-width: 60px; display: flex; flex-direction: column; }
+  .rp-chart { display: flex; align-items: stretch; justify-content: flex-start; gap: 4px; height: 170px; margin: 6px 0 4px; border-bottom: 1px solid var(--line); }
+  .rp-col { flex: 1; min-width: 6px; max-width: 40px; display: flex; flex-direction: column; }
   .rp-col i { display: block; border-radius: 3px; min-height: 2px; }
   .rp-col .up { background: var(--pos); }
   .rp-col .dn { background: var(--neg); }
   .rp-half { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
   .rp-half.b { justify-content: flex-start; }
-  .rp-labels { display: flex; gap: 4px; color: var(--muted); font-size: .7rem; }
-  .rp-labels span { flex: 1; min-width: 6px; max-width: 60px; text-align: center; overflow: hidden; white-space: nowrap; }
+  .rp-labels { display: flex; justify-content: flex-start; gap: 4px; color: var(--muted); font-size: .7rem; }
+  .rp-labels span { flex: 1; min-width: 6px; max-width: 40px; text-align: center; overflow: hidden; white-space: nowrap; }
   .rp-rank td.bar-cell { width: 34%; }
   .rp-rank .rbar { height: 8px; border-radius: 4px; background: var(--accent); min-width: 2px; }
   .mk-filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
@@ -550,7 +550,7 @@
   </div>
   <div class="status-wrap">
     <button class="status-pill" id="status-pill" title="Tu estado en warframe.market" data-i18n-title="hdr.statusTip">
-      <span class="dot"></span><span id="status-label">Estado…</span><span class="status-until" id="status-until"></span>
+      <span class="dot"></span><span id="status-label" data-i18n="status.loading">Estado…</span><span class="status-until" id="status-until"></span>
       <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <div class="status-menu" id="status-menu" hidden></div>
@@ -882,6 +882,7 @@ document.addEventListener('mousedown', (e) => {
   const skelForm = () => `<div aria-busy="true">${Array.from({ length: 4 }, () => `<span class="skel card"></span>`).join("")}</div>`;
   const spinner = { toString: () => `<span class="spinner" title="${tr("common.waitingWfm")}"></span>` };
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const typeName = (t) => { const k = "type." + t; const v = tr(k); return v === k ? cap(t) : v; };
 
   function toast(msg, isError = false) {
     const t = $("#toast");
@@ -1315,7 +1316,7 @@ document.addEventListener('mousedown', (e) => {
   // ---- Stock unveiled -------------------------------------------------------
 
   const RIVEN_TYPES = ["rifle", "shotgun", "pistol", "melee", "zaw", "kitgun"];
-  $("#lot-type").innerHTML = RIVEN_TYPES.map((t) => `<option value="${t}">${cap(t)}</option>`).join("");
+  $("#lot-type").innerHTML = RIVEN_TYPES.map((t) => `<option value="${t}">${typeName(t)}</option>`).join("");
   $("#lot-type").value = "melee";
 
   function renderLots() {
@@ -1328,7 +1329,7 @@ document.addEventListener('mousedown', (e) => {
     $("#lots").innerHTML = `<table>
       <thead><tr><th>${tr("lot.type")}</th><th>${tr("lots.unopened")}</th><th>${tr("lots.unitCost")}</th><th>${tr("lots.total")}</th><th>${tr("lots.note")}</th><th>${tr("lots.added")}</th><th></th></tr></thead>
       <tbody>${lots.map((l) => `<tr data-lot="${l.id}" class="${l.remaining ? "" : "hidden-row"}">
-        <td class="lot-type">${esc(l.riven_type)}</td>
+        <td class="lot-type">${esc(typeName(l.riven_type))}</td>
         <td class="nowrap"><span class="remaining">${l.remaining}</span> <span class="muted">${tr("lots.of", { n: l.quantity })}</span></td>
         <td class="nowrap">${fmtP(l.unit_cost)}</td>
         <td class="nowrap">${fmtP(l.total_cost)}</td>
@@ -1351,7 +1352,7 @@ document.addEventListener('mousedown', (e) => {
     const res = await api().add_lot($("#lot-type").value, qty, cost, $("#lot-cost-mode").value === "total", $("#lot-note").value);
     if (res.error) { toast(res.error, true); return; }
     applyLocal(res); renderLots(); renderTotals();
-    toast(tr("lots.addedToast", { q: qty, t: $("#lot-type").value }));
+    toast(tr("lots.addedToast", { q: qty, t: typeName($("#lot-type").value) }));
     $("#lot-qty").value = 1; $("#lot-cost").value = ""; $("#lot-note").value = "";
   });
 
@@ -1431,7 +1432,7 @@ document.addEventListener('mousedown', (e) => {
     const res = act === "discard" ? await api().discard_from_lot(lot.id) : await api().delete_lot(lot.id);
     if (res.error) { toast(res.error, true); return; }
     applyLocal(res); renderLots(); renderTotals();
-    toast(act === "discard" ? tr("lots.discarded", { t: lot.riven_type }) : tr("lots.deleted"));
+    toast(act === "discard" ? tr("lots.discarded", { t: typeName(lot.riven_type) }) : tr("lots.deleted"));
   });
 
   // ---- Cerrados -------------------------------------------------------------
@@ -1461,14 +1462,17 @@ document.addEventListener('mousedown', (e) => {
 
   // ---- Reporte de ventas ------------------------------------------------------
 
-  const rep = { period: "all", weapon: "", type: "" };
+  const rep = { period: "all", weapon: "", type: "", from: "", to: "" };
   const DAY_MS = 86400000;
 
   function reportSales() {
     const since = { week: 7, month: 30, d90: 90 }[rep.period];
+    const from = rep.period === "custom" && rep.from ? new Date(rep.from + "T00:00:00").getTime() : 0;
+    const to = rep.period === "custom" && rep.to ? new Date(rep.to + "T23:59:59").getTime() : Infinity;
     return closed.filter((c) => {
       if (c.pending || !c.sold_price) return false;
       if (since && Date.now() - new Date(c.closed_at) > since * DAY_MS) return false;
+      if (rep.period === "custom") { const t = new Date(c.closed_at).getTime(); if (t < from || t > to) return false; }
       if (rep.weapon && c.weapon !== rep.weapon) return false;
       if (rep.type && weaponBySlug[c.weapon]?.type !== rep.type) return false;
       return true;
@@ -1481,7 +1485,10 @@ document.addEventListener('mousedown', (e) => {
   // Agrupa por día (hasta 30 días), semana (hasta 90) o mes, y suma la ganancia de cada tramo.
   function reportBuckets(sales) {
     if (!sales.length) return [];
-    const span = rep.period === "week" || rep.period === "month" ? "day" : rep.period === "d90" ? "week" : "month";
+    const ts = sales.map((s) => s.at.getTime());
+    const days = (Math.max(...ts) - Math.min(...ts)) / DAY_MS;
+    const span = days <= 45 ? "day" : days <= 200 ? "week" : "month";
+    rep.span = span;
     const keyOf = (d) => {
       const x = new Date(d);
       if (span === "month") return new Date(x.getFullYear(), x.getMonth(), 1).getTime();
@@ -1513,9 +1520,10 @@ document.addEventListener('mousedown', (e) => {
     const types = [...new Set(weapons.map((w) => weaponBySlug[w]?.type).filter(Boolean))].sort();
     const opt = (v, label, cur) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(label)}</option>`;
     const filters = `<div class="rp-filters">
-      <label><span>${tr("rp.period")}</span> <select data-f="period">${["all", "week", "month", "d90"].map((p) => opt(p, tr("rp.p." + p), rep.period)).join("")}</select></label>
+      <label><span>${tr("rp.period")}</span> <select data-f="period">${["all", "week", "month", "d90", "custom"].map((p) => opt(p, tr("rp.p." + p), rep.period)).join("")}</select></label>
+      ${rep.period === "custom" ? `<label><span>${tr("rp.from")}</span> <input type="date" data-f="from" value="${esc(rep.from)}"></label><label><span>${tr("rp.to")}</span> <input type="date" data-f="to" value="${esc(rep.to)}"></label>` : ""}
       <label><span>${tr("common.weapon")}</span> <select data-f="weapon">${opt("", tr("rp.allWeapons"), rep.weapon)}${weapons.map((w) => opt(w, weaponName(w), rep.weapon)).join("")}</select></label>
-      <label><span>${tr("lot.type")}</span> <select data-f="type">${opt("", tr("rp.allTypes"), rep.type)}${types.map((t) => opt(t, t, rep.type)).join("")}</select></label>
+      <label><span>${tr("lot.type")}</span> <select data-f="type">${opt("", tr("rp.allTypes"), rep.type)}${types.map((t) => opt(t, typeName(t), rep.type)).join("")}</select></label>
     </div>`;
 
     if (!sales.length) { $("#report").innerHTML = filters + `<div class="state">${tr("rp.empty")}</div>`; return; }
@@ -1530,7 +1538,7 @@ document.addEventListener('mousedown', (e) => {
 
     const bk = reportBuckets(sales);
     const max = Math.max(1, ...bk.map((b) => Math.abs(b.v)));
-    const chart = `<h3 style="margin:10px 0 0;font-size:.95rem">${tr("rp.overTime")}</h3>
+    const chart = `<h3 style="margin:10px 0 0;font-size:.95rem">${tr("rp.overTime")} <small style="color:var(--muted);font-weight:400">· ${tr("rp.per." + rep.span)} · ${tr("rp.scale", { v: fmtP(max) })}</small></h3>
       <div class="rp-chart">${bk.map((b) => `<div class="rp-col" title="${esc(b.label)}: ${b.v > 0 ? "+" : ""}${fmtP(b.v)}">
         <div class="rp-half">${b.v > 0 ? `<i class="up" style="height:${(b.v / max) * 100}%"></i>` : ""}</div>
         <div class="rp-half b">${b.v < 0 ? `<i class="dn" style="height:${(-b.v / max) * 100}%"></i>` : ""}</div></div>`).join("")}</div>
@@ -1786,7 +1794,7 @@ document.addEventListener('mousedown', (e) => {
   function refreshOrigins(selected = "") {
     $("#f-origin").innerHTML = `<option value="">${tr("rd.originNone")}</option>` +
       lots.filter((l) => l.remaining > 0).map((l) =>
-        `<option value="${l.id}">${tr("rd.originLot", { t: cap(l.riven_type), n: l.remaining, c: fmtP(l.unit_cost) })}${l.note ? ` · ${esc(l.note)}` : ""}</option>`).join("");
+        `<option value="${l.id}">${tr("rd.originLot", { t: typeName(l.riven_type), n: l.remaining, c: fmtP(l.unit_cost) })}${l.note ? ` · ${esc(l.note)}` : ""}</option>`).join("");
     $("#f-origin").value = String(selected);
   }
   $("#f-origin").addEventListener("change", () => {
@@ -2141,7 +2149,7 @@ document.addEventListener('mousedown', (e) => {
       if (!item.name) { toast(tr("pub.needName"), true); return; }
       const lot = currentLot();
       const row = (k, v) => `<div class="cf-row"><span>${k}</span><span class="cf-val">${v}</span></div>`;
-      $("#confirm-text").innerHTML = `<div class="cf-title"><span style="text-transform:capitalize">${esc(weapon.name)} ${esc(item.name)}</span><small>${tr("pub.publishSub")}</small></div><div class="cf-rows">${row(tr("rd.price"), `<span class="new">${price}p</span>`)}${row(tr("pub.visibility"), $("#f-visible").checked ? `<span class="on">${tr("row.visible")}</span>` : `<span class="off">${tr("row.hidden")}</span>`)}${lot ? row("Stock", `<span>${tr("pub.fromLot", { t: esc(lot.riven_type) })}</span>`) : ""}</div>`;
+      $("#confirm-text").innerHTML = `<div class="cf-title"><span style="text-transform:capitalize">${esc(weapon.name)} ${esc(item.name)}</span><small>${tr("pub.publishSub")}</small></div><div class="cf-rows">${row(tr("rd.price"), `<span class="new">${price}p</span>`)}${row(tr("pub.visibility"), $("#f-visible").checked ? `<span class="on">${tr("row.visible")}</span>` : `<span class="off">${tr("row.hidden")}</span>`)}${lot ? row("Stock", `<span>${tr("pub.fromLot", { t: esc(typeName(lot.riven_type)) })}</span>`) : ""}</div>`;
     }
     $("#confirm").hidden = false;
     $("#confirm-ok").focus();
