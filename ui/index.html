@@ -2402,52 +2402,52 @@ document.addEventListener('mousedown', (e) => {
           ? (q.reason === "net" ? "warframe.market no responde, reintentando…" : "warframe.market pidió esperar un poco…")
           : `Consultando warframe.market… ${q.done} de ${q.total}`;
         $("#q-fill").style.width = q.percent + "%";
-        $("#q-eta").textContent = q.eta_s >= 1 ? `~${Math.ceil(q.eta_s)} s` : "casi listo";
+        $("#q-eta").textContent = q.eta_s >= 1 ? `~${Math.ceil(q.eta_s)} s` : tr("q.almost");
       }
     } catch (e) {} finally { qBusy = false; }
   }, 400);
 
   // ---- Tutoriales guiados ----
   const TOURS = {
-    stock: { title: "Stock unveiled", steps: [
-      { el: "#stock-card .card-head", t: "Stock unveiled", x: "Acá llevás los rivens sin abrir que comprás en lote. Es solo de la app: no se publica nada en warframe.market." },
-      { el: "#lot-form", t: "Cargar un lote", x: "Elegí el tipo de riven, la cantidad y cuánto pagaste. En «El costo es» indicás si el precio fue por todo el lote o por unidad; la nota es opcional." },
-      { el: "#lot-add", t: "Agregar al stock", x: "Guarda el lote. Queda en la tabla de abajo con su costo por unidad y cuántos faltan abrir." },
-      { el: "#lots", t: "Tus lotes", x: "Con Abrir cargás el riven que salió, con el costo ya puesto, para publicarlo. Con −1 descartás uno que abriste y no vas a publicar. Borrar solo aparece si no abriste ninguno." },
-      { el: "#tm-open", t: "Transmutar", x: "Cuando cambiás 4 rivens por 1 sin abrir en el juego, acá cerrás esos 4 sin venta y entra el nuevo al stock. [[Stock unveiled|Más info]]" },
+    stock: { title: "tour.stock.title", steps: [
+      { el: "#stock-card .card-head", t: "tour.stock.1.t", x: "tour.stock.1.x" },
+      { el: "#lot-form", t: "tour.stock.2.t", x: "tour.stock.2.x" },
+      { el: "#lot-add", t: "tour.stock.3.t", x: "tour.stock.3.x" },
+      { el: "#lots", t: "tour.stock.4.t", x: "tour.stock.4.x" },
+      { el: "#tm-open", t: "tour.stock.5.t", x: "tour.stock.5.x" },
     ] },
-    inicio: { title: "Recorrido inicial", steps: [
-      { el: "#status-pill", t: "Tu estado", x: "Acá ves y cambiás tu [[Estado en warframe.market]]. Mientras estés online o en juego, la app suma horas a cada riven publicado; con esas horas funciona el [[Ajuste automático de precio]]." },
-      { el: "#bell", t: "Alertas", x: "Te avisa cuando el [[Ajuste automático de precio]] le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
-      { el: "#gear", t: "Configuración", x: "Los valores globales del [[Ajuste automático de precio]]: horas sin vender, cuánto baja y el piso mínimo." },
-      { el: "#views", t: "Mis ventas y Mercado", x: "Mis ventas es tu stock: los rivens que vos publicás. Mercado sirve para buscar un arma y ver las órdenes que otros jugadores tienen publicadas en warframe.market, con sus precios." },
-      { el: "#mine", t: "Tus rivens", x: "Acá van tus rivens. Tocá el nombre de uno para ver su resumen: precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Si todavía no tenés ninguno, seguí: vamos a crear uno de ejemplo." },
-      { el: "#fab", click: true, t: "Nuevo riven", x: "Con este botón creás uno. Tocalo: te abro el formulario con datos de ejemplo y no se publica nada." },
-      { el: ".grid-riven", demo: "new", t: "Arma y datos", x: "Elegís el arma, la polaridad, MR, rango y rolls. Los cargué de ejemplo." },
-      { el: "#stat-slots", demo: "new", t: "Stats", x: "Hasta tres stats positivos y uno negativo, con sus valores tal como figuran en el juego." },
-      { el: "#name-chips", demo: "new", t: "Nombre", x: "El nombre sale de los stats; elegís entre las combinaciones posibles." },
-      { el: "#ref-section", demo: "new", t: "Precio de referencia", x: "Compara con las más baratas en venta del arma (acá son datos de ejemplo). Las órdenes están plegadas: se abren con Ver las órdenes. Tocá Mínimo, Mediana o Promedio para usarlo como precio y pasamos al siguiente paso." },
-      { el: "#publish-section", demo: "new", t: "Publicar", x: "Precio, costo (solo se guarda en la app), visibilidad y nota. Publicar te pide confirmación. En el recorrido está desactivado." },
-      { el: '#mine tr[data-id="demo"] button.more', demo: "list", click: true, t: "Menú de acciones", x: "Así aparece en tu lista el riven que acabamos de crear (de ejemplo). Cada fila tiene un menú de tres puntos a la derecha: tocalo." },
-      { el: '#row-menu [data-menu="edit"]', demo: "menu", click: true, t: "Editar", x: "Desde acá editás, ocultás o mostrás, y marcás como vendido o cerrado. Tocá Editar para ver el editor." },
-      { el: ".grid-riven", demo: "edit", t: "Editar uno publicado", x: "Acá podés cambiar todos los datos del riven: arma, nombre, stats, MR, rango, rolls y polaridad. warframe.market no deja editar eso en un contrato publicado, así que la app lo resuelve por detrás: publica uno nuevo con los datos corregidos y cierra el anterior. Antes de hacerlo te muestra los cambios y te pide confirmar. El costo y el lote se conservan, pero el contrato nuevo tiene otro id y arranca con sus horas online en cero. Si solo cambiás precio, nota o visibilidad, se edita el mismo contrato." },
-      { el: "#rd-auto", demo: "edit", t: "Ajuste automático de precio", x: "El switch activa la [[Ajuste automático de precio]] solo para este riven; los campos de al lado pisan los valores globales." },
-      { el: "#est-go", demo: "edit", click: true, t: "Estimado con comparables", x: "Busca rivens parecidos al tuyo (mismos stats) y calcula un precio. Tarda porque hace varias búsquedas. Tocalo: te muestro un ejemplo." },
-      { el: "#est-section", demo: "edit", pre: demoEstimate, t: "Estimado", x: "Te da un precio y un rango. Tocá el estimado para usarlo como precio, o abrí la lista para ver los comparables." },
-      { el: "#publish-section", demo: "edit", t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
-      { el: '#mine tr[data-id="demo"] .riven-weapon', demo: "list", click: true, t: "Detalle de un riven", x: "Después de guardar, volvés a la lista. Tocá el nombre del arma (o el del riven, justo abajo) para ver su detalle." },
-      { el: "#sum-dialog .sum-side .sum-card", demo: "summary", t: "Resumen", x: "Tu precio, las horas que lleva online y cuántas publicaciones del arma están más baratas que la tuya. Abajo, los stats." },
-      { el: "#est-card", demo: "summary", t: "Precio estimado", x: "Compara con rivens parecidos y dice si estás barato o caro. Tocalo para ver los comparables que usó." },
-      { el: "#trend-card", demo: "summary", t: "Tendencia del arma", x: "Mediana y mínimo de los últimos días. La estrella sigue el arma aunque no la tengas; las de tu stock se siguen solas." },
-      { el: "#sum-auto-card", demo: "summary", t: "Ajuste automático de precio", x: "Activa o desactiva la [[Ajuste automático de precio]] de este riven: baja el precio cuando pasan las horas sin vender." },
-      { el: "#sum-ovr-card", demo: "summary", t: "Ajustes de este riven", x: "Horas, baja y piso propios de este riven. Si lo dejás vacío usa los valores globales." },
-      { el: "#sum-hist-card", demo: "summary", t: "Historial de precios", x: "Cada cambio de precio, si fue manual o automático." },
-      { el: "#sum-dialog .sum-tabs", demo: "summary", t: "Órdenes y comparables", x: "Alterná entre las publicaciones más baratas del arma y los comparables del estimado. Tocá cualquiera para abrir su propio resumen." },
-      { el: "#sum-edit", demo: "summary", t: "Editar", x: "El engranaje abre el editor de este riven, el mismo que acabamos de ver." },
-      { el: "#sum-dialog .ord", demo: "summary", click: true, t: "Abrir otra publicación", x: "Tocá cualquiera de las órdenes para abrir su propio resumen. Probá con la primera." },
-      { el: "#sum-crumbs", demo: "summary2", click: true, t: "Migas de pan", x: "Arriba queda el camino que recorriste. Tocá Volver, o cualquier paso del camino, para regresar sin perderte. Probalo." },
-      { el: "#sum-x", demo: "summary", click: true, t: "Cerrar el detalle", x: "Para cerrar el detalle tocá la cruz, o hacé clic afuera de la ventana. Tocala ahora." },
-      { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
+    inicio: { title: "tour.inicio.title", steps: [
+      { el: "#status-pill", t: "tour.inicio.1.t", x: "tour.inicio.1.x" },
+      { el: "#bell", t: "tour.inicio.2.t", x: "tour.inicio.2.x" },
+      { el: "#gear", t: "tour.inicio.3.t", x: "tour.inicio.3.x" },
+      { el: "#views", t: "tour.inicio.4.t", x: "tour.inicio.4.x" },
+      { el: "#mine", t: "tour.inicio.5.t", x: "tour.inicio.5.x" },
+      { el: "#fab", click: true, t: "tour.inicio.6.t", x: "tour.inicio.6.x" },
+      { el: ".grid-riven", demo: "new", t: "tour.inicio.7.t", x: "tour.inicio.7.x" },
+      { el: "#stat-slots", demo: "new", t: "tour.inicio.8.t", x: "tour.inicio.8.x" },
+      { el: "#name-chips", demo: "new", t: "tour.inicio.9.t", x: "tour.inicio.9.x" },
+      { el: "#ref-section", demo: "new", t: "tour.inicio.10.t", x: "tour.inicio.10.x" },
+      { el: "#publish-section", demo: "new", t: "tour.inicio.11.t", x: "tour.inicio.11.x" },
+      { el: '#mine tr[data-id="demo"] button.more', demo: "list", click: true, t: "tour.inicio.12.t", x: "tour.inicio.12.x" },
+      { el: '#row-menu [data-menu="edit"]', demo: "menu", click: true, t: "tour.inicio.13.t", x: "tour.inicio.13.x" },
+      { el: ".grid-riven", demo: "edit", t: "tour.inicio.14.t", x: "tour.inicio.14.x" },
+      { el: "#rd-auto", demo: "edit", t: "tour.inicio.15.t", x: "tour.inicio.15.x" },
+      { el: "#est-go", demo: "edit", click: true, t: "tour.inicio.16.t", x: "tour.inicio.16.x" },
+      { el: "#est-section", demo: "edit", pre: demoEstimate, t: "tour.inicio.17.t", x: "tour.inicio.17.x" },
+      { el: "#publish-section", demo: "edit", t: "tour.inicio.18.t", x: "tour.inicio.18.x" },
+      { el: '#mine tr[data-id="demo"] .riven-weapon', demo: "list", click: true, t: "tour.inicio.19.t", x: "tour.inicio.19.x" },
+      { el: "#sum-dialog .sum-side .sum-card", demo: "summary", t: "tour.inicio.20.t", x: "tour.inicio.20.x" },
+      { el: "#est-card", demo: "summary", t: "tour.inicio.21.t", x: "tour.inicio.21.x" },
+      { el: "#trend-card", demo: "summary", t: "tour.inicio.22.t", x: "tour.inicio.22.x" },
+      { el: "#sum-auto-card", demo: "summary", t: "tour.inicio.23.t", x: "tour.inicio.23.x" },
+      { el: "#sum-ovr-card", demo: "summary", t: "tour.inicio.24.t", x: "tour.inicio.24.x" },
+      { el: "#sum-hist-card", demo: "summary", t: "tour.inicio.25.t", x: "tour.inicio.25.x" },
+      { el: "#sum-dialog .sum-tabs", demo: "summary", t: "tour.inicio.26.t", x: "tour.inicio.26.x" },
+      { el: "#sum-edit", demo: "summary", t: "tour.inicio.27.t", x: "tour.inicio.27.x" },
+      { el: "#sum-dialog .ord", demo: "summary", click: true, t: "tour.inicio.28.t", x: "tour.inicio.28.x" },
+      { el: "#sum-crumbs", demo: "summary2", click: true, t: "tour.inicio.29.t", x: "tour.inicio.29.x" },
+      { el: "#sum-x", demo: "summary", click: true, t: "tour.inicio.30.t", x: "tour.inicio.30.x" },
+      { el: "#help-btn", t: "tour.inicio.31.t", x: "tour.inicio.31.x" },
     ] },
   };
   function openHelp(title) {
@@ -2556,8 +2556,8 @@ document.addEventListener('mousedown', (e) => {
     const covered = el.closest("dialog") !== host.closest("dialog") && host !== document.body;
     hole.style.display = covered ? "none" : "";
     const last = i === T.steps.length - 1;
-    tip.innerHTML = `<h5>${st.t}</h5><p>${st.x.replace(/\[\[(.+?)(?:\|(.+?))?\]\]/g, (_, k, l) => `<a href="#" class="hlink" data-help="${k}">${l || k}</a>`)}</p><label><input type="checkbox" id="tour-never"> ${tr("tour.never")}</label>
-      <div class="tt-row"><span class="tt-n">${i + 1} de ${T.steps.length}</span><button class="ghost" id="tt-skip">Saltar</button>${i ? `<button class="ghost" id="tt-prev">Atrás</button>` : ""}<button id="tt-next">${last ? "Listo" : "Siguiente"}</button></div>`;
+    tip.innerHTML = `<h5>${tr(st.t)}</h5><p>${tr(st.x).replace(/\[\[(.+?)(?:\|(.+?))?\]\]/g, (_, k, l) => `<a href="#" class="hlink" data-help="${k}">${l || k}</a>`)}</p><label><input type="checkbox" id="tour-never"> ${tr("tour.never")}</label>
+      <div class="tt-row"><span class="tt-n">${tr("tour.nOf", { i: i + 1, n: T.steps.length })}</span><button class="ghost" id="tt-skip">${tr("tour.skip")}</button>${i ? `<button class="ghost" id="tt-prev">${tr("tour.prev")}</button>` : ""}<button id="tt-next">${tr(last ? "tour.done" : "tour.next")}</button></div>`;
     { const nv = tip.querySelector("#tour-never"); if (nv) { nv.checked = !!tourState().off; nv.addEventListener("change", () => { const t = tourState(); t.off = nv.checked; saveTour(t); }); } }
     const th = tip.offsetHeight, below = r.bottom + 14 + th < innerHeight;
     tip.style.bottom = "auto"; tip.style.top = Math.max(8, below ? r.bottom + 14 : r.top - th - 14) + "px";
@@ -2638,7 +2638,7 @@ document.addEventListener('mousedown', (e) => {
 </script>
 <div id="splash"><div class="sp-box">
   <svg width="84" height="84" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="20" fill="#1a0b33"/><path d="M48 12 L45.5 29 L51.5 44 L44 59 L50 75 L48 88 L23 50 Z" fill="#a05cf6"/><path d="M53 10 L50.5 27 L56.5 42 L49 57 L55 73 L53 86 L78 48 Z" fill="#a05cf6"/></svg>
-  <h2>Riven Stock</h2><span id="sp-ver" style="color:#8e79b8;font-size:13px"></span><p>Cargando tus datos de warframe.market…</p></div></div>
+  <h2>Riven Stock</h2><span id="sp-ver" style="color:#8e79b8;font-size:13px"></span><p data-i18n="splash.loading">Cargando tus datos de warframe.market…</p></div></div>
 <style>
   #splash { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
     background: radial-gradient(900px 500px at 50% 30%, #2a1450 0%, #0c0518 70%); color: #fff; transition: opacity .35s; }
@@ -2676,27 +2676,22 @@ document.addEventListener('mousedown', (e) => {
   const hideSplash = () => setTimeout(() => { const e = document.getElementById("splash"); e.classList.add("out"); setTimeout(() => e.remove(), 400); },
     Math.max(0, 1600 - (Date.now() - splashAt)));
   setTimeout(hideSplash, 8000);   // por si la carga falla: nunca dejar la pantalla tapada
-  const HELP = [
-    ["Stock unveiled", "Lotes de rivens sin abrir que comprás, con su costo. Cada lote te lleva a cargar el riven que salió al abrirlo, y Transmutar cambia 4 publicados por 1 sin abrir. Todo es local: no se publica en warframe.market. El botón ? del panel abre su recorrido guiado."],
-    ["Mis ventas", "Tu stock de rivens publicados en warframe.market. Tocá el nombre de uno para ver su resumen: precio estimado, comparables, órdenes más baratas, tendencia del arma e historial de precios. Desde el engranaje del resumen lo editás."],
-    ["Publicar", "El botón flotante «+ Nuevo riven» (abajo a la derecha) abre el formulario para publicar un riven nuevo: arma, stats, rolls y precio. Antes de guardar te muestra una confirmación con lo que cambia."],
-    ["Ajuste automático de precio", "Si un riven pasa las horas que definas online sin venderse, la app le baja el precio sola, sin pasar el piso que pongas. Se activa con el switch del riven al editarlo, y los valores globales están en el engranaje de arriba. Cada ajuste se puede revertir desde las alertas (la campana)."],
-    ["Estado en warframe.market", "La píldora de arriba muestra tu estado (En juego, Online, Invisible), el mismo que ves en tu perfil de la página de warframe.market. Mientras tengas la app abierta y tu estado sea En juego u Online, la app suma el tiempo a cada riven que tenés publicado y sin vender: son las horas online de ese riven, porque solo te ven los compradores cuando estás conectado. Si estás Invisible o cerrás la app, no se suman. Esas horas las usa el Ajuste automático de precio: cuando un riven llega a las horas que elegiste sin venderse, se le baja el precio."],
-    ["Mercado y tendencias", "En el resumen de un riven, la tarjeta de tendencia muestra la mediana y el mínimo del arma en los últimos 90 días. La estrella sigue un arma aunque no la tengas; las de tu stock se siguen solas. La app toma una foto del mercado por día cuando no la estás usando."],
-    ["Alertas y novedades", "La campana avisa de los ajustes automáticos de precio. El botón con la versión muestra las novedades, y ahí mismo «Buscar actualizaciones» te dice si hay una nueva."],
-    ["Límite de pedidos", "warframe.market permite pocos pedidos por segundo. La app los pone en fila para no pasarse, por eso a veces la información tarda en cargar (sobre todo al abrir o al editar). Cuando espera te muestra un aviso con el motivo; solo hay que esperar un momento."],
-  ];
+  const HELP_N = 8;
   document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("help-body").innerHTML = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button>`
-      + HELP.map(([t, x]) => `<div class="hsec"><h4>${t}</h4><p>${x}</p></div>`).join("");
-    document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
+    const renderHelp = () => {
+      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button>`;
+      for (let k = 1; k <= HELP_N; k++) h += `<div class="hsec"><h4>${tr("help." + k + ".t")}</h4><p>${tr("help." + k + ".x")}</p></div>`;
+      document.getElementById("help-body").innerHTML = h;
+      document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
+    };
+    renderHelp(); document.addEventListener("langchange", renderHelp);
     document.getElementById("stock-help").addEventListener("click", () => startTour("stock"));
     document.getElementById("help-btn").addEventListener("click", () => document.getElementById("help-dialog").showModal());
     document.getElementById("help-x").addEventListener("click", () => document.getElementById("help-dialog").close());
     document.getElementById("help-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   });
 </script>
-<div id="closing" hidden><div class="box"><div class="spin"></div><div>Cerrando…</div></div></div>
+<div id="closing" hidden><div class="box"><div class="spin"></div><div data-i18n="closed.closing">Cerrando…</div></div></div>
 <style>
   #closing { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
     background: rgba(12,5,24,.55); backdrop-filter: blur(6px); color: #fff; font-size: 1.1rem; }
