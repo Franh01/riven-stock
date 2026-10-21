@@ -5,7 +5,6 @@ import os
 import threading
 import time
 
-import history
 from pricing import slim
 from ratelimit import QUEUE
 
@@ -29,8 +28,7 @@ class OrderCache:
     PAUSE_S = 3        # descanso entre armas (además del _throttle del cliente)
     BACKOFF_S = 60     # espera tras un error (429, red)
 
-    def __init__(self, client, wanted_fn, path=None, history_path=None):
-        self.history_path = history_path
+    def __init__(self, client, wanted_fn, path=None):
         self.client = client
         self.wanted_fn = wanted_fn      # () -> armas en orden de prioridad
         self._targeted = {}             # (arma, stats) -> (epoch, [slim]); consultas filtradas por stats
@@ -88,11 +86,6 @@ class OrderCache:
         with self._lock:
             self._data[weapon] = e
         self._persist()
-        if self.history_path:
-            try:
-                history.record(self.history_path, weapon, market)
-            except Exception:
-                pass   # el historial nunca debe romper la carga del mercado
         return e
 
     def targeted(self, weapon, stats):

@@ -79,8 +79,7 @@ class Api:
         self._seen = {}  # id -> último contrato propio leído de la API (crudo)
         self._market = {}  # id -> contrato ajeno visto en la pestaña Mercado (crudo)
         self._online = False   # lo mantiene el hilo contador
-        self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"),
-                                  history_path=str(store.DB_PATH.parent / "market_history.db"))
+        self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"))
 
     def _rtype(self, weapon):
         return next((w.get("rivenType") for w in self.client.riven_weapons() if w["slug"] == weapon), None)
