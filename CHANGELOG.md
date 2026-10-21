@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.6.3] - 2026-10-21
+
 - Corregido: actualizar desde la app instalada a veces no instalaba nada ni la reabría. Ahora un ayudante espera a que la app se cierre del todo, corre el instalador y la reabre si nadie lo hizo. Si tu versión es anterior a esta, reinstalá una vez con el Setup.exe nuevo.
 
 ## [0.6.2] - 2026-10-21
