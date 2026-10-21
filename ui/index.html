@@ -283,11 +283,17 @@
   .ord .seller-nm { display: block; margin-top: 6px; font-size: 12px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ord .st { display: inline-block; margin-top: 3px; }
   .ord .comp-price small { display: block; margin-top: 2px; font-size: 11px; }
-  .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; font-size: 12px; color: var(--muted); }
-  .crumbs button { background: none; border: 0; padding: 0; color: var(--accent-2); cursor: pointer; font-size: 12px; }
-  .crumbs button:hover { text-decoration: underline; }
-  .crumbs b { color: var(--text); font-weight: 600; }
-  #sum-dialog.resizing { transition: height .16s ease-out; overflow: hidden; }
+  .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 9px 24px; background: #a066f60f; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .crumbs .back { margin-right: 8px; background: #a066f62a; border: 1px solid var(--accent); color: var(--accent-2); border-radius: 99px; padding: 3px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .crumbs .back:hover { background: var(--accent); color: #fff; }
+  .crumbs .step { background: none; border: 0; padding: 3px 8px; border-radius: 6px; color: var(--accent-2); cursor: pointer; font-size: 13px; }
+  .crumbs .step:hover { background: #a066f633; }
+  .crumbs .sep { opacity: .6; }
+  .crumbs b { color: var(--text); font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #ffffff12; }
+  .skel-note { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+  .skel-bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 6px; }
+  .skel-bar u { display: block; height: 100%; width: 0; background: var(--accent-2); transition: width .3s; }
+  #sum-dialog.resizing { transition: height .2s ease-out; overflow: hidden; }
   .comp-side .comp-sim { margin-top: 8px; }
   .comp-sim b { font-size: 12px; }
   .comp-sim i { display: block; height: 4px; margin-top: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
@@ -656,6 +662,7 @@
 
 <dialog id="sum-dialog">
   <div class="dlg-head"><h3 id="sum-title" class="sum-title">Riven</h3><span id="sum-meta" class="sum-meta"></span><button class="icon" id="sum-x" title="Cerrar">×</button></div>
+  <nav id="sum-crumbs" class="crumbs" hidden></nav>
   <div class="dlg-body" id="sum-body" style="overflow:auto;max-height:76vh"></div>
 </dialog>
 
@@ -727,7 +734,9 @@ document.addEventListener('mousedown', (e) => {
   const fmtP = (n) => `${Number(n).toLocaleString("es-AR", { maximumFractionDigits: 1 })}p`;
   // Placeholders animados mientras carga: filas de tabla, bloque de resumen, lista de ajustes.
   const skelRows = (n = 5) => `<div aria-busy="true">${Array.from({ length: n }, (_, i) => `<span class="skel row" style="width:${100 - (i % 3) * 6}%"></span>`).join("")}</div>`;
-  const skelSummary = () => `<div aria-busy="true"><span class="skel big"></span><span class="skel" style="width:30%;margin:10px 0 18px"></span>${skelRows(4)}</div>`;
+  const skelSummary = () => `<div aria-busy="true"><div class="skel-note" id="skel-note">Consultando warframe.market…<div class="skel-bar"><u id="skel-fill"></u></div></div>
+    <div class="sum-grid"><div class="sum-side"><span class="skel" style="height:150px"></span><span class="skel" style="height:130px"></span></div>
+    <div><span class="skel" style="width:55%;height:30px;margin-bottom:14px"></span>${Array.from({ length: 6 }, () => `<span class="skel" style="height:62px;margin:0 0 10px"></span>`).join("")}</div></div></div>`;
   const skelForm = () => `<div aria-busy="true">${Array.from({ length: 4 }, () => `<span class="skel card"></span>`).join("")}</div>`;
   const spinner = `<span class="spinner" title="Esperando a warframe.market…"></span>`;
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -1940,18 +1949,51 @@ document.addEventListener('mousedown', (e) => {
     document.querySelectorAll("#views button").forEach((x) => x.classList.toggle("on", x === b));
   });
 
+  const growFrom = (from) => {   // anima el alto de la ventana desde `from` hasta el que tiene ahora
+    const d = $("#sum-dialog");
+    d.style.height = ""; d.classList.remove("resizing");
+    const to = d.offsetHeight;
+    if (Math.abs(to - from) < 4) return;
+    d.style.height = from + "px"; d.classList.add("resizing"); void d.offsetHeight;
+    d.style.height = to + "px";
+    setTimeout(() => { d.style.height = ""; d.classList.remove("resizing"); }, 220);
+  };
+  function renderCrumbs(loading = false) {
+    const nav = $("#sum-crumbs");
+    const n = sumStack.length + (loading ? 1 : 0);
+    nav.hidden = n < 2;
+    if (n < 2) return;
+    const steps = sumStack.map((c, i) => (!loading && i === sumStack.length - 1) ? `<b>${esc(c.label)}</b>` : `<button class="step" data-i="${i}">${esc(c.label)}</button>`);
+    if (loading) steps.push(`<b>Cargando…</b>`);
+    nav.innerHTML = `<button class="back" data-i="${Math.max(0, (loading ? sumStack.length : sumStack.length - 1) - 1)}">‹ Volver</button>${steps.join('<span class="sep">›</span>')}`;
+    nav.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+      const c = sumStack[+b.dataset.i]; sumStack = sumStack.slice(0, +b.dataset.i); openSummary(c.id, true);
+    }));
+  }
   let sumStack = [];   // recorrido de resúmenes abiertos: [{id, label}]
   async function openSummary(aid, push = false) {
     if (!push || !$("#sum-dialog").open) sumStack = [];
+    if (!push) $("#sum-crumbs").hidden = true;
     $("#sum-dialog").style.height = ""; $("#sum-dialog").classList.remove("resizing");
-    $("#sum-title").textContent = "Cargando…";
+    $("#sum-title").textContent = "Cargando…"; $("#sum-meta").innerHTML = "";
+    renderCrumbs(true);
+    const d0 = $("#sum-dialog"), from0 = d0.open ? d0.offsetHeight : 0;
     $("#sum-body").innerHTML = skelSummary();
-    $("#sum-dialog").showModal();
-    const r = await api().riven_summary(aid);
+    if (!d0.open) d0.showModal(); else growFrom(from0);
+    const poll = setInterval(async () => {
+      const q = await api().queue_status().catch(() => null), n = $("#skel-note");
+      if (!q || !n) return;
+      const txt = q.cooldown_s > 0 ? `warframe.market limitó los pedidos: reintentando en ${Math.ceil(q.cooldown_s)} s`
+        : q.total > 1 ? `Consultando warframe.market… ${q.done} de ${q.total}${q.eta_s >= 1 ? ` · unos ${Math.ceil(q.eta_s)} s` : ""}` : "Consultando warframe.market…";
+      n.firstChild.textContent = txt; $("#skel-fill").style.width = (q.total > 1 ? q.percent : 8) + "%";
+    }, 400);
+    let r;
+    try { r = await api().riven_summary(aid); } finally { clearInterval(poll); }
+    const fromLoaded = d0.offsetHeight;
     if (r.error) { $("#sum-body").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
     const a = r.auction, h = r.hours, o = r.orders;
     sumStack.push({ id: aid, label: `${weaponName(a.weapon)} ${a.name}` });
-    const crumbs = sumStack.length < 2 ? "" : `<div class="crumbs">${sumStack.map((c, i) => i === sumStack.length - 1 ? `<b>${esc(c.label)}</b>` : `<button data-i="${i}">${esc(c.label)}</button><span>›</span>`).join("")}</div>`;
+    renderCrumbs();
     const own = mine.find((x) => x.id === aid);
     $("#sum-title").innerHTML = own
       ? `<span class="link" id="sum-edit" title="Editar este contrato">${esc(weaponName(a.weapon))} ${esc(a.name)} <small class="muted">✎ editar</small></span>`
@@ -2004,7 +2046,8 @@ document.addEventListener('mousedown', (e) => {
         </div><small class="muted">Vacío = usa el valor global.</small></div>
         <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>`}
       </div>
-      <div class="sum-main">${crumbs}<div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
+      <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
+    growFrom(fromLoaded);
     document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
     const resize = (fn) => {   // cambio de alto suave y corto: mide antes y después
       const d = $("#sum-dialog"), from = d.offsetHeight;
@@ -2019,9 +2062,6 @@ document.addEventListener('mousedown', (e) => {
       $("#tab-orders").hidden = t !== "orders"; $("#tab-comps").hidden = t !== "comps";
       document.querySelectorAll(".sum-tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
     });
-    document.querySelectorAll(".crumbs button").forEach((b) => b.addEventListener("click", () => {
-      const c = sumStack[+b.dataset.i]; sumStack = sumStack.slice(0, +b.dataset.i); openSummary(c.id, true);
-    }));
     document.querySelectorAll(".sum-tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
     $("#est-card")?.addEventListener("click", () => showTab("comps"));
     if (mk) return;
