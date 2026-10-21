@@ -5,6 +5,8 @@ import os
 import threading
 import time
 
+from pricing import slim
+
 ONLINE = ("ingame", "online")
 
 
@@ -75,7 +77,9 @@ class OrderCache:
 
     def load(self, weapon):
         found = self.client.search_direct(weapon)
-        e = {"at": time.time(), "orders": cheapest_online(found)}
+        market = [slim(a) for a in found
+                  if a.get("visible", True) and not a.get("closed") and not a.get("private")]
+        e = {"at": time.time(), "orders": cheapest_online(found), "market": market}
         with self._lock:
             self._data[weapon] = e
         self._persist()

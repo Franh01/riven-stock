@@ -16,6 +16,7 @@ import webview
 import store
 import updater
 from orders import OrderCache
+from pricing import estimate
 from wfm_client import SEARCH_CAP, WFMClient, WFMError, cheapest_ingame
 
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
@@ -189,12 +190,14 @@ class Api:
     def weapon_orders(self, weapon):
         """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta)."""
         try:
-            e = self._cache.get(weapon, self.VIEW_MAX_AGE_S) or self._cache.load(weapon)
+            e = self._cache.get(weapon, self.VIEW_MAX_AGE_S)
+            if not e or "market" not in e:
+                e = self._cache.load(weapon)
         except (WFMError, requests.RequestException) as ex:
             return {"error": str(ex)}
         return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],
                             "reputation": a["owner"].get("reputation")} for a in e["orders"][:7]],
-                "age_s": int(time.time() - e["at"])}
+                "age_s": int(time.time() - e["at"]), "market": e.get("market", [])}
 
     def notifications(self):
         with store.connect() as conn:
@@ -251,8 +254,10 @@ class Api:
         with store.connect() as conn:
             hist = store.price_history(conn, auction_id)
             h = store.riven_hours(conn).get(auction_id)
-        return {"auction": auction_view(a), "history": hist, "hours": h,
-                "orders": self.weapon_orders(a["item"]["weapon_url_name"])}
+        orders = self.weapon_orders(a["item"]["weapon_url_name"])
+        view = auction_view(a)
+        est = estimate(view, orders.pop("market", []), exclude_id=auction_id)
+        return {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
 
     def _drop_loop(self):
         while not self._stop.wait(self.DROP_PASS_S):

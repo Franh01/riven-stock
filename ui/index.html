@@ -1822,6 +1822,15 @@ document.addEventListener('mousedown', (e) => {
     const delta = (p) => p === a.price ? `<small class="muted"> igual</small>` : p < a.price ? `<small class="below">${a.price - p}p menos</small>` : `<small class="above">+${p - a.price}p</small>`;
     const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<table class="sum-orders"><thead><tr><th>Vendedor</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
       o.orders.map((x) => `<tr><td class="seller"><span class="nm" title="${esc(x.seller)}">${esc(x.seller)}</span><small><span class="st ${esc(x.status)}">${x.status === "ingame" ? "En juego" : "Online"}</span></small></td><td class="ord-price">${x.price}p${delta(x.price)}</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>`;
+    const es = r.estimate;
+    const estCard = es ? `<div class="sum-card"><h4>Precio estimado</h4><div class="kpis">
+          <div class="kpi"><b class="accent">${es.price}p</b><span>Estimado</span></div>
+          <div class="kpi"><b>${es.low}–${es.high}p</b><span>Rango</span></div>
+          <div class="kpi"><b>${es.n}</b><span>Comparables</span></div></div>
+          <small class="muted">Confianza ${esc(es.confidence)} · ${es.price > a.price ? "tu precio está por debajo" : es.price < a.price ? "tu precio está por encima" : "tu precio coincide"}</small></div>`
+      : `<div class="sum-card"><h4>Precio estimado</h4><small class="muted">Sin comparables suficientes.</small></div>`;
+    const comps = es ? `<h4 style="margin-top:16px">Comparables más parecidos</h4><table class="sum-orders"><thead><tr><th>Parecido</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
+      es.comps.map((x) => `<tr><td>${Math.round(x.sim * 100)}%</td><td class="ord-price">${x.price}p</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>` : "";
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
     $("#sum-meta").innerHTML = `<b>${a.rolls} rolls</b><b>MR ${a.mr}</b>`;
     $("#sum-body").innerHTML = `<div class="sum-grid">
@@ -1831,6 +1840,7 @@ document.addEventListener('mousedown', (e) => {
           <div class="kpi"><b>${h ? h.hours.toFixed(1) : "—"}</b><span>Horas online</span></div>
           <div class="kpi"><b>${o.orders ? cheaper : "—"}</b><span>Más baratos</span></div>
         </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div></div>
+        ${estCard}
         <div class="sum-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
         <div class="sum-card"><h4>Ajustes de este riven</h4><div class="ovr">
@@ -1840,7 +1850,7 @@ document.addEventListener('mousedown', (e) => {
         </div><small class="muted">Vacío = usa el valor global.</small></div>
         <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>
       </div>
-      <div class="sum-main"><h4>Órdenes online más baratas${o.age_s != null ? ` · datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min` : ""}</h4>${orders}</div></div>`;
+      <div class="sum-main"><h4>Órdenes online más baratas${o.age_s != null ? ` · datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min` : ""}</h4>${orders}${comps}</div></div>`;
     $("#sum-auto").addEventListener("change", (e) => api().set_autodrop(aid, e.target.checked).then(loadMine));
     for (const id of ["#ov-h", "#ov-a", "#ov-f"]) $(id).addEventListener("change", () => api().set_overrides(aid, $("#ov-h").value, $("#ov-a").value, $("#ov-f").value).then(loadMine));
   }
