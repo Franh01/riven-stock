@@ -4,10 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Corregido: actualizar desde la app instalada a veces no instalaba nada ni la reabría. Ahora un ayudante espera a que la app se cierre del todo, corre el instalador y la reabre si nadie lo hizo. Si tu versión es anterior a esta, reinstalá una vez con el Setup.exe nuevo.
+
 ## [0.6.2] - 2026-10-21
 
 - El número de usuarios activos (últimos 30 días, conteo anónimo) ahora se ve junto al logo, con un indicador verde, sin abrir la configuración.
-- Corregido: tras actualizar desde la app instalada, a veces no se volvía a abrir sola. Ahora un ayudante espera a que se cierre, corre el instalador y la reabre si nadie lo hizo.
+
 ## [0.6.1] - 2026-10-21
 
 - Reporte: mapa de calor de cuándo vendés (día de la semana y hora) con sugerencia de en qué franja conviene estar online, y tiempo hasta vender (mediana de horas online) por rango de precio y por arma, con sugerencia de tiempo para la baja automática. Las horas se registran desde esta versión.
