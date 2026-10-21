@@ -2357,6 +2357,11 @@ document.addEventListener('mousedown', (e) => {
       { el: "#gear", t: "Configuración", x: "Los valores globales de la [[Baja automática]]: horas sin vender, cuánto baja y el piso mínimo." },
       { el: "#views", t: "Mis ventas y Mercado", x: "Mis ventas es tu stock; Mercado sirve para mirar lo que se vende de cada arma." },
       { el: "#mine", t: "Tus rivens", x: "Tocá el nombre de uno para ver su resumen: precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Desde el resumen lo editás." },
+      { el: ".grid-riven", demo: true, t: "Editar un riven", x: "Este es un riven de ejemplo (no se guarda) para mostrarte el editor. Arriba van el arma, la polaridad, MR, rango y rolls. En uno ya publicado quedan fijos, salvo la polaridad." },
+      { el: "#stat-slots", demo: true, t: "Stats", x: "Hasta tres stats positivos y uno negativo, con sus valores tal como figuran en el juego." },
+      { el: "#name-chips", demo: true, t: "Nombre", x: "El nombre sale de los stats. Al editar uno publicado ya viene definido." },
+      { el: "#rd-auto", demo: true, t: "Baja automática", x: "El switch activa la [[Baja automática]] solo para este riven; los campos de al lado pisan los valores globales." },
+      { el: "#publish-section", demo: true, t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
       { el: "#fab", t: "Nuevo riven", x: "Para consultar el precio de referencia y publicar un contrato nuevo." },
       { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
     ] },
@@ -2367,6 +2372,24 @@ document.addEventListener('mousedown', (e) => {
     d.querySelectorAll(".hflash").forEach((x) => x.classList.remove("hflash"));
     if (h) { h.classList.add("hflash"); h.nextElementSibling?.classList.add("hflash"); h.scrollIntoView({ block: "start", behavior: "smooth" }); }
   }
+  function demoRiven() {
+    const W = Object.values(weaponBySlug), S = Object.values(statBySlug);
+    const w = weaponBySlug.braton || W[0];
+    const by = (n) => S.find((x) => x.name === n);
+    const pick = [["Critical Chance", 150.5], ["Critical Damage", 80.2], ["Multishot", 90.1]].map(([n, v]) => by(n) && { slug: by(n).slug, value: v, positive: true }).filter(Boolean);
+    const neg = by("Zoom") && { slug: by("Zoom").slug, value: -40.5, positive: false };
+    return { id: "demo", weapon: w.slug, name: "Ejemplo", polarity: "madurai", mr: 8, rank: 8, rolls: 5, price: 100, visible: true, note: "", stats: [...pick, neg].filter(Boolean) };
+  }
+  let demoOpen = false;
+  function closeDemo() {
+    if (!demoOpen) return; demoOpen = false;
+    $("#publish-go").disabled = false; $("#est-go").disabled = false; $("#riven-dialog").close();
+  }
+  function openDemo() {
+    if (demoOpen) return; $("#sum-dialog").open && $("#sum-dialog").close();
+    openRiven({ existing: demoRiven() }); demoOpen = true;
+    $("#publish-go").disabled = true; $("#est-go").disabled = true;
+  }
   let tour = null;
   const tourState = () => settings.tutorials || { done: {}, off: false };
   const saveTour = (st) => { settings.tutorials = st; api().set_setting("tutorials", st); };
@@ -2376,15 +2399,18 @@ document.addEventListener('mousedown', (e) => {
     if (completed) st.done[tour.id] = true;
     if (never) st.off = true;
     saveTour(st);
-    $("#tour-hole").remove(); $("#tour-tip").remove(); tour = null;
+    $("#tour-hole").remove(); $("#tour-tip").remove(); tour = null; closeDemo();
   }
   function tourStep(i) {
     const T = TOURS[tour.id], st = T.steps[i];
+    if (st.demo) openDemo(); else closeDemo();
     const el = document.querySelector(st.el);
     if (!el || !el.offsetParent) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
     tour.i = i;
     el.scrollIntoView({ block: "center", behavior: "instant" });
     const hole = $("#tour-hole"), tip = $("#tour-tip");
+    const host = [...document.querySelectorAll("dialog[open]")].pop() || document.body;
+    if (hole.parentNode !== host) host.append(hole, tip);
     const place = () => { const q = el.getBoundingClientRect(); Object.assign(hole.style, { top: q.top - 6 + "px", left: q.left - 6 + "px", width: q.width + 12 + "px", height: q.height + 12 + "px" }); return q; };
     tour.place = place; let r = place();
     const last = i === T.steps.length - 1;
