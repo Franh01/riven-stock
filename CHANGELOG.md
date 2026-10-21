@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.2.4] - 2026-10-20
+
 - Los avisos (toast) ahora se ven por encima de los diálogos abiertos.
 - Resumen de un riven: botón con ícono de link que copia la URL de la publicación en warframe.market.
 ## [0.2.3] - 2026-10-20
