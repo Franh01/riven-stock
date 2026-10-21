@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Ayuda y recorrido: se explica en detalle cómo se cuentan las horas online de cada riven y su relación con el Ajuste automático de precio.
+
 ## [0.3.2] - 2026-10-21
 
 - Los timeouts y cortes de red con warframe.market se reintentan solos (hasta 3 veces) antes de mostrar un error, con aviso del motivo; los errores ahora son mensajes claros, sin textos técnicos.
