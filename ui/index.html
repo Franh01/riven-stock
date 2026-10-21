@@ -233,6 +233,7 @@
   .bell .count[hidden] { display: none; }
   #cfg-dialog { width: min(1060px, 95vw); height: min(860px, 92vh); }
   #opp-dialog { width: min(560px, 95vw); }
+  #opp-dialog .combo-list { position: static; max-height: 200px; margin-top: 6px; }
   #opp-dialog button:focus { outline: none; box-shadow: none; }
   #opp-dialog .switch-row > span:first-child { flex: 1 1 auto; min-width: 0; }
   .cfg-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
@@ -2779,20 +2780,22 @@ document.addEventListener('mousedown', (e) => {
   const OPP_DEF = { opp_threshold: 30, opp_min_gain: 15 };
   const oppVal = (k) => (settings[k] == null ? OPP_DEF[k] : settings[k]);
   function renderOppChips() {
+    if (oppCombo) oppCombo.setOptions(weaponCombo.options.filter((o) => !(settings.opp_weapons || []).includes(o.value)));
     const l = settings.opp_weapons || [];
     $("#opp-chips").innerHTML = l.length ? l.map((w) => `<span class="wtag">${esc(weaponBySlug[w]?.name || w)}<a href="#" data-rm="${esc(w)}" title="${tr("opp.rmTip")}">×</a></span>`).join("") : `<span class="muted" style="font-size:12px">${tr("opp.noWeapons")}</span>`;
   }
+  let oppCombo = null;
   function setupOpp() {
     renderOppChips();
     $("#opp-chips").addEventListener("click", (e) => {
       const a = e.target.closest("[data-rm]"); if (!a) return; e.preventDefault();
       saveCfg("opp_weapons", (settings.opp_weapons || []).filter((w) => w !== a.dataset.rm)); renderOppChips();
     });
-    const c = new Combo($("#opp-add"), (v) => {
+    oppCombo = new Combo($("#opp-add"), (v) => {
       if (!v) return;
-      const l = new Set(settings.opp_weapons || []); l.add(v); saveCfg("opp_weapons", [...l].slice(0, 12)); renderOppChips(); c.set("");
+      const l = new Set(settings.opp_weapons || []); l.add(v); saveCfg("opp_weapons", [...l].slice(0, 12)); renderOppChips(); oppCombo.set("");
     });
-    c.setOptions(weaponCombo.options);
+    renderOppChips();
   }
   const ICON = {   // iconos de trazo (24x24) para las secciones de Ajustes
     price: "M3 17l6-6 4 4 8-9M15 6h6v6", bell: "M18 16v-5a6 6 0 10-12 0v5l-2 2h16zM10 21h4", eye: "M3 3l18 18M10.6 6.1A9.8 9.8 0 0112 6c5 0 8.5 4.5 9.5 6a14 14 0 01-3 3.4M6.2 7.6A14 14 0 002.5 12C3.5 13.5 7 18 12 18c1.4 0 2.7-.3 3.8-.8",
@@ -3201,10 +3204,9 @@ document.addEventListener('mousedown', (e) => {
     if (completed) st.done[tour.id] = true;
     if (never) st.off = true;
     saveTour(st);
-    const wasBackup = tour.id === "backup", wasOpp = tour.id === "opp";
+    const wasBackup = tour.id === "backup";
     $("#tour-hole").remove(); $("#tour-tip").remove(); tour = null; closeDemo();
     if (wasBackup) $("#cfg-dialog").close();
-    if (wasOpp) $("#opp-dialog").close();
   }
   function tourStep(i) {
     const T = TOURS[tour.id], st = T.steps[i];
