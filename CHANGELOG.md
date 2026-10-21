@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.1.8] - 2026-10-20
+
 - Precio estimado: los pesos de cada stat dependen del tipo de arma (rifle, escopeta, pistola, melee, kitgun, zaw).
 - Pantallas de carga con skeletons animados (lista de ventas, resumen, ajustes y referencia de precios).
 
