@@ -1982,7 +1982,7 @@ document.addEventListener('mousedown', (e) => {
           <small class="muted" style="display:block;margin-top:4px">${es.n} comparables · confianza ${esc(es.confidence)} · ver</small></div>`
       : `<div class="sum-card"><h4>Precio estimado</h4><small class="muted">Sin comparables suficientes.</small></div>`;
     const comps = es ? `<div class="comp-legend">Ordenadas de más a menos parecidas a tu riven. Los stats <b>resaltados</b> son los que también tiene el tuyo. Un riven con rango bajo muestra valores más chicos de los que tendría al subirlo.</div><div class="comps">${
-      es.comps.map((x) => `<div class="comp"><div class="comp-price"><b>${x.price}p</b><span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
+      es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="Ver el resumen de este riven"><div class="comp-price"><b>${x.price}p</b><span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
         <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
         <div class="comp-side">${presence(x.status, x.last_seen, x.seller)}<div class="comp-sim" title="Qué tan parecido es a tu riven"><b>${Math.round(x.sim * 100)}%</b><i><u style="width:${Math.round(x.sim * 100)}%"></u></i></div></div></div>`).join("")}</div>` : "";
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
@@ -2005,6 +2005,7 @@ document.addEventListener('mousedown', (e) => {
         <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>`}
       </div>
       <div class="sum-main">${crumbs}<div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
+    document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
     const resize = (fn) => {   // cambio de alto suave y corto: mide antes y después
       const d = $("#sum-dialog"), from = d.offsetHeight;
       d.style.height = ""; fn();
@@ -2018,7 +2019,6 @@ document.addEventListener('mousedown', (e) => {
       $("#tab-orders").hidden = t !== "orders"; $("#tab-comps").hidden = t !== "comps";
       document.querySelectorAll(".sum-tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
     });
-    document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
     document.querySelectorAll(".crumbs button").forEach((b) => b.addEventListener("click", () => {
       const c = sumStack[+b.dataset.i]; sumStack = sumStack.slice(0, +b.dataset.i); openSummary(c.id, true);
     }));

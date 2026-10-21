@@ -289,6 +289,11 @@ class Api:
         except (WFMError, requests.RequestException):
             rtype = None
         est = estimate(view, list(pool.values()), exclude_id=auction_id, rtype=rtype)
+        if est:   # los comparables también se abren: se reconstruye el contrato desde lo guardado
+            for c in est["comps"]:
+                o = pool.get(c["id"])
+                if o and c["id"] not in self._market:
+                    self._market[c["id"]] = slim_to_raw(o, weapon)
         if est and failed:
             est["partial"] = True
         out = {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
@@ -657,6 +662,15 @@ class Api:
             store.log_event(conn, {**cur, "closed": True}, "close",
                             sold_price=int(sold_price) if sold_price else None, at=closed_at)
         return {"closed": auction_id, "closed_at": closed_at}
+
+
+def slim_to_raw(o, weapon):
+    """Contrato mínimo (formato crudo de la API) a partir de un `slim`, para abrir su resumen."""
+    return {"id": o["id"], "buyout_price": o["p"], "created": o.get("c"), "updated": o.get("c"),
+            "item": {"weapon_url_name": weapon, "name": o.get("n") or "", "re_rolls": o["r"], "mod_rank": o.get("k"),
+                     "mastery_level": o.get("m"),
+                     "attributes": [{"url_name": s, "value": v, "positive": p} for s, v, p in o["s"]]},
+            "owner": {"ingame_name": o.get("nm") or "?", "status": o.get("st"), "last_seen": o.get("ls")}}
 
 
 def auction_view(a):
