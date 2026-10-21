@@ -51,7 +51,9 @@ def similarity(pos, neg, rolls, other):
         a, b = abs(pos[s]), abs(opos[s])
         close = min(a, b) / max(a, b) if max(a, b) else 1.0
         got += _w(s) * (0.6 + 0.4 * close)
-    sim = got / sum(_w(s) for s in union)
+    # cubrir MIS stats pesa mas que que el otro tenga extras
+    mine = sum(_w(s) for s in pos)
+    sim = (got / sum(_w(s) for s in union)) ** 0.4 * (got / mine) ** 0.6
     if neg != oneg:
         # sin negativo vale más que con uno; un negativo distinto cambia poco
         sim *= 0.9 if (neg and oneg) else 0.8
@@ -87,7 +89,7 @@ def estimate(view, market, exclude_id=None):
         return None
     scored.sort(key=lambda t: -t[0])
     top = scored[:MAX_COMPS]
-    pairs = [(o["p"], (sim ** 3) * (1.0 if o["st"] in ("ingame", "online") else 0.5)) for sim, o in top]
+    pairs = [(o["p"], (sim ** 5) * (1.0 if o["st"] in ("ingame", "online") else 0.5)) for sim, o in top]
     avg_sim = sum(s for s, _ in top) / len(top)
     conf = "alta" if len(top) >= 6 and avg_sim >= 0.7 else "media" if len(top) >= 3 and avg_sim >= 0.5 else "baja"
     return {
