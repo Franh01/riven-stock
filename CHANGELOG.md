@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.8.8] - 2026-10-21
+
 #### Español
 - Alertas de oportunidad: el selector no repite armas, muestra un contador (n/12) y se bloquea al llegar al tope; la ventana se ajusta a su contenido.
 - Ajustes: copias locales y nube juntas bajo "Datos y respaldos", y General pasa a la columna izquierda.
