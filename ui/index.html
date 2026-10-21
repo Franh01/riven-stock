@@ -2500,6 +2500,10 @@ document.addEventListener('mousedown', (e) => {
     $("#tt-prev")?.addEventListener("click", () => tourStep(i - 1));
     $("#tt-next").onclick = () => (last ? endTour(true) : tourStep(i + 1));
   }
+  const noScroll = (e) => { if (tour && !e.target.closest?.("#help-dialog")) e.preventDefault(); };   // durante el recorrido el usuario no scrollea; lo mueve el propio recorrido
+  addEventListener("wheel", noScroll, { passive: false, capture: true });
+  addEventListener("touchmove", noScroll, { passive: false, capture: true });
+  addEventListener("keydown", (e) => { if (tour && ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(e.key) && !e.target.closest?.("input, button, textarea, select, #help-dialog")) e.preventDefault(); }, true);
   addEventListener("scroll", () => { if (tour?.place) tour.place(); }, true);   // el resaltado sigue al elemento al scrollear
   addEventListener("resize", () => { if (tour?.place) tour.place(); });
   document.addEventListener("toggle", (e) => {   // plegar o desplegar ordenes cambia el alto: se reajusta el resaltado
