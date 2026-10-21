@@ -76,8 +76,16 @@ def _explain_error(res, method, path):
     return f"{method} {path} -> {res.status_code}: {res.text[:300]}"
 
 
+MAX_PRICE = 900000  # tope que acepta warframe.market (probado a mano)
+
+
 class WFMError(Exception):
     pass
+
+
+def _check_price(price):
+    if price > MAX_PRICE:
+        raise WFMError(f"El precio máximo es {MAX_PRICE}p.")
 
 
 class AuthError(WFMError):
@@ -255,6 +263,7 @@ class WFMClient:
     def update_auction(self, auction_id, *, price, visible, note="", minimal_reputation=0):
         """Edita precio / visibilidad / nota. La web manda siempre todos los campos.
         `note` es texto plano (usar `note_raw` del contrato, no `note`, que viene en HTML)."""
+        _check_price(price)
         body = {
             "starting_price": price,
             "buyout_price": price,
@@ -268,6 +277,7 @@ class WFMClient:
     def create_direct_sale(self, item, *, price, visible=True, note="", minimal_reputation=0):
         """Publica una venta directa. `item`: type, weapon_url_name, name, attributes
         [{url_name, positive, value}], mastery_level, mod_rank, re_rolls, polarity."""
+        _check_price(price)
         body = {
             "starting_price": price,
             "buyout_price": price,
