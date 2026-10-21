@@ -231,7 +231,10 @@
   .bell { position: relative; background: none; box-shadow: none; padding: 6px 10px; color: var(--muted); }
   .bell .count { position: absolute; top: -2px; right: -2px; background: #e5546b; color: #fff; border-radius: 9px; font-size: 11px; padding: 0 5px; }
   .bell .count[hidden] { display: none; }
-  #cfg-dialog { width: min(1060px, 95vw); }
+  #cfg-dialog { width: min(1060px, 95vw); height: min(860px, 92vh); }
+  #opp-dialog { width: min(560px, 95vw); }
+  #opp-dialog button:focus { outline: none; box-shadow: none; }
+  #opp-dialog .switch-row > span:first-child { flex: 1 1 auto; min-width: 0; }
   .cfg-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
   .cfg-col { display: grid; gap: 14px; align-content: start; min-width: 0; }
   .cfg-sec { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--accent-2); }
@@ -449,7 +452,7 @@
   .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 16px; }
   .summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
   .wtag { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; border-radius: 999px; background: rgba(168,85,247,.16); border: 1px solid var(--accent); color: var(--text); font-size: 13px; line-height: 1.2; }
-  .wtag a { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: var(--muted); text-decoration: none; font-size: 15px; line-height: 1; }
+  .wtag a { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: var(--muted); text-decoration: none; font-size: 15px; line-height: 1; padding-bottom: 2px; box-sizing: border-box; }
   .wtag a:hover { background: rgba(255,255,255,.14); color: var(--text); }
   .chip { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; min-width: 110px; text-align: left; box-shadow: none; font-weight: 400; }
   .chip b { display: block; font-size: 20px; font-weight: 600; color: var(--accent-2); }
@@ -830,6 +833,10 @@
     <label id="crash-alw" style="display:flex;gap:8px;align-items:center;justify-content:flex-start;font-size:13px;flex-direction:row"><input type="checkbox" id="crash-always" style="width:auto;flex:none;margin:0"><span data-i18n="crash.always">Enviar siempre sin preguntar</span></label>
     <div class="upd-actions"><button class="ghost" id="crash-no"></button><button id="crash-go"></button></div>
   </div>
+</dialog>
+<dialog id="opp-dialog">
+  <div class="dlg-head"><h3 data-i18n="opp.title">Alertas de oportunidad</h3><button class="icon" id="opp-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
+  <div class="dlg-body" id="opp-body"></div>
 </dialog>
 <dialog id="cfg-dialog">
   <div class="dlg-head"><h3 data-i18n="cfg.dlgTitle">Ajustes</h3><button class="icon" id="cfg-x" data-i18n-title="common.close" title="Cerrar" data-i18n-title="common.close">×</button></div>
@@ -2810,15 +2817,6 @@ document.addEventListener('mousedown', (e) => {
           <input type="range" id="cfg-amount" min="1" max="50" value="${cfgVal("autodrop_amount")}"></div>
         <div class="cfg-row"><span>${tr("cfg.floor")}<small>${tr("cfg.floorSub")}</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
-      <div class="sum-card" id="opp-card"><label class="switch-row"><span><b>${ic("bell")}${tr("opp.title")}</b><small>${tr("opp.sub")}</small></span><span style="display:flex;align-items:center;gap:10px"><button class="ghost" id="opp-tour" type="button" title="${tr("stock.tourTip")}" style="padding:4px 10px">?</button>${sw("opp-enabled", !!settings.opp_enabled)}</span></label>
-        <div id="opp-params" class="${settings.opp_enabled ? "" : "cfg-off"}" style="margin-top:10px">
-          <div class="cfg-row" id="opp-thr-row"><span>${tr("opp.thr")}<small>${tr("opp.thrSub")}</small></span><span><input type="number" id="opp-thr" min="5" max="90" value="${oppVal("opp_threshold")}"> %</span></div>
-          <div class="cfg-row"><span>${tr("opp.gain")}<small>${tr("opp.gainSub")}</small></span><span><input type="number" id="opp-gain" min="1" value="${oppVal("opp_min_gain")}"> p</span></div>
-          <div id="opp-wp" style="margin-top:8px"><span class="muted" style="font-size:12px">${tr("opp.weapons")}</span>
-            <div id="opp-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"></div>
-            <input id="opp-add" type="text" placeholder="${tr("opp.addPh")}" style="max-width:260px">
-            <small class="muted" style="display:block;margin-top:6px">${tr("opp.weaponsSub")}</small></div>
-        </div></div>
       </div><div class="cfg-col">
       <h4 class="cfg-sec">${ic("cog", 16)}${tr("cfg.secGeneral")}</h4>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.invis")}</b><small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
@@ -2832,8 +2830,23 @@ document.addEventListener('mousedown', (e) => {
         <div id="cl-body" style="min-height:130px"></div></div>
       <div class="muted" style="font-size:12px">${tr("cfg.total", { h: "<b>" + total.toFixed(1) + " h</b>" })}</div>
     </div></div>`;
-    loadBackupInfo(); loadCloud(); setupOpp();
+    loadBackupInfo(); loadCloud();
     { const ts = tourState(); if (!ts.off && !ts.done.backup) setTimeout(() => startTour("backup"), 400); }
+  }
+  async function openOpp() {
+    $("#opp-body").innerHTML = `<div class="cfg-col">
+      <div class="sum-card" id="opp-card" style="border:0;padding:0;background:none"><label class="switch-row"><span><b>${ic("bell")}${tr("opp.title")}</b><small>${tr("opp.sub")}</small></span><span style="display:flex;align-items:center;gap:10px"><button class="ghost" id="opp-tour" type="button" title="${tr("stock.tourTip")}" style="padding:4px 10px">?</button>${sw("opp-enabled", !!settings.opp_enabled)}</span></label>
+        <div id="opp-params" class="${settings.opp_enabled ? "" : "cfg-off"}" style="margin-top:10px">
+          <div class="cfg-row" id="opp-thr-row"><span>${tr("opp.thr")}<small>${tr("opp.thrSub")}</small></span><span><input type="number" id="opp-thr" min="5" max="90" value="${oppVal("opp_threshold")}"> %</span></div>
+          <div class="cfg-row"><span>${tr("opp.gain")}<small>${tr("opp.gainSub")}</small></span><span><input type="number" id="opp-gain" min="1" value="${oppVal("opp_min_gain")}"> p</span></div>
+          <div id="opp-wp" style="margin-top:8px"><span class="muted" style="font-size:12px">${tr("opp.weapons")}</span>
+            <div id="opp-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"></div>
+            <input id="opp-add" type="text" placeholder="${tr("opp.addPh")}" style="max-width:260px">
+            <small class="muted" style="display:block;margin-top:6px">${tr("opp.weaponsSub")}</small></div>
+        </div></div>
+    </div>`;
+    setupOpp();
+    $("#opp-dialog").showModal();
   }
   async function loadBackupInfo() {
     const el = $("#bk-info"); if (!el) return;
@@ -2856,7 +2869,7 @@ document.addEventListener('mousedown', (e) => {
       <label class="switch-row" style="margin-bottom:6px"><span>${tr("cl.auto")}</span>${sw("cl-auto", i.auto !== false)}</label>
       <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="cl-now">${tr("cl.now")}</button><button class="ghost" id="cl-off">${tr("cl.off")}</button></div>${restore}${users}`;
   }
-  $("#cfg-body").addEventListener("click", async (e) => {
+  for (const box of [$("#cfg-body"), $("#opp-body")]) box.addEventListener("click", async (e) => {
     const id = e.target.closest("button")?.id;
     if (id === "bk-tour") { startTour("backup"); return; }
     if (id === "opp-tour") { startTour("opp"); return; }
@@ -2885,17 +2898,19 @@ document.addEventListener('mousedown', (e) => {
   });
   const saveCfg = (k, v) => { settings[k] = v; api().set_setting(k, v); };
   $("#gear").addEventListener("click", openConfig);
-  $("#opp-btn").addEventListener("click", () => openConfig().then(() => { const c = $("#opp-card"); if (!c) return; c.scrollIntoView({ block: "center" }); c.animate([{ boxShadow: "0 0 0 2px #e8a33d" }, { boxShadow: "0 0 0 0 transparent" }], { duration: 1600 }); }));
+  $("#opp-btn").addEventListener("click", openOpp);
   new ResizeObserver(() => { if (tour?.place) tour.place(); }).observe($("#cfg-body"));   // el contenido asincrono de Ajustes cambia el alto: el recorrido se realinea
   $("#rd-auto-on").addEventListener("change", (e) => editing && api().set_autodrop(editing.id, e.target.checked).then(loadMine));
   for (const id of ["#rd-ov-h", "#rd-ov-a", "#rd-ov-f"]) $(id).addEventListener("change", () => editing && api().set_overrides(editing.id, $("#rd-ov-h").value, $("#rd-ov-a").value, $("#rd-ov-f").value).then(loadMine));
+  $("#opp-x").addEventListener("click", () => $("#opp-dialog").close());
+  $("#opp-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $("#cfg-x").addEventListener("click", () => $("#cfg-dialog").close());
   $("#cfg-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $("#cfg-body").addEventListener("input", (e) => {
     if (e.target.id === "cfg-hours") $("#v-hours").textContent = e.target.value + " h";
     if (e.target.id === "cfg-amount") $("#v-amount").textContent = e.target.value + "p";
   });
-  $("#cfg-body").addEventListener("change", (e) => {
+  for (const box of [$("#cfg-body"), $("#opp-body")]) box.addEventListener("change", (e) => {
     const t = e.target;
     if (t.id === "cl-auto") saveCfg("cloud_auto", t.checked);
     else if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "cfg.on" : "cfg.off")); }
@@ -3046,9 +3061,9 @@ document.addEventListener('mousedown', (e) => {
       { cfg: true, el: "#cl-card", t: "tour.backup.6.t", x: "tour.backup.6.x" },
     ] },
     opp: { title: "tour.opp.title", steps: [
-      { cfg: true, el: "#opp-card", t: "tour.opp.1.t", x: "tour.opp.1.x" },
-      { cfg: true, el: "#opp-thr-row", t: "tour.opp.2.t", x: "tour.opp.2.x" },
-      { cfg: true, el: "#opp-wp", t: "tour.opp.3.t", x: "tour.opp.3.x" },
+      { opp: true, el: "#opp-card", t: "tour.opp.1.t", x: "tour.opp.1.x" },
+      { opp: true, el: "#opp-thr-row", t: "tour.opp.2.t", x: "tour.opp.2.x" },
+      { opp: true, el: "#opp-wp", t: "tour.opp.3.t", x: "tour.opp.3.x" },
     ] },
     reporte: { title: "tour.reporte.title", steps: [
       { el: "#report .rp-filters", t: "tour.reporte.1.t", x: "tour.reporte.1.x" },
@@ -3185,15 +3200,17 @@ document.addEventListener('mousedown', (e) => {
     if (completed) st.done[tour.id] = true;
     if (never) st.off = true;
     saveTour(st);
-    const wasBackup = tour.id === "backup";
+    const wasBackup = tour.id === "backup", wasOpp = tour.id === "opp";
     $("#tour-hole").remove(); $("#tour-tip").remove(); tour = null; closeDemo();
     if (wasBackup) $("#cfg-dialog").close();
+    if (wasOpp) $("#opp-dialog").close();
   }
   function tourStep(i) {
     const T = TOURS[tour.id], st = T.steps[i];
+    if (st.opp && !$("#opp-dialog").open) { tour.i = i; openOpp(); tourStep(i); return; }
     if (st.cfg && !$("#cfg-dialog").open) { tour.i = i; openConfig().then(() => tour && tourStep(i)); return; }
     if (st.demo) openDemo(st.demo); else closeDemo();
-    document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.cfg && d.id === "cfg-dialog") && !(st.demo && d.id === (st.demo.startsWith("summary") ? "sum-dialog" : "riven-dialog"))) d.close(); });
+    document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.cfg && d.id === "cfg-dialog") && !(st.opp && d.id === "opp-dialog") && !(st.demo && d.id === (st.demo.startsWith("summary") ? "sum-dialog" : "riven-dialog"))) d.close(); });
     if (st.pre) st.pre();
     const el = document.querySelector(st.el);
     if (!el || !el.getClientRects().length) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }

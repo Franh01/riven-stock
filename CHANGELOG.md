@@ -6,11 +6,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 #### Español
 - Tu stock se compara con el mercado: etiquetas Caro, Barato y Estancado en la tabla, filtro por etiqueta y un botón para ajustar el precio al estimado.
-- Ajustes: el recorrido de respaldos ya no se desalinea cuando carga la información, títulos más claros (Respaldo de tus datos, Alertas de oportunidad) y un botón de rayo en la cabecera que lleva directo a las alertas. En Ayuda, los recorridos pasan a un selector único.
+- Ajustes: el recorrido de respaldos ya no se desalinea cuando carga la información, títulos más claros (Respaldo de tus datos, Alertas de oportunidad) y las alertas de oportunidad tienen su propia ventana, con un botón de rayo en la cabecera; Ajustes ya no cambia de tamaño y los tags quedan centrados. En Ayuda, los recorridos pasan a un selector único.
 
 #### English
 - Your stock is compared against the market: Pricey, Cheap and Stale tags in the table, a tag filter and a button to set the price to the estimate.
-- Settings: the backup tour no longer misaligns while data loads, clearer titles (Back up your data, Opportunity alerts) and a lightning button in the header that jumps straight to the alerts. In Help, tours now live in a single selector.
+- Settings: the backup tour no longer misaligns while data loads, clearer titles (Back up your data, Opportunity alerts) and opportunity alerts get their own window, opened by a lightning button in the header; Settings no longer resizes and tags are centered. In Help, tours now live in a single selector.
 
 ## [0.8.6] - 2026-10-21
 
