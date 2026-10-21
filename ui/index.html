@@ -2649,14 +2649,14 @@ document.addEventListener('mousedown', (e) => {
     const rows = mkRows.filter((a) => (st === "all" || (st === "ingame" ? a.status === "ingame" : a.status === "ingame" || a.status === "online"))
       && (!mp || a.price <= mp) && (mr === "" || (a.rolls ?? 0) <= +mr)
       && (ng === "any" || (ng === "has") === a.stats.some((x) => !x.positive)));
-    rows.sort((a, b) => mkSort.d * (mkSort.k === "status" ? (stRank[a.status] ?? 3) - (stRank[b.status] ?? 3) || a.price - b.price : a.price - b.price));
+    rows.sort((a, b) => mkSort.d * (mkSort.k === "status" ? (stRank[a.status] ?? 3) - (stRank[b.status] ?? 3) || a.price - b.price : mkSort.k === "created" ? String(a.created || "").localeCompare(String(b.created || "")) : a.price - b.price));
     const arrow = (k) => (mkSort.k === k ? (mkSort.d > 0 ? " ▲" : " ▼") : "");
     $("#mk-info").textContent = tr("mkt.info", { n: rows.length, t: mkRows.length });
-    $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th class="mk-sort" data-k="status" style="cursor:pointer">${tr("mkt.seller")}${arrow("status")}</th><th class="mk-sort" data-k="price" style="cursor:pointer">${tr("th.price")}${arrow("price")}</th></tr></thead><tbody>${
+    $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th class="mk-sort" data-k="status" style="cursor:pointer">${tr("mkt.seller")}${arrow("status")}</th><th class="mk-sort" data-k="created" style="cursor:pointer">${tr("mkt.posted")}${arrow("created")}</th><th class="mk-sort" data-k="price" style="cursor:pointer">${tr("th.price")}${arrow("price")}</th></tr></thead><tbody>${
       rows.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
         <td><div class="stats">${a.stats.map((s) => formatStat(s)).join("")}</div></td><td>${a.rolls ?? "—"}</td>
         <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${stTxt(a.status)}</span></small></td>
-        <td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>`;
+        <td title="${esc(fullDate(a.created))}">${ago(a.created) || "—"}</td><td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>`;
   }
   ["#mkf-status", "#mkf-price", "#mkf-rolls", "#mkf-neg"].forEach((s) => { $(s).addEventListener("input", renderMarket); $(s).addEventListener("change", renderMarket); });
   async function runMarket() {

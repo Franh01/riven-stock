@@ -277,6 +277,7 @@ window.LANGS.en = {
   "pub.fail": "Couldn't publish: {e}",
   "pub.done": "Published: {n} · {p}p",
   "st.offline": "Offline",
+  "mkt.posted": "Posted",
   "mkf.status": "Seller", "mkf.on": "In game or online", "mkf.ingame": "In game only", "mkf.all": "All",
   "mkf.maxPrice": "Max price", "mkf.maxRolls": "Max rolls", "mkf.neg": "Negative", "mkf.any": "Any", "mkf.none": "No negative", "mkf.has": "With negative",
   "mkt.none": "No direct sales match those filters.",
