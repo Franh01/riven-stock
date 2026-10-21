@@ -2352,15 +2352,21 @@ document.addEventListener('mousedown', (e) => {
   // ---- Tutoriales guiados ----
   const TOURS = {
     inicio: { title: "Recorrido inicial", steps: [
-      { el: "#status-pill", t: "Tu estado", x: "Acá ves y cambiás tu estado en warframe.market. Mientras estés online se cuentan las horas de cada riven." },
-      { el: "#bell", t: "Alertas", x: "Te avisa cuando la baja automática le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
-      { el: "#gear", t: "Configuración", x: "Los valores globales de la baja automática: horas sin vender, cuánto baja y el piso mínimo." },
+      { el: "#status-pill", t: "Tu estado", x: "Acá ves y cambiás tu [[Estado en warframe.market]]. Mientras estés online se cuentan las horas de cada riven." },
+      { el: "#bell", t: "Alertas", x: "Te avisa cuando la [[Baja automática]] le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
+      { el: "#gear", t: "Configuración", x: "Los valores globales de la [[Baja automática]]: horas sin vender, cuánto baja y el piso mínimo." },
       { el: "#views", t: "Mis ventas y Mercado", x: "Mis ventas es tu stock; Mercado sirve para mirar lo que se vende de cada arma." },
-      { el: "#mine", t: "Tus rivens", x: "Tocá el nombre de uno para ver su resumen: precio estimado, comparables, tendencia del arma e historial. Desde el resumen lo editás." },
+      { el: "#mine", t: "Tus rivens", x: "Tocá el nombre de uno para ver su resumen: precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Desde el resumen lo editás." },
       { el: "#fab", t: "Nuevo riven", x: "Para consultar el precio de referencia y publicar un contrato nuevo." },
       { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
     ] },
   };
+  function openHelp(title) {
+    const d = $("#help-dialog"); if (!d.open) d.showModal();
+    const h = [...d.querySelectorAll("h4")].find((x) => x.textContent === title);
+    d.querySelectorAll(".hflash").forEach((x) => x.classList.remove("hflash"));
+    if (h) { h.classList.add("hflash"); h.nextElementSibling?.classList.add("hflash"); h.scrollIntoView({ block: "start", behavior: "smooth" }); }
+  }
   let tour = null;
   const tourState = () => settings.tutorials || { done: {}, off: false };
   const saveTour = (st) => { settings.tutorials = st; api().set_setting("tutorials", st); };
@@ -2381,18 +2387,18 @@ document.addEventListener('mousedown', (e) => {
     const r = el.getBoundingClientRect(), hole = $("#tour-hole"), tip = $("#tour-tip");
     Object.assign(hole.style, { top: r.top - 6 + "px", left: r.left - 6 + "px", width: r.width + 12 + "px", height: r.height + 12 + "px" });
     const last = i === T.steps.length - 1;
-    tip.innerHTML = `<h5>${st.t}</h5><p>${st.x}</p><label><input type="checkbox" id="tour-never"> No volver a mostrar tutoriales</label>
+    tip.innerHTML = `<h5>${st.t}</h5><p>${st.x.replace(/\[\[(.+?)(?:\|(.+?))?\]\]/g, (_, k, l) => `<a href="#" class="hlink" data-help="${k}">${l || k}</a>`)}</p><label><input type="checkbox" id="tour-never"> No volver a mostrar tutoriales</label>
       <div class="tt-row"><span class="tt-n">${i + 1} de ${T.steps.length}</span><button class="ghost" id="tt-skip">Saltar</button>${i ? `<button class="ghost" id="tt-prev">Atrás</button>` : ""}<button id="tt-next">${last ? "Listo" : "Siguiente"}</button></div>`;
     const th = tip.offsetHeight, below = r.bottom + 14 + th < innerHeight;
     tip.style.top = Math.max(8, below ? r.bottom + 14 : r.top - th - 14) + "px";
     tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - 160), innerWidth - 336) + "px";
+    tip.querySelectorAll(".hlink").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openHelp(a.dataset.help); }));
     $("#tt-skip").onclick = () => endTour(false);
     $("#tt-prev")?.addEventListener("click", () => tourStep(i - 1));
     $("#tt-next").onclick = () => (last ? endTour(true) : tourStep(i + 1));
   }
   function startTour(id) {
     if (tour) return;
-    $("#help-dialog").close();
     document.body.insertAdjacentHTML("beforeend", `<div id="tour-hole"></div><div id="tour-tip"></div>`);
     tour = { id, i: 0 }; tourStep(0);
   }
@@ -2450,6 +2456,9 @@ document.addEventListener('mousedown', (e) => {
   .help h4 { margin: 18px 0 4px; color: var(--accent-2); font-size: 15px; }
   .help h4:first-child { margin-top: 0; }
   .help p { margin: 0 0 6px; line-height: 1.5; font-size: 14px; }
+  #tour-tip a.hlink { color: var(--accent-2); text-decoration: underline dotted; cursor: pointer; }
+  .help .hflash { background: #7c3aed33; border-radius: 6px; box-shadow: 0 0 0 6px #7c3aed33; animation: hf 2.4s ease-out; }
+  @keyframes hf { 0%,60% { background: #7c3aed66; } 100% { background: #7c3aed33; } }
   #help-dialog { width: min(640px, 92vw); }
   #help-dialog .dlg-body { max-height: 70vh; overflow: auto; }
 </style>
