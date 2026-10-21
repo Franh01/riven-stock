@@ -210,11 +210,11 @@
   .qbar .qtop b { color: var(--text); }
   .qbar .track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
   .qbar .fill { height: 100%; width: 0; background: var(--accent-2); transition: width .4s linear; }
-  #req-feed { position: fixed; top: 12px; left: 12px; z-index: 70; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  #req-feed { position: fixed; bottom: 12px; right: 12px; align-items: flex-end; z-index: 70; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
   #req-feed .req { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px;
     padding: 5px 10px; font: 12px ui-monospace, Consolas, monospace; color: var(--text); box-shadow: 0 4px 16px #0006; animation: reqin .25s ease-out; transition: opacity .6s; }
   #req-feed .req.old { opacity: 0; }
-  @keyframes reqin { from { opacity: 0; transform: translateY(-8px); } }
+  @keyframes reqin { from { opacity: 0; transform: translateY(8px); } }
   .toast {
     position: fixed; inset: auto auto 30px 50%; margin: 0; color: var(--text); overflow: visible; transform: translateX(-50%) translateY(20px); z-index: 50;
     background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
@@ -2839,7 +2839,7 @@ document.addEventListener('mousedown', (e) => {
     renderOppChips();
   }
   const ICON = {   // iconos de trazo (24x24) para las secciones de Ajustes
-    price: "M3 17l6-6 4 4 8-9M15 6h6v6", bell: "M18 16v-5a6 6 0 10-12 0v5l-2 2h16zM10 21h4", eye: "M3 3l18 18M10.6 6.1A9.8 9.8 0 0112 6c5 0 8.5 4.5 9.5 6a14 14 0 01-3 3.4M6.2 7.6A14 14 0 002.5 12C3.5 13.5 7 18 12 18c1.4 0 2.7-.3 3.8-.8",
+    price: "M3 17l6-6 4 4 8-9M15 6h6v6", bell: "M18 16v-5a6 6 0 10-12 0v5l-2 2h16zM10 21h4", code: "M8 8l-5 4 5 4M16 8l5 4-5 4M14 5l-4 14", eye: "M3 3l18 18M10.6 6.1A9.8 9.8 0 0112 6c5 0 8.5 4.5 9.5 6a14 14 0 01-3 3.4M6.2 7.6A14 14 0 002.5 12C3.5 13.5 7 18 12 18c1.4 0 2.7-.3 3.8-.8",
     globe: "M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3z",
     save: "M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6", cloud: "M7 18a4 4 0 01-.5-8 5.5 5.5 0 0110.7 1A3.5 3.5 0 0117 18z", cog: "M12 15a3 3 0 100-6 3 3 0 000 6zM19 12l2-1.5-2-3.5-2.4.7a7 7 0 00-1.6-.9L14.5 4h-4l-.5 2.8a7 7 0 00-1.6.9L6 7l-2 3.5L6 12l-2 1.5L6 17l2.4-.7c.5.4 1 .7 1.6.9l.5 2.8h4l.5-2.8c.6-.2 1.1-.5 1.6-.9L18 17l2-3.5z", data: "M4 6c0-1.1 3.6-2 8-2s8 .9 8 2-3.6 2-8 2-8-.9-8-2zM4 6v12c0 1.1 3.6 2 8 2s8-.9 8-2V6M4 12c0 1.1 3.6 2 8 2s8-.9 8-2",
   };
@@ -2863,7 +2863,7 @@ document.addEventListener('mousedown', (e) => {
       </div></div>
       <h4 class="cfg-sec">${ic("cog", 16)}${tr("cfg.secGeneral")}</h4>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.invis")}</b><small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
-      <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.showReq")}</b><small>${tr("cfg.showReqSub")}</small></span>${sw("cfg-showreq", cfgVal("show_requests") === true)}</label></div>
+      <div class="sum-card"><label class="switch-row"><span><b>${ic("code")}${tr("cfg.showReq")}</b><small>${tr("cfg.showReqSub")}</small></span>${sw("cfg-showreq", cfgVal("show_requests") === true)}</label></div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.autoIn")}</b><small>${tr("cfg.autoInSub")}</small></span>${sw("cfg-autoin", cfgVal("auto_ingame") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row" style="flex-direction:column;align-items:stretch;gap:10px"><span><b>${ic("globe")}${tr("lang.label")}</b><small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
     </div><div class="cfg-col">

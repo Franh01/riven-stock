@@ -354,7 +354,7 @@ window.LANGS.es = {
   "opp.rmTip": "Quitar",
   "cfg.invisSub": "Al cerrar, tu estado pasa a Invisible.",
   "cfg.showReq": "Ver pedidos a warframe.market",
-  "cfg.showReqSub": "Muestra arriba a la izquierda los últimos 3 pedidos que hace la app, con su nombre corto.",
+  "cfg.showReqSub": "Muestra abajo a la derecha los últimos 3 pedidos que hace la app, con su nombre corto.",
   "req.retry": "reintento",
   "cfg.autoIn": "En juego al abrir la app",
   "cfg.autoInSub": "Al abrir, tu estado pasa a En juego por 4 h.",
