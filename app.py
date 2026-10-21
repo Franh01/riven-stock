@@ -1117,7 +1117,7 @@ def main():
     api.start_counter()
     window = webview.create_window(
         TITLE, str(ROOT / "ui" / "index.html"), js_api=api,
-        width=1180, height=780, min_size=(860, 580), background_color="#0c0518",
+        width=1180, height=780, min_size=(860, 580), background_color="#0c0518", maximized=True,
     )
     api._window = window
     window.events.shown += set_window_icon

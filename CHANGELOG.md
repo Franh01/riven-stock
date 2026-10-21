@@ -6,9 +6,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ### Agregado
 - Recorrido guiado de las alertas de oportunidad (botón ? en la tarjeta y en la Ayuda), en español e inglés.
+- Ajustes rediseñados: ventana más ancha en dos columnas ("Precios y alertas" y "General"), con iconos y una sección de datos y copias.
+- "En juego al abrir la app" pasa a Ajustes como switch; "Invisible al cerrar" queda solo en Ajustes y se quita del menú de estado.
+- Las armas vigiladas en Oportunidad se ven como etiquetas con botón para quitarlas.
+- La ventana arranca maximizada.
 
 ### Corregido
 - Alertas de oportunidad: el estimado ya no sale tachado y los textos de cada fila quedan alineados al centro.
+- El tooltip del engranaje decía "ajuste automático de precio"; ahora dice "Ajustes".
+- Falso aviso de falla al abrir: las llamadas de la interfaz esperan a que la API de Python esté lista.
 
 ## [0.8.0] - 2026-10-21
 
