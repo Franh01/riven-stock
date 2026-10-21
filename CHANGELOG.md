@@ -5,12 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
-- Mercado: columna de fecha de publicación, y se puede ordenar por precio, estado del vendedor y fecha (clic en el encabezado). Ahora se listan todas las publicaciones del arma (antes solo vendedores en juego u online) y hay filtros sobre la tabla: estado del vendedor, precio máximo, rolls máximos y negativo.
+- Mercado: trae hasta 500 publicaciones (antes cortaba en las 150 más baratas y ocultaba a los vendedores online más caros). Columna de fecha de publicación, y se puede ordenar por precio, estado del vendedor y fecha (clic en el encabezado). Ahora se listan todas las publicaciones del arma (antes solo vendedores en juego u online) y hay filtros sobre la tabla: estado del vendedor, precio máximo, rolls máximos y negativo.
 - El estimador tiene en cuenta cuánto lleva publicado tu riven sin venderse, que los comparables más baratos y parecidos marcan el nivel, y que las publicaciones viejas pesan menos; las razones se ven en la tarjeta.
 - El estimador ahora conoce cada arma (reparto de daño, tabla propia incluida en la app): un negativo sobre el daño principal baja el precio, uno sobre un daño que el arma no usa casi no molesta, y un positivo inútil vale menos. Las razones se ven en la tarjeta del estimado.
 
 #### English
-- Market: posted-date column, sortable by price, seller status and date (click the header). All listings for the weapon are shown (before, only in-game/online sellers) with table filters: seller status, max price, max rolls and negative.
+- Market: up to 500 listings (it used to cut at the 150 cheapest, hiding pricier online sellers). Posted-date column, sortable by price, seller status and date (click the header). All listings for the weapon are shown (before, only in-game/online sellers) with table filters: seller status, max price, max rolls and negative.
 - The estimator now considers how long your riven has been listed unsold, that the cheaper close comparables set the level, and that old listings weigh less; reasons show in the card.
 - The estimator now knows each weapon (damage split, bundled table): a negative on the main damage lowers the price, one on a damage the weapon doesn't use barely matters, and a useless positive is worth less. Reasons show in the estimate card.
 

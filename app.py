@@ -877,7 +877,7 @@ class Api:
         """Avance de la cola de pedidos a warframe.market (para la barra de progreso)."""
         return QUEUE.status()
 
-    def market_search(self, weapon, stats=(), n=150):
+    def market_search(self, weapon, stats=(), n=500):
         """Pestaña Mercado: ventas directas de un arma (con esos stats positivos, si hay), de las
         más baratas a las más caras (todos los vendedores, con su estado)."""
         stats = [s for s in stats if s]
