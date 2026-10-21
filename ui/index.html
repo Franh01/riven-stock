@@ -2437,7 +2437,7 @@ document.addEventListener('mousedown', (e) => {
     if (st.demo) openDemo(st.demo); else closeDemo();
     document.querySelectorAll("dialog[open]").forEach((d) => { if (d.id !== "help-dialog" && !(st.demo && d.id === "riven-dialog")) d.close(); });
     const el = document.querySelector(st.el);
-    if (!el || !el.offsetParent) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
+    if (!el || !el.getClientRects().length) { return i < T.steps.length - 1 ? tourStep(i + 1) : endTour(true); }
     tour.i = i;
     el.scrollIntoView({ block: "center", behavior: "instant" });
     const hole = $("#tour-hole"), tip = $("#tour-tip");
