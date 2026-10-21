@@ -1175,6 +1175,7 @@ def auction_view(a):
         "polarity": item.get("polarity"),
         "note": a.get("note_raw", ""),
         "updated": a.get("updated"),
+        "created": a.get("created"),
     }
 
 

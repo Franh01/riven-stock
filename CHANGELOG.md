@@ -5,9 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
+- El estimador tiene en cuenta cuánto lleva publicado tu riven sin venderse, que los comparables más baratos y parecidos marcan el nivel, y que las publicaciones viejas pesan menos; las razones se ven en la tarjeta.
 - El estimador ahora conoce cada arma (reparto de daño, tabla propia incluida en la app): un negativo sobre el daño principal baja el precio, uno sobre un daño que el arma no usa casi no molesta, y un positivo inútil vale menos. Las razones se ven en la tarjeta del estimado.
 
 #### English
+- The estimator now considers how long your riven has been listed unsold, that the cheaper close comparables set the level, and that old listings weigh less; reasons show in the card.
 - The estimator now knows each weapon (damage split, bundled table): a negative on the main damage lowers the price, one on a damage the weapon doesn't use barely matters, and a useless positive is worth less. Reasons show in the estimate card.
 
 ## [0.9.0] - 2026-10-21

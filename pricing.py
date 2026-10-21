@@ -89,6 +89,23 @@ def similarity(pos, neg, rolls, other, rtype=None, rank=None):
     return max(sim, 0.0)
 
 
+def _age_days(iso):
+    """Días desde una fecha ISO de warframe.market; None si no se puede leer."""
+    try:
+        t = _dt.datetime.fromisoformat(str(iso).replace("Z", "+00:00"))
+        if t.tzinfo is None:
+            t = t.replace(tzinfo=_dt.timezone.utc)
+        return max(0.0, (_dt.datetime.now(_dt.timezone.utc) - t).total_seconds() / 86400)
+    except (ValueError, TypeError):
+        return None
+
+
+def _stale(o):
+    """Una publicación vieja que no se vendió es mala referencia de precio."""
+    d = _age_days(o.get("c")) if o.get("c") else None
+    return 1.0 if d is None or d < 14 else 0.7 if d < 30 else 0.5
+
+
 def _wquantile(pairs, q):
     """pairs: [(valor, peso)]; cuantil ponderado."""
     pairs = sorted(pairs)
@@ -117,15 +134,30 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
         return None
     scored.sort(key=lambda t: -t[0])
     top = scored[:MAX_COMPS]
-    pairs = [(o["p"], (sim ** 5) * (1.0 if o["st"] in ("ingame", "online") else 0.5)) for sim, o in top]
+    pairs = [(o["p"], (sim ** 5) * (1.0 if o["st"] in ("ingame", "online") else 0.5) * _stale(o)) for sim, o in top]
     avg_sim = sum(s for s, _ in top) / len(top)
     conf = "alta" if len(top) >= 6 and avg_sim >= 0.7 else "media" if len(top) >= 3 and avg_sim >= 0.5 else "baja"
     adj, reasons = weapon_adjust(weapon, view["stats"]) if weapon else (1.0, [])
+    price, low, high = (round(_wquantile(pairs, q) * adj) for q in (0.5, 0.25, 0.75))
+    # Techo 1: lo que ya lleva publicado sin venderse a mi precio
+    days = _age_days(view.get("created")) if view.get("created") and view.get("price") else None
+    if days is not None and days >= 3:
+        cap = round(view["price"] * max(1.3, 3.0 - days / 7))
+        if price > cap:
+            price, low, high = cap, min(low, cap), min(high, cap)
+            reasons.append({"key": "listedLong", "d": int(days), "p": view["price"]})
+    # Techo 2: si los comparables más parecidos están todos mucho más baratos
+    close = sorted(o["p"] for s, o in top if s >= 0.6)
+    if len(close) >= 3:
+        cap = round(close[len(close) // 2] * 2.5)
+        if price > cap:
+            price, low, high = cap, min(low, cap), min(high, cap)
+            reasons.append({"key": "cheaperCap", "n": len(close)})
+    if any(_stale(o) < 1 for _, o in top):
+        reasons.append({"key": "staleComps"})
     return {
         "adj": round(adj, 2), "reasons": reasons,
-        "price": round(_wquantile(pairs, 0.5) * adj),
-        "low": round(_wquantile(pairs, 0.25) * adj),
-        "high": round(_wquantile(pairs, 0.75) * adj),
+        "price": price, "low": low, "high": high,
         "n": len(top), "confidence": conf, "avg_sim": round(avg_sim, 2),
         "comps": [{"id": o["id"], "price": o["p"], "sim": round(s, 2), "status": o["st"], "rolls": o["r"], "rank": o.get("k"),
                    "created": o.get("c"), "last_seen": o.get("ls"), "seller": o.get("nm"),
@@ -134,6 +166,7 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
     }
 
 
+import datetime as _dt
 import json as _json
 from pathlib import Path as _Path
 
