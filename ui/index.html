@@ -76,7 +76,8 @@
   button.small { padding: 6px 12px; font-size: 13px; box-shadow: none; }
   button.ghost { background: var(--panel-2); border: 1px solid var(--line); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
   button.ghost:hover { border-color: var(--accent); }
-  #est-go { padding: 10px 20px; font-size: inherit; font-weight: 600; }
+  .row-actions button { padding: 10px 20px; font-size: 14px; font-weight: 600; }
+  .row-actions .hint { flex-basis: 100%; font-size: 12px; opacity: .75; }
   .row-actions { gap: 12px; }
   button.solid-danger { background: linear-gradient(180deg, #f06a80, #c43a52); box-shadow: 0 4px 16px #c43a5255; }
   button.solid-sold { background: linear-gradient(180deg, #5fd497, #2f9e66); box-shadow: 0 4px 16px #2f9e6655; }
@@ -445,7 +446,7 @@
   .unit { position: relative; }
   .unit input { padding-right: 24px; }
   .unit::after { content: attr(data-unit); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; pointer-events: none; }
-  .row-actions { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+  .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 16px; }
   .summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
   .wtag { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; border-radius: 999px; background: rgba(168,85,247,.16); border: 1px solid var(--accent); color: var(--text); font-size: 13px; line-height: 1.2; }
   .wtag a { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: var(--muted); text-decoration: none; font-size: 15px; line-height: 1; }
@@ -721,7 +722,6 @@
       <div class="row-actions">
         <button id="est-go" hidden title="Compara con rivens parecidos al tuyo (mismos stats)" data-i18n-title="rd.estTip" data-i18n="rd.estGo">Calcular estimado con comparables</button>
         <button id="ref-go" class="ghost" data-i18n="rd.refGo">Ver precio de referencia</button>
-        <span class="hint" id="est-hint" hidden data-i18n="rd.estHint">Puede tardar: hace varias búsquedas en warframe.market.</span>
         <span class="hint" id="rd-info" data-i18n="rd.info">Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.</span>
       </div>
     </section>
@@ -2101,7 +2101,7 @@ document.addEventListener('mousedown', (e) => {
       $("#rd-ov-f").value = h && h.floor_override ? h.floor_override : "";
       $("#rd-ov-h").placeholder = cfgVal("autodrop_hours"); $("#rd-ov-a").placeholder = cfgVal("autodrop_amount"); $("#rd-ov-f").placeholder = cfgVal("autodrop_floor");
     }
-    $("#est-go").hidden = false; $("#est-hint").hidden = false; $("#est-section").hidden = true;
+    $("#est-go").hidden = false; $("#est-section").hidden = true;
     $("#pub-more").open = false;
     syncMore();
     $("#riven-dialog").showModal();
