@@ -29,6 +29,9 @@ functions:
       - schedule:
           # 06:00 UTC todos los días (03:00 en Argentina)
           rate: cron(0 6 * * ? *)
+      - schedule:
+          # Segunda pasada: completa las armas que fallaron por límite de la API (el colector retoma lo que falta)
+          rate: cron(30 6 * * ? *)
   api:
     name: riven-stock-api
     handler: src/api.handler
