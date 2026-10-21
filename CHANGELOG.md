@@ -3,11 +3,13 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado semántico.
 
 ## [Sin publicar]
-- Recorrido guiado inicial (se muestra solo la primera vez, se puede saltar o desactivar, y se repite desde Ayuda).
-n- Mercado: foto diaria por arma (cantidad, mínimo y mediana) de tus rivens en stock, tomada en idle por la cola central. Base para las tendencias.
-n- Resumen de un riven: tarjeta de tendencia del arma (mediana y mínimo de los últimos 90 días, con variación).
-n- Tendencia: estrella para seguir un arma aunque no la tengas en stock; se le saca una foto diaria igual.
-n- Pantalla de bienvenida breve mientras carga warframe.market, y botón "?" de ayuda con la explicación de las funciones.
+- Recorrido guiado inicial (se muestra solo la primera vez, se puede saltar o desactivar, y se repite desde Ayuda): crea un riven de ejemplo, recorre la lista, el menú de acciones, la edición, el estimado y el detalle con las migas de pan, todo con datos de ejemplo.
+- Referencias y comparables plegados en 'Ver las N órdenes' para no saturar la edición.
+- Campos numéricos sin las flechitas.
+- Mercado: foto diaria por arma (cantidad, mínimo y mediana) de tus rivens en stock, tomada en idle por la cola central. Base para las tendencias.
+- Resumen de un riven: tarjeta de tendencia del arma (mediana y mínimo de los últimos 90 días, con variación).
+- Tendencia: estrella para seguir un arma aunque no la tengas en stock; se le saca una foto diaria igual.
+- Pantalla de bienvenida breve mientras carga warframe.market, y botón "?" de ayuda con la explicación de las funciones.
 
 ## [0.2.5] - 2026-10-20
 
