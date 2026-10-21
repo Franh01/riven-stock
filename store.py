@@ -106,6 +106,17 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 CREATE INDEX IF NOT EXISTS idx_notifications ON notifications (read_at, created_at);
 
+-- Foto diaria del mercado por arma (tendencias).
+CREATE TABLE IF NOT EXISTS market_snapshots (
+    weapon      TEXT NOT NULL,
+    day         TEXT NOT NULL,      -- YYYY-MM-DD (UTC)
+    n_orders    INTEGER NOT NULL,
+    n_online    INTEGER NOT NULL,
+    min_price   INTEGER,
+    median      INTEGER,
+    PRIMARY KEY (weapon, day)
+);
+
 -- Preferencias de la interfaz (pywebview corre en modo privado: localStorage no persiste).
 CREATE TABLE IF NOT EXISTS settings (
     key         TEXT PRIMARY KEY,
@@ -396,6 +407,30 @@ def purge_old(conn):
     conn.execute("DELETE FROM price_drops WHERE at < datetime('now', '-12 months') "
                  "AND id NOT IN (SELECT drop_id FROM notifications WHERE drop_id IS NOT NULL)")
     conn.commit()
+    conn.execute("DELETE FROM market_snapshots WHERE day < date('now', '-24 months')")
+    conn.commit()
+
+
+def save_snapshot(conn, weapon, market):
+    """Guarda (o pisa) la foto de hoy: cantidad, mínimo y mediana de las ventas directas."""
+    prices = sorted(a["p"] for a in market)
+    online = [a["p"] for a in market if a.get("st") in ("ingame", "online")]
+    conn.execute(
+        "INSERT OR REPLACE INTO market_snapshots (weapon, day, n_orders, n_online, min_price, median) "
+        "VALUES (?, date('now'), ?, ?, ?, ?)",
+        (weapon, len(prices), len(online), prices[0] if prices else None,
+         prices[len(prices) // 2] if prices else None))
+    conn.commit()
+
+
+def snapshot_done_today(conn, weapon):
+    return conn.execute("SELECT 1 FROM market_snapshots WHERE weapon = ? AND day = date('now')", (weapon,)).fetchone() is not None
+
+
+def market_trend(conn, weapon, days=90):
+    return [dict(r) for r in conn.execute(
+        "SELECT day, n_orders, n_online, min_price, median FROM market_snapshots "
+        "WHERE weapon = ? AND day >= date('now', ?) ORDER BY day", (weapon, f"-{int(days)} days"))]
 
 
 # ---- Preferencias ------------------------------------------------------------

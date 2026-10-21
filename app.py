@@ -148,6 +148,7 @@ class Api:
         self._stop = threading.Event()
         threading.Thread(target=self._counter_loop, daemon=True).start()
         threading.Thread(target=self._drop_loop, daemon=True).start()
+        threading.Thread(target=self._snapshot_loop, daemon=True).start()
         self._cache.start()
 
     def stop_counter(self):
@@ -203,6 +204,27 @@ class Api:
             w = a["item"]["weapon_url_name"]
             score[w] = max(score.get(w, 0), ratio)
         return sorted(score, key=score.get, reverse=True)
+
+    SNAPSHOT_PASS_S = 120
+
+    def _snapshot_loop(self):
+        """Una foto diaria por arma (stock y favoritas), solo en idle y por la cola central."""
+        while not self._stop.wait(self.SNAPSHOT_PASS_S):
+            if not self._cache.idle() or QUEUE.busy():
+                continue
+            try:
+                with store.connect() as conn:
+                    todo = [w for w in self._wanted_weapons() if not store.snapshot_done_today(conn, w)]
+                    if not todo:
+                        continue
+                    e = self._cache.get(todo[0], self.VIEW_MAX_AGE_S) or self._cache.load(todo[0])
+                    store.save_snapshot(conn, todo[0], e.get("market", []))
+            except Exception:
+                self._stop.wait(60)
+
+    def market_trend(self, weapon, days=90):
+        with store.connect() as conn:
+            return {"points": store.market_trend(conn, weapon, days)}
 
     def weapon_orders(self, weapon):
         """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta)."""
