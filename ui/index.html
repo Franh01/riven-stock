@@ -287,8 +287,8 @@
   .crumbs .back { margin-right: 8px; background: #a066f62a; border: 1px solid var(--accent); color: var(--accent-2); border-radius: 99px; padding: 3px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
   .crumbs .back:hover { background: var(--accent); color: #fff; }
   .crumbs button { box-shadow: none; filter: none; }
-  .crumbs .step { background: none; border: 0; flex: none; padding: 3px 8px; border-radius: 6px; color: var(--accent-2); cursor: pointer; font-size: 13px; }
-  .crumbs .step:hover { background: #a066f633; }
+  .crumbs .cstep { background: none; border: 0; flex: none; padding: 3px 8px; border-radius: 6px; color: var(--accent-2); cursor: pointer; font-size: 13px; }
+  .crumbs .cstep:hover { background: #a066f633; }
   .crumbs .sep { opacity: .6; flex: none; padding: 0 2px; }
   .crumbs b { flex: none; position: static; color: var(--text); font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #ffffff12; }
   .skel-note { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
@@ -1964,7 +1964,7 @@ document.addEventListener('mousedown', (e) => {
     const n = sumStack.length + (loading ? 1 : 0);
     nav.hidden = n < 2;
     if (n < 2) return;
-    const steps = sumStack.map((c, i) => (!loading && i === sumStack.length - 1) ? `<b>${esc(c.label)}</b>` : `<button class="step" data-i="${i}">${esc(c.label)}</button>`);
+    const steps = sumStack.map((c, i) => (!loading && i === sumStack.length - 1) ? `<b>${esc(c.label)}</b>` : `<button class="cstep" data-i="${i}">${esc(c.label)}</button>`);
     if (loading) steps.push(`<b>Cargando…</b>`);
     nav.innerHTML = `<button class="back" data-i="${Math.max(0, (loading ? sumStack.length : sumStack.length - 1) - 1)}">‹ Volver</button>${steps.join('<span class="sep">›</span>')}`;
     nav.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
