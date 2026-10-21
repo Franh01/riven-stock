@@ -480,4 +480,5 @@ window.LANGS.es = {
   "conf.alta": "alta",
   "conf.media": "media",
   "conf.baja": "baja",
+  "combo.none": "Sin resultados",
 };

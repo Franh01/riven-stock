@@ -480,4 +480,5 @@ window.LANGS.en = {
   "conf.alta": "high",
   "conf.media": "medium",
   "conf.baja": "low",
+  "combo.none": "No results",
 };

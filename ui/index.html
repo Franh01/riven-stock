@@ -616,7 +616,7 @@
 
 <button class="fab" id="fab" title="Precio de referencia y nuevo contrato" data-i18n-title="fab.tip">
   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-  Nuevo riven
+  <span data-i18n="rd.new">Nuevo riven</span>
 </button>
 
 <div class="menu" id="row-menu" hidden></div>
@@ -677,7 +677,7 @@
       <div class="publish">
         <label><span data-i18n="rd.price">Precio</span> <div class="unit" data-unit="p"><input id="f-price" type="number" min="1"></div></label>
         <label title="Lo que te costó el riven. Solo se guarda en la app." data-i18n-title="rd.costTip"><span data-i18n="rd.costOpt">Costo (opcional)</span> <div class="unit" data-unit="p"><input id="f-cost" type="number" min="0" step="any"></div></label>
-        <label class="check"><input type="checkbox" id="f-visible" checked> Visible</label>
+        <label class="check"><input type="checkbox" id="f-visible" checked> <span data-i18n="rd.visible">Visible</span></label>
         <label><span data-i18n="rd.noteOpt">Nota (opcional)</span> <input id="f-note" placeholder="Ej. Open to offers, PM me" data-i18n-placeholder="rd.notePh"></label>
         <span style="display:flex;gap:10px"><button class="ghost" id="publish-cancel" hidden data-i18n="common.cancel">Cancelar</button><button id="publish-go" data-i18n="rd.publish">Publicar</button></span>
       </div>
@@ -1576,7 +1576,7 @@ document.addEventListener('mousedown', (e) => {
       this.list.innerHTML = this.shown.length
         ? this.shown.map((o, i) => `<div class="combo-item ${i === this.active ? "active" : ""} ${o.value === this.value ? "selected" : ""}" data-i="${i}">
             <span>${mark(o.label)}</span>${o.hint ? `<small>${esc(o.hint)}</small>` : ""}</div>`).join("")
-        : `<div class="combo-empty">Sin resultados</div>`;
+        : `<div class="combo-empty">${tr("combo.none")}</div>`;
       this.list.hidden = false;
       this.list.querySelector(".active")?.scrollIntoView({ block: "nearest" });
     }
