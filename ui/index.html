@@ -505,8 +505,25 @@
   .views button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); padding: 8px 16px; cursor: pointer; font-weight: 600; border-radius: 0; }
   .views button:hover { color: var(--text); }
   .views button.on { color: var(--accent-2); border-bottom-color: var(--accent-2); }
-  main[data-view="market"] > .view-mine { display: none; }
-  main[data-view="mine"] > .view-market { display: none; }
+  main[data-view="market"] > .view-mine, main[data-view="report"] > .view-mine { display: none; }
+  main[data-view="mine"] > .view-market, main[data-view="report"] > .view-market { display: none; }
+  main:not([data-view="report"]) > .view-report { display: none; }
+  .rp-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 12px; }
+  .rp-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .rp-kpi { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .rp-kpi small { display: block; color: var(--muted); font-size: .75rem; margin-bottom: 2px; }
+  .rp-kpi b { font-size: 1.15rem; }
+  .rp-chart { display: flex; align-items: stretch; gap: 4px; height: 170px; margin: 6px 0 4px; border-bottom: 1px solid var(--line); }
+  .rp-col { flex: 1; min-width: 6px; max-width: 60px; display: flex; flex-direction: column; }
+  .rp-col i { display: block; border-radius: 3px; min-height: 2px; }
+  .rp-col .up { background: var(--pos); }
+  .rp-col .dn { background: var(--neg); }
+  .rp-half { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+  .rp-half.b { justify-content: flex-start; }
+  .rp-labels { display: flex; gap: 4px; color: var(--muted); font-size: .7rem; }
+  .rp-labels span { flex: 1; min-width: 6px; max-width: 60px; text-align: center; overflow: hidden; white-space: nowrap; }
+  .rp-rank td.bar-cell { width: 34%; }
+  .rp-rank .rbar { height: 8px; border-radius: 4px; background: var(--accent); min-width: 2px; }
   .mk-filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
   .mk-row { cursor: pointer; }
   .mk-row:hover td { background: #a066f614; }
@@ -553,6 +570,7 @@
 <nav class="views" id="views">
   <button class="on" data-view="mine" data-i18n="nav.mine">Mis ventas</button>
   <button data-view="market" data-i18n="nav.market">Mercado</button>
+  <button data-view="report" data-i18n="nav.report">Reporte</button>
 </nav>
 
 <main data-view="mine">
@@ -606,6 +624,11 @@
       <button class="small" id="lot-add" data-i18n="lot.add">Agregar al stock</button>
     </form>
     <div id="lots"></div>
+  </section>
+
+  <section class="card view-report" id="report-card">
+    <div class="card-head"><h2 data-i18n="rp.title">Reporte de ventas</h2></div>
+    <div id="report"></div>
   </section>
 
   <section class="card view-mine" id="closed-card" hidden>
@@ -900,7 +923,7 @@ document.addEventListener('mousedown', (e) => {
     if (data.invested !== undefined) invested = data.invested;
   }
 
-  function renderAll() { renderTotals(); renderMine(); renderLots(); renderClosed(); }
+  function renderAll() { renderTotals(); renderMine(); renderLots(); renderClosed(); renderReport(); }
   // Cambio de idioma en caliente: re-pinta todo lo que se arma desde JS.
   document.addEventListener("langchange", () => {
     try {
@@ -1178,7 +1201,7 @@ document.addEventListener('mousedown', (e) => {
     }
     entry.pending = false;
     entry.closed_at = res.closed_at;
-    renderClosed(); renderTotals();
+    renderClosed(); renderTotals(); renderReport();
     toast(soldPrice ? tr("close.soldFor", { p: soldPrice }) : tr("close.closed"));
   }
 
@@ -1433,6 +1456,107 @@ document.addEventListener('mousedown', (e) => {
       </tr>`;
       }).join("")}</tbody></table>`;
   }
+
+
+  // ---- Reporte de ventas ------------------------------------------------------
+
+  const rep = { period: "all", weapon: "", type: "" };
+  const DAY_MS = 86400000;
+
+  function reportSales() {
+    const since = { week: 7, month: 30, d90: 90 }[rep.period];
+    return closed.filter((c) => {
+      if (c.pending || !c.sold_price) return false;
+      if (since && Date.now() - new Date(c.closed_at) > since * DAY_MS) return false;
+      if (rep.weapon && c.weapon !== rep.weapon) return false;
+      if (rep.type && weaponBySlug[c.weapon]?.type !== rep.type) return false;
+      return true;
+    }).map((c) => {
+      const cost = costs[c.id]?.cost;
+      return { weapon: c.weapon, at: new Date(c.closed_at), sold: c.sold_price, cost, profit: cost === undefined ? null : c.sold_price - cost };
+    });
+  }
+
+  // Agrupa por día (hasta 30 días), semana (hasta 90) o mes, y suma la ganancia de cada tramo.
+  function reportBuckets(sales) {
+    if (!sales.length) return [];
+    const span = rep.period === "week" || rep.period === "month" ? "day" : rep.period === "d90" ? "week" : "month";
+    const keyOf = (d) => {
+      const x = new Date(d);
+      if (span === "month") return new Date(x.getFullYear(), x.getMonth(), 1).getTime();
+      x.setHours(0, 0, 0, 0);
+      if (span === "week") x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+      return x.getTime();
+    };
+    const m = new Map();
+    for (const s of sales) { const k = keyOf(s.at); m.set(k, (m.get(k) || 0) + (s.profit ?? 0)); }
+    const keys = [...m.keys()].sort((a, b) => a - b);
+    const step = (k) => { const d = new Date(k); if (span === "month") d.setMonth(d.getMonth() + 1); else d.setDate(d.getDate() + (span === "week" ? 7 : 1)); return d.getTime(); };
+    const out = [];
+    for (let k = keys[0]; k <= keys[keys.length - 1] && out.length < 400; k = step(k)) out.push({ k, v: m.get(k) || 0 });
+    const fmt = span === "month" ? { month: "short", year: "2-digit" } : { day: "numeric", month: "short" };
+    return out.map((b) => ({ ...b, label: new Date(b.k).toLocaleDateString(I18N.locale, fmt) }));
+  }
+
+  function renderReport() {
+    const sales = reportSales();
+    const withCost = sales.filter((s) => s.profit !== null);
+    const revenue = sales.reduce((t, s) => t + s.sold, 0);
+    const profit = withCost.reduce((t, s) => t + s.profit, 0);
+    const spent = withCost.reduce((t, s) => t + s.cost, 0);
+    const margin = spent > 0 ? (profit / spent) * 100 : null;
+    const kpi = (label, val) => `<div class="rp-kpi"><small>${label}</small><b>${val}</b></div>`;
+    const sign = (n) => `<span class="${n >= 0 ? "pos-txt" : "neg-txt"}">${n > 0 ? "+" : ""}${fmtP(n)}</span>`;
+
+    const weapons = [...new Set(closed.filter((c) => c.sold_price).map((c) => c.weapon))].sort((a, b) => weaponName(a).localeCompare(weaponName(b)));
+    const types = [...new Set(weapons.map((w) => weaponBySlug[w]?.type).filter(Boolean))].sort();
+    const opt = (v, label, cur) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(label)}</option>`;
+    const filters = `<div class="rp-filters">
+      <label><span>${tr("rp.period")}</span> <select data-f="period">${["all", "week", "month", "d90"].map((p) => opt(p, tr("rp.p." + p), rep.period)).join("")}</select></label>
+      <label><span>${tr("common.weapon")}</span> <select data-f="weapon">${opt("", tr("rp.allWeapons"), rep.weapon)}${weapons.map((w) => opt(w, weaponName(w), rep.weapon)).join("")}</select></label>
+      <label><span>${tr("lot.type")}</span> <select data-f="type">${opt("", tr("rp.allTypes"), rep.type)}${types.map((t) => opt(t, t, rep.type)).join("")}</select></label>
+    </div>`;
+
+    if (!sales.length) { $("#report").innerHTML = filters + `<div class="state">${tr("rp.empty")}</div>`; return; }
+
+    const kpis = `<div class="rp-kpis">
+      ${kpi(tr("rp.sales"), sales.length)}
+      ${kpi(tr("rp.revenue"), fmtP(revenue))}
+      ${kpi(tr("rp.profit"), withCost.length ? sign(profit) : "—")}
+      ${kpi(tr("rp.margin"), margin === null ? "—" : `${margin.toLocaleString(I18N.locale, { maximumFractionDigits: 0 })}%`)}
+      ${kpi(tr("rp.avgProfit"), withCost.length ? sign(profit / withCost.length) : "—")}
+    </div>` + (withCost.length < sales.length ? `<div class="hint" style="margin-bottom:10px">${tr("rp.noCost", { n: sales.length - withCost.length })}</div>` : "");
+
+    const bk = reportBuckets(sales);
+    const max = Math.max(1, ...bk.map((b) => Math.abs(b.v)));
+    const chart = `<h3 style="margin:10px 0 0;font-size:.95rem">${tr("rp.overTime")}</h3>
+      <div class="rp-chart">${bk.map((b) => `<div class="rp-col" title="${esc(b.label)}: ${b.v > 0 ? "+" : ""}${fmtP(b.v)}">
+        <div class="rp-half">${b.v > 0 ? `<i class="up" style="height:${(b.v / max) * 100}%"></i>` : ""}</div>
+        <div class="rp-half b">${b.v < 0 ? `<i class="dn" style="height:${(-b.v / max) * 100}%"></i>` : ""}</div></div>`).join("")}</div>
+      <div class="rp-labels">${bk.map((b, i) => `<span>${bk.length > 14 && i % Math.ceil(bk.length / 12) ? "" : esc(b.label)}</span>`).join("")}</div>`;
+
+    const byW = new Map();
+    for (const s of sales) {
+      const r = byW.get(s.weapon) || { n: 0, revenue: 0, profit: 0, known: 0 };
+      r.n++; r.revenue += s.sold; if (s.profit !== null) { r.profit += s.profit; r.known++; }
+      byW.set(s.weapon, r);
+    }
+    const rank = [...byW].sort((a, b) => b[1].profit - a[1].profit || b[1].revenue - a[1].revenue).slice(0, 10);
+    const rmax = Math.max(1, ...rank.map(([, r]) => Math.abs(r.profit)));
+    const ranking = `<h3 style="margin:16px 0 4px;font-size:.95rem">${tr("rp.ranking")}</h3>
+      <table class="rp-rank"><thead><tr><th>#</th><th>${tr("common.weapon")}</th><th>${tr("rp.sales")}</th><th>${tr("rp.revenue")}</th><th>${tr("rp.profit")}</th><th></th></tr></thead><tbody>
+      ${rank.map(([w, r], i) => `<tr><td class="muted">${i + 1}</td><td>${esc(weaponName(w))}</td><td>${r.n}</td><td>${fmtP(r.revenue)}</td>
+        <td class="nowrap">${r.known ? sign(r.profit) : `<span class="muted">—</span>`}</td>
+        <td class="bar-cell">${r.known && r.profit > 0 ? `<div class="rbar" style="width:${(r.profit / rmax) * 100}%"></div>` : ""}</td></tr>`).join("")}
+      </tbody></table>`;
+
+    $("#report").innerHTML = filters + kpis + chart + ranking;
+  }
+  $("#report").addEventListener("change", (e) => {
+    const f = e.target.dataset?.f; if (!f) return;
+    rep[f] = e.target.value; renderReport();
+  });
+  document.addEventListener("langchange", renderReport);
 
   // ---- Modal: riven → referencia → publicar / editar ------------------------
 
@@ -2815,7 +2939,7 @@ document.addEventListener('mousedown', (e) => {
   const hideSplash = () => setTimeout(() => { const e = document.getElementById("splash"); e.classList.add("out"); setTimeout(() => e.remove(), 400); },
     Math.max(0, 1600 - (Date.now() - splashAt)));
   setTimeout(hideSplash, 8000);   // por si la carga falla: nunca dejar la pantalla tapada
-  const HELP_N = 8;
+  const HELP_N = 9;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button>`;

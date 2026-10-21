@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+- Reporte de ventas: nueva pestaña con ingresos, ganancia y margen, gráfico de ganancia en el tiempo y ranking de armas más rentables, con filtros por período, arma y tipo.
+
 ## [0.4.0] - 2026-10-21
 
 - Tendencias en la nube: el historial de cada arma se lee de una base en la nube (foto diaria de todas las armas, armada por un colector programado en AWS). Sin conexión con la nube se usa la foto local de antes.
