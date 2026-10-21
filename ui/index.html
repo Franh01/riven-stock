@@ -506,43 +506,43 @@
   </svg>
   <div>
     <h1>Riven Stock</h1>
-    <p>Ventas directas en warframe.market</p>
+    <p data-i18n="hdr.sub">Ventas directas en warframe.market</p>
   </div>
   <div class="status-wrap">
-    <button class="status-pill" id="status-pill" title="Tu estado en warframe.market">
+    <button class="status-pill" id="status-pill" title="Tu estado en warframe.market" data-i18n-title="hdr.statusTip">
       <span class="dot"></span><span id="status-label">Estado…</span><span class="status-until" id="status-until"></span>
       <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <div class="status-menu" id="status-menu" hidden></div>
   </div>
-  <button class="bell" id="bell" title="Alertas del ajuste automático de precio">
+  <button class="bell" id="bell" title="Alertas del ajuste automático de precio" data-i18n-title="hdr.bellTip">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11c0-3.1-1.6-5.6-4.5-6.3V4a1.5 1.5 0 0 0-3 0v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
     <span class="count" id="bell-count" hidden></span>
   </button>
-  <button class="bell ver" id="ver" title="Novedades y actualizaciones"><span id="ver-txt">v</span><span class="count" id="ver-dot" hidden>!</span></button>
-  <button class="bell" id="help-btn" title="Ayuda: qué hace la app y cómo usarla"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.5h-2V15.4h2v2.1zm1.9-6.2-.9.9c-.7.7-1 1.2-1 2.3h-2v-.5c0-1 .3-1.8 1-2.5l1.2-1.2c.4-.3.6-.8.6-1.300 0-1.100-.9-2-2-2s-2 .9-2 2H8c0-2.200 1.800-4 4-4s4 1.800 4 4c0 .9-.4 1.700-1.100 2.300z"/></svg></button>
-  <button class="bell" id="gear" title="Configuración del ajuste automático de precio">
+  <button class="bell ver" id="ver" title="Novedades y actualizaciones" data-i18n-title="hdr.verTip"><span id="ver-txt">v</span><span class="count" id="ver-dot" hidden>!</span></button>
+  <button class="bell" id="help-btn" title="Ayuda: qué hace la app y cómo usarla" data-i18n-title="hdr.helpTip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.5h-2V15.4h2v2.1zm1.9-6.2-.9.9c-.7.7-1 1.2-1 2.3h-2v-.5c0-1 .3-1.8 1-2.5l1.2-1.2c.4-.3.6-.8.6-1.300 0-1.100-.9-2-2-2s-2 .9-2 2H8c0-2.200 1.800-4 4-4s4 1.800 4 4c0 .9-.4 1.700-1.100 2.300z"/></svg></button>
+  <button class="bell" id="gear" title="Configuración del ajuste automático de precio" data-i18n-title="hdr.gearTip">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>
   </button>
   <div class="totals" id="totals"></div>
 </header>
 
 <nav class="views" id="views">
-  <button class="on" data-view="mine">Mis ventas</button>
-  <button data-view="market">Mercado</button>
+  <button class="on" data-view="mine" data-i18n="nav.mine">Mis ventas</button>
+  <button data-view="market" data-i18n="nav.market">Mercado</button>
 </nav>
 
 <main data-view="mine">
   <section class="card view-market">
-    <div class="card-head"><h2>Buscar rivens en el mercado</h2></div>
+    <div class="card-head"><h2 data-i18n="mk.title">Buscar rivens en el mercado</h2></div>
     <div class="mk-filters">
-      <label>Arma <input id="mk-weapon" placeholder="Escribí el arma…"></label>
-      <label>Stat positivo <input class="mk-stat" placeholder="Cualquiera"></label>
-      <label>Stat positivo <input class="mk-stat" placeholder="Cualquiera"></label>
-      <label>Stat positivo <input class="mk-stat" placeholder="Cualquiera"></label>
-      <button id="mk-go">Buscar</button>
+      <label><span data-i18n="common.weapon">Arma</span> <input id="mk-weapon" placeholder="Escribí el arma…" data-i18n-placeholder="common.weaponPh"></label>
+      <label><span data-i18n="mk.posStat">Stat positivo</span> <input class="mk-stat" placeholder="Cualquiera" data-i18n-placeholder="mk.any"></label>
+      <label><span data-i18n="mk.posStat">Stat positivo</span> <input class="mk-stat" placeholder="Cualquiera" data-i18n-placeholder="mk.any"></label>
+      <label><span data-i18n="mk.posStat">Stat positivo</span> <input class="mk-stat" placeholder="Cualquiera" data-i18n-placeholder="mk.any"></label>
+      <button id="mk-go" data-i18n="mk.go">Buscar</button>
     </div>
-    <div class="hint" id="mk-info" style="margin:10px 0 4px">Elegí un arma y buscá. Tocá un riven para ver su precio estimado y si está barato.</div>
+    <div class="hint" id="mk-info" style="margin:10px 0 4px" data-i18n="mk.hint">Elegí un arma y buscá. Tocá un riven para ver su precio estimado y si está barato.</div>
     <div id="mk-results"></div>
   </section>
 
@@ -552,12 +552,12 @@
       <div class="head-tools">
         <div class="search">
           <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <input id="search" placeholder="Buscar arma, nombre o stat…" autocomplete="off" title="Filtra tus contratos y los cerrados (Ctrl+F)">
-          <button class="search-clear" id="search-clear" title="Limpiar (Esc)" hidden>
+          <input id="search" placeholder="Buscar arma, nombre o stat…" data-i18n-placeholder="mine.searchPh" autocomplete="off" title="Filtra tus contratos y los cerrados (Ctrl+F)" data-i18n-title="mine.searchTip">
+          <button class="search-clear" id="search-clear" title="Limpiar (Esc)" data-i18n-title="mine.clearTip" hidden>
             <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           </button>
         </div>
-        <button class="ghost" id="reload">Actualizar</button>
+        <button class="ghost" id="reload" data-i18n="mine.reload">Actualizar</button>
       </div>
     </div>
     <div id="mine"><div style="padding:6px 0"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div></div>
@@ -567,20 +567,20 @@
     <div class="card-head">
       <h2 id="stock-title">Stock unveiled</h2>
       <div class="head-tools">
-        <span class="hint">Solo en esta app: no se publica en warframe.market.</span>
-        <button class="ghost" id="stock-help" title="Recorrido guiado de este panel" style="padding:6px 11px">?</button>
-        <button class="ghost" id="tm-open" title="Cambiar 4 rivens publicados por 1 sin abrir">Transmutar</button>
+        <span class="hint" data-i18n="stock.local">Solo en esta app: no se publica en warframe.market.</span>
+        <button class="ghost" id="stock-help" title="Recorrido guiado de este panel" data-i18n-title="stock.tourTip" style="padding:6px 11px">?</button>
+        <button class="ghost" id="tm-open" title="Cambiar 4 rivens publicados por 1 sin abrir" data-i18n-title="stock.tmTip" data-i18n="stock.tm">Transmutar</button>
       </div>
     </div>
     <form class="lot-form" id="lot-form">
-      <label>Tipo <select id="lot-type"></select></label>
-      <label>Cantidad <input id="lot-qty" type="number" min="1" value="1"></label>
-      <label>Costo <div class="unit" data-unit="p"><input id="lot-cost" type="number" min="0" step="any" placeholder="0"></div></label>
+      <label><span data-i18n="lot.type">Tipo</span> <select id="lot-type"></select></label>
+      <label><span data-i18n="lot.qty">Cantidad</span> <input id="lot-qty" type="number" min="1" value="1"></label>
+      <label><span data-i18n="lot.cost">Costo</span> <div class="unit" data-unit="p"><input id="lot-cost" type="number" min="0" step="any" placeholder="0"></div></label>
       <label>El costo es
-        <select id="lot-cost-mode"><option value="total">Total del lote</option><option value="unit">Por unidad</option></select>
+        <select id="lot-cost-mode"><option value="total" data-i18n="lot.total">Total del lote</option><option value="unit" data-i18n="lot.perUnit">Por unidad</option></select>
       </label>
-      <label>Nota (opcional) <input id="lot-note" placeholder="Ej. bulk de un vendedor"></label>
-      <button class="small" id="lot-add">Agregar al stock</button>
+      <label><span data-i18n="rd.noteOpt">Nota (opcional)</span> <input id="lot-note" placeholder="Ej. bulk de un vendedor" data-i18n-placeholder="lot.notePh"></label>
+      <button class="small" id="lot-add" data-i18n="lot.add">Agregar al stock</button>
     </form>
     <div id="lots"></div>
   </section>
@@ -591,7 +591,7 @@
   </section>
 </main>
 
-<button class="fab" id="fab" title="Precio de referencia y nuevo contrato">
+<button class="fab" id="fab" title="Precio de referencia y nuevo contrato" data-i18n-title="fab.tip">
   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
   Nuevo riven
 </button>
@@ -602,42 +602,42 @@
 <dialog id="riven-dialog">
   <div class="dlg-head">
     <h3 id="rd-title">Nuevo riven</h3>
-    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender"><span>Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label>Horas<input type="number" id="rd-ov-h" min="1" step="1"></label><label>Baja (p)<input type="number" id="rd-ov-a" min="1" step="1"></label><label>Piso (p)<input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar">×</button></span>
+    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender" data-i18n-title="rd.autoTip"><span data-i18n="common.autoDrop">Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label>Horas<input type="number" id="rd-ov-h" min="1" step="1"></label><label>Baja (p)<input type="number" id="rd-ov-a" min="1" step="1"></label><label>Piso (p)<input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar" data-i18n-title="common.close">×</button></span>
   </div>
   <div class="dlg-body">
     <section>
-      <div class="section-title"><span class="step">1</span><h2>Riven</h2></div>
+      <div class="section-title"><span class="step">1</span><h2 data-i18n="rd.sec1">Riven</h2></div>
       <div class="origin-row" id="origin-row">
-        <span class="tag">Origen</span>
+        <span class="tag" data-i18n="rd.origin">Origen</span>
         <select id="f-origin"></select>
       </div>
       <div class="grid-riven">
-        <label>Arma <input id="f-weapon" placeholder="Escribí el arma…"></label>
-        <label>Polaridad
+        <label><span data-i18n="common.weapon">Arma</span> <input id="f-weapon" placeholder="Escribí el arma…" data-i18n-placeholder="common.weaponPh"></label>
+        <label><span data-i18n="rd.polarity">Polaridad</span>
           <div class="polarity-group" id="f-polarity-group"><button type="button" class="pol-btn" data-value="madurai" title="Madurai"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M8 3.5 L11.2 2.8 L11 11.5 C13.5 9.8 16 7.5 18.5 5.2 C19.6 4.4 20.4 4.8 19.6 5.8 C16.5 10 12 13.5 9 20.5 L7.6 21 C8 14 8 8 8 3.5 Z"/></svg><span>Madurai</span></button><button type="button" class="pol-btn" data-value="naramon" title="Naramon"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M3 9.5 L18.5 9 L19.2 6.8 L20.2 7 L20.6 13 L9.5 12.8 L6.8 15.5 L5.2 15 L6.2 12.5 L3.2 12 Z"/></svg><span>Naramon</span></button><button type="button" class="pol-btn" data-value="vazarin" title="Vazarin"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" fill-rule="evenodd" d="M3 6 L18 6 L20 7 C20 13 19 17 17.5 21 C13 17 7 11 3 6 Z M10.5 8.8 L15 8.5 L15.5 12.5 Z"/></svg><span>Vazarin</span></button></div><input type="hidden" id="f-polarity" value="madurai">
         </label>
-        <label>MR <input id="f-mr" type="number" min="8" max="16" value="8"></label>
-        <label>Rango <input id="f-rank" type="number" min="0" max="8" value="0"></label>
-        <label>Rolls <input id="f-rolls" type="number" min="0" value="0"></label>
+        <label><span data-i18n="rd.mr">MR</span> <input id="f-mr" type="number" min="8" max="16" value="8"></label>
+        <label><span data-i18n="rd.rank">Rango</span> <input id="f-rank" type="number" min="0" max="8" value="0"></label>
+        <label><span data-i18n="rd.rolls">Rolls</span> <input id="f-rolls" type="number" min="0" value="0"></label>
       </div>
       <div class="grid-stats" id="stat-slots"></div>
       <div class="name-row">
-        <span class="tag">Nombre</span>
+        <span class="tag" data-i18n="rd.name">Nombre</span>
         <div>
           <div class="name-chips" id="name-chips"></div>
-          <input id="f-name" placeholder="Escribí el nombre tal como figura en el juego" hidden style="margin-top: 8px">
+          <input id="f-name" placeholder="Escribí el nombre tal como figura en el juego" data-i18n-placeholder="rd.namePh" hidden style="margin-top: 8px">
         </div>
       </div>
       <div class="row-actions">
-        <button id="ref-go">Ver precio de referencia</button>
-        <button id="est-go" class="ghost" hidden title="Compara con rivens parecidos al tuyo (mismos stats)">Calcular estimado con comparables</button>
-        <span class="hint" id="est-hint" hidden>Puede tardar: hace varias búsquedas en warframe.market.</span>
-        <span class="hint" id="rd-info">Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.</span>
+        <button id="ref-go" data-i18n="rd.refGo">Ver precio de referencia</button>
+        <button id="est-go" class="ghost" hidden title="Compara con rivens parecidos al tuyo (mismos stats)" data-i18n-title="rd.estTip" data-i18n="rd.estGo">Calcular estimado con comparables</button>
+        <span class="hint" id="est-hint" hidden data-i18n="rd.estHint">Puede tardar: hace varias búsquedas en warframe.market.</span>
+        <span class="hint" id="rd-info" data-i18n="rd.info">Para la referencia alcanza con el arma. Los stats y valores (tal como aparecen en el juego) son para publicar.</span>
       </div>
     </section>
 
     <section id="est-section" hidden>
-      <div class="section-title"><span class="step">2</span><h2>Estimado según comparables</h2></div>
+      <div class="section-title"><span class="step">2</span><h2 data-i18n="rd.estTitle">Estimado según comparables</h2></div>
       <div class="summary" id="est-summary"></div>
       <div id="est-results"></div>
     </section>
@@ -652,17 +652,17 @@
     <section id="publish-section">
       <div class="section-title"><span class="step" id="publish-step">2</span><h2 id="publish-title">Publicar venta directa</h2></div>
       <div class="publish">
-        <label>Precio <div class="unit" data-unit="p"><input id="f-price" type="number" min="1"></div></label>
-        <label title="Lo que te costó el riven. Solo se guarda en la app.">Costo (opcional) <div class="unit" data-unit="p"><input id="f-cost" type="number" min="0" step="any"></div></label>
+        <label><span data-i18n="rd.price">Precio</span> <div class="unit" data-unit="p"><input id="f-price" type="number" min="1"></div></label>
+        <label title="Lo que te costó el riven. Solo se guarda en la app." data-i18n-title="rd.costTip"><span data-i18n="rd.costOpt">Costo (opcional)</span> <div class="unit" data-unit="p"><input id="f-cost" type="number" min="0" step="any"></div></label>
         <label class="check"><input type="checkbox" id="f-visible" checked> Visible</label>
-        <label>Nota (opcional) <input id="f-note" placeholder="Ej. Open to offers, PM me"></label>
-        <span style="display:flex;gap:10px"><button class="ghost" id="publish-cancel" hidden>Cancelar</button><button id="publish-go">Publicar</button></span>
+        <label><span data-i18n="rd.noteOpt">Nota (opcional)</span> <input id="f-note" placeholder="Ej. Open to offers, PM me" data-i18n-placeholder="rd.notePh"></label>
+        <span style="display:flex;gap:10px"><button class="ghost" id="publish-cancel" hidden data-i18n="common.cancel">Cancelar</button><button id="publish-go" data-i18n="rd.publish">Publicar</button></span>
       </div>
       <div class="confirm" id="confirm" hidden>
         <span id="confirm-text"></span>
         <div style="display:flex; gap:10px">
-          <button class="ghost" id="confirm-back">Volver</button>
-          <button id="confirm-ok">Confirmar</button>
+          <button class="ghost" id="confirm-back" data-i18n="common.back">Volver</button>
+          <button id="confirm-ok" data-i18n="common.confirm">Confirmar</button>
         </div>
       </div>
     </section>
@@ -670,25 +670,25 @@
 </dialog>
 
 <dialog id="help-dialog">
-  <div class="dlg-head"><h3>Ayuda</h3><button class="icon" id="help-x" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3 data-i18n="help.title">Ayuda</h3><button class="icon" id="help-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <div class="dlg-body"><div id="help-body" class="help"></div></div>
 </dialog>
 <dialog id="news-dialog">
-  <div class="dlg-head"><h3>Novedades <button class="ghost" id="news-check" style="font-size:12px;padding:3px 10px;margin-left:10px;font-weight:500" title="Buscar si hay una versión nueva">Buscar actualizaciones</button></h3><button class="icon" id="news-x" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3>Novedades <button class="ghost" id="news-check" style="font-size:12px;padding:3px 10px;margin-left:10px;font-weight:500" title="Buscar si hay una versión nueva" data-i18n-title="news.checkTip" data-i18n="news.check">Buscar actualizaciones</button></h3><button class="icon" id="news-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <div class="dlg-body">
     <div id="news-body" class="news"></div>
   </div>
 </dialog>
 <dialog id="upd-dialog">
-  <div class="dlg-head"><h3 id="upd-title">Hay una versión nueva</h3><button class="icon" id="upd-x" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3 id="upd-title">Hay una versión nueva</h3><button class="icon" id="upd-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <div class="dlg-body">
     <div id="upd-notes" class="news upd-notes"></div>
-    <p class="muted" id="upd-hint" style="margin:0">Al actualizar, Riven Stock se va a reiniciar. Tus datos no se tocan.</p>
-    <div class="upd-actions"><button class="ghost" id="upd-later">Más tarde</button><button id="upd-go">Actualizar ahora</button></div>
+    <p class="muted" id="upd-hint" style="margin:0" data-i18n="upd.hint">Al actualizar, Riven Stock se va a reiniciar. Tus datos no se tocan.</p>
+    <div class="upd-actions"><button class="ghost" id="upd-later" data-i18n="upd.later">Más tarde</button><button id="upd-go" data-i18n="upd.go">Actualizar ahora</button></div>
   </div>
 </dialog>
 <dialog id="cfg-dialog">
-  <div class="dlg-head"><h3 data-i18n="cfg.title">Ajuste automático de precio</h3><button class="icon" id="cfg-x" data-i18n-title="common.close" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3 data-i18n="cfg.title">Ajuste automático de precio</h3><button class="icon" id="cfg-x" data-i18n-title="common.close" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <div class="dlg-body" id="cfg-body"></div>
 </dialog>
 <style>
@@ -704,52 +704,52 @@
   #upd-dialog{max-width:520px;width:92vw}
 </style>
 <dialog id="confirm-dialog" data-no-backdrop>
-  <div class="dlg-head"><h3 id="cf-title">Confirmar</h3></div>
+  <div class="dlg-head"><h3 id="cf-title" data-i18n="common.confirm">Confirmar</h3></div>
   <div class="dlg-body"><p id="cf-text"></p></div>
-  <div class="cf-actions"><button class="ghost" id="cf-no">Cancelar</button><button class="danger" id="cf-yes">Aceptar</button></div>
+  <div class="cf-actions"><button class="ghost" id="cf-no" data-i18n="common.cancel">Cancelar</button><button class="danger" id="cf-yes" data-i18n="common.accept">Aceptar</button></div>
 </dialog>
 <div id="pop"></div>
 <dialog id="alerts-dialog">
-  <div class="dlg-head"><h3>Alertas</h3>
-    <span><button class="ghost" id="al-readall">Marcar todas leídas</button> <button class="icon" id="al-x" title="Cerrar">×</button></span></div>
+  <div class="dlg-head"><h3 data-i18n="al.title">Alertas</h3>
+    <span><button class="ghost" id="al-readall" data-i18n="al.readAll">Marcar todas leídas</button> <button class="icon" id="al-x" title="Cerrar" data-i18n-title="common.close">×</button></span></div>
   <div id="al-list" style="overflow:auto; max-height: 70vh"></div>
 </dialog>
 
 <dialog id="sum-dialog">
-  <div class="dlg-head"><h3 id="sum-title" class="sum-title">Riven</h3><span id="sum-meta" class="sum-meta"></span><button class="icon" id="sum-x" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3 id="sum-title" class="sum-title" data-i18n="rd.sec1">Riven</h3><span id="sum-meta" class="sum-meta"></span><button class="icon" id="sum-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
   <nav id="sum-crumbs" class="crumbs" hidden></nav>
   <div class="dlg-body" id="sum-body" style="overflow:auto;max-height:76vh"></div>
 </dialog>
 
 <dialog id="close-dialog">
   <form method="dialog" style="padding: 24px">
-    <h3 style="margin: 0 0 10px; font-size: 17px" id="cd-title">Cerrar contrato</h3>
+    <h3 style="margin: 0 0 10px; font-size: 17px" id="cd-title" data-i18n="cd.close">Cerrar contrato</h3>
     <p id="close-text"></p>
     <div class="sold-row" id="sold-row">
-      <label for="sold-price" style="display:inline; color: var(--text); font-size: 14px;">Vendido por</label>
+      <label for="sold-price" style="display:inline; color: var(--text); font-size: 14px;" data-i18n="cd.soldFor"><span data-i18n="cd.soldFor">Vendido por</span></label>
       <input type="number" id="sold-price" min="1">
       <span class="muted">p</span>
     </div>
     <div class="dialog-actions">
-      <button class="ghost" value="cancel">Cancelar</button>
-      <button value="ok" id="cd-ok">Cerrar contrato</button>
+      <button class="ghost" value="cancel" data-i18n="common.cancel">Cancelar</button>
+      <button value="ok" id="cd-ok" data-i18n="cd.close">Cerrar contrato</button>
     </div>
   </form>
 </dialog>
 
 <dialog id="tm-dialog">
   <form method="dialog" style="padding: 24px">
-    <h3 style="margin: 0 0 10px; font-size: 17px">Transmutar 4 rivens</h3>
-    <p>Elegí los 4 rivens que pusiste en la transmutación del juego. Se cierran sin venta en warframe.market (no se puede deshacer) y entra 1 riven sin abrir al stock.</p>
+    <h3 style="margin: 0 0 10px; font-size: 17px" data-i18n="tm.title">Transmutar 4 rivens</h3>
+    <p data-i18n="tm.text">Elegí los 4 rivens que pusiste en la transmutación del juego. Se cierran sin venta en warframe.market (no se puede deshacer) y entra 1 riven sin abrir al stock.</p>
     <div class="tm-list" id="tm-list"></div>
     <div class="tm-foot">
-      <span>Salió uno de tipo</span>
+      <span data-i18n="tm.got">Salió uno de tipo</span>
       <select id="tm-type"></select>
       <span class="muted" id="tm-count"></span>
     </div>
     <div class="dialog-actions">
-      <button class="ghost" value="cancel">Cancelar</button>
-      <button value="ok" id="tm-ok" class="solid-danger" disabled>Transmutar</button>
+      <button class="ghost" value="cancel" data-i18n="common.cancel">Cancelar</button>
+      <button value="ok" id="tm-ok" class="solid-danger" disabled data-i18n="stock.tm">Transmutar</button>
     </div>
   </form>
 </dialog>
