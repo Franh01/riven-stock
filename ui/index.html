@@ -2173,14 +2173,14 @@ document.addEventListener('mousedown', (e) => {
         </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div></div>
         ${estCard}
         <div class="sum-card" id="trend-card"><h4>Tendencia del arma</h4><small class="muted">Cargando…</small></div>
-        ${mk ? "" : `<div class="sum-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
+        ${mk ? "" : `<div class="sum-card" id="sum-auto-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
-        <div class="sum-card"><h4>Ajustes de este riven</h4><div class="ovr">
+        <div class="sum-card" id="sum-ovr-card"><h4>Ajustes de este riven</h4><div class="ovr">
           <label>Horas<input type="number" id="ov-h" min="1" step="1" placeholder="${cfgVal("autodrop_hours")}" value="${h && h.hours_override ? h.hours_override : ""}"></label>
           <label>Baja (p)<input type="number" id="ov-a" min="1" step="1" placeholder="${cfgVal("autodrop_amount")}" value="${h && h.amount_override ? h.amount_override : ""}"></label>
           <label>Piso (p)<input type="number" id="ov-f" min="1" step="1" placeholder="${cfgVal("autodrop_floor")}" value="${h && h.floor_override ? h.floor_override : ""}"></label>
         </div><small class="muted">Vacío = usa el valor global.</small></div>
-        <div class="sum-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>`}
+        <div class="sum-card" id="sum-hist-card"><h4>Historial de precios</h4><div class="hist">${hist}</div></div>`}
       </div>
       <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">Más baratas</button>${es ? `<button data-tab="comps">Usadas para el estimado (${es.n})</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">Datos de hace ${Math.max(0, Math.round(o.age_s / 60))} min</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
@@ -2410,7 +2410,9 @@ document.addEventListener('mousedown', (e) => {
       { el: "#sum-dialog .sum-side .sum-card", demo: "summary", t: "Resumen", x: "Tu precio, las horas que lleva online y cuántas publicaciones del arma están más baratas que la tuya. Abajo, los stats." },
       { el: "#est-card", demo: "summary", t: "Precio estimado", x: "Compara con rivens parecidos y dice si estás barato o caro. Tocalo para ver los comparables que usó." },
       { el: "#trend-card", demo: "summary", t: "Tendencia del arma", x: "Mediana y mínimo de los últimos días. La estrella sigue el arma aunque no la tengas; las de tu stock se siguen solas." },
-      { el: "#sum-dialog .switch-row", demo: "summary", t: "Baja automática", x: "Activa o desactiva la [[Baja automática]] de este riven. Más abajo están sus ajustes propios (horas, baja y piso) y el historial de precios." },
+      { el: "#sum-auto-card", demo: "summary", t: "Baja automática", x: "Activa o desactiva la [[Baja automática]] de este riven: baja el precio cuando pasan las horas sin vender." },
+      { el: "#sum-ovr-card", demo: "summary", t: "Ajustes de este riven", x: "Horas, baja y piso propios de este riven. Si lo dejás vacío usa los valores globales." },
+      { el: "#sum-hist-card", demo: "summary", t: "Historial de precios", x: "Cada cambio de precio, si fue manual o automático." },
       { el: "#sum-dialog .sum-tabs", demo: "summary", t: "Órdenes y comparables", x: "Alterná entre las publicaciones más baratas del arma y los comparables del estimado. Tocá cualquiera para abrir su propio resumen." },
       { el: "#sum-edit", demo: "summary", t: "Editar", x: "El engranaje abre el editor de este riven, el mismo que acabamos de ver." },
       { el: "#help-btn", t: "Ayuda", x: "Cuando quieras, acá están la explicación de las funciones y este recorrido para repetirlo." },
