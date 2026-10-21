@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.9.0] - 2026-10-21
+
 #### Español
 - Nuevo en el Reporte: «Rentabilidad de rollear» (costo por riven vendible, porcentaje aprovechable, ganancia por tipo y armas que mejor se venden de tus lotes).
 - Corregido: las etiquetas Caro/Barato/Estancado no aparecían porque el caché de órdenes no se completaba mientras usabas la app; ahora se carga en segundo plano al abrir Mis ventas.
