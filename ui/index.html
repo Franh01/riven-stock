@@ -2734,7 +2734,8 @@ document.addEventListener('mousedown', (e) => {
             <span class="muted" style="white-space:nowrap">${tr("sum.range", { a: es.low, b: es.high })}</span></div>
           <div style="margin-top:8px;font-size:13px">${verdict}</div>
           ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">${tr("sum.partial")}</div>` : ""}
-          <small class="muted" style="display:block;margin-top:4px">${tr("sum.compsLine", { n: es.n, c: tr("conf." + es.confidence) })}</small></div>`
+          <small class="muted" style="display:block;margin-top:4px">${tr("sum.compsLine", { n: es.n, c: tr("conf." + es.confidence) })}</small>
+          ${(es.reasons || []).map((r) => `<div class="${r.key === "negMain" || r.key === "posUnused" ? "above" : "below"}" style="margin-top:4px;font-size:12px">${tr("why." + r.key, { s: String(r.slug).replace(/_/g, " "), p: r.share, f: Math.round((1 - r.f) * 100) })}</div>`).join("")}</div>`
       : `<div class="sum-card"><h4>${tr("sum.estimated")}</h4><small class="muted">${tr("sum.noComps")}</small></div>`;
     const comps = es ? `<div class="comp-legend">${tr("sum.legend")}</div><div class="comps">${
       es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><b>${x.price}p</b><span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>

@@ -101,7 +101,7 @@ def _wquantile(pairs, q):
     return pairs[-1][0]
 
 
-def estimate(view, market, exclude_id=None, rtype=None):
+def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
     """view: auction_view de mi riven. Devuelve {price, low, high, n, confidence, comps} o None."""
     pos, neg = _split(view["stats"])
     if not pos or not market:
@@ -120,13 +120,61 @@ def estimate(view, market, exclude_id=None, rtype=None):
     pairs = [(o["p"], (sim ** 5) * (1.0 if o["st"] in ("ingame", "online") else 0.5)) for sim, o in top]
     avg_sim = sum(s for s, _ in top) / len(top)
     conf = "alta" if len(top) >= 6 and avg_sim >= 0.7 else "media" if len(top) >= 3 and avg_sim >= 0.5 else "baja"
+    adj, reasons = weapon_adjust(weapon, view["stats"]) if weapon else (1.0, [])
     return {
-        "price": round(_wquantile(pairs, 0.5)),
-        "low": round(_wquantile(pairs, 0.25)),
-        "high": round(_wquantile(pairs, 0.75)),
+        "adj": round(adj, 2), "reasons": reasons,
+        "price": round(_wquantile(pairs, 0.5) * adj),
+        "low": round(_wquantile(pairs, 0.25) * adj),
+        "high": round(_wquantile(pairs, 0.75) * adj),
         "n": len(top), "confidence": conf, "avg_sim": round(avg_sim, 2),
         "comps": [{"id": o["id"], "price": o["p"], "sim": round(s, 2), "status": o["st"], "rolls": o["r"], "rank": o.get("k"),
                    "created": o.get("c"), "last_seen": o.get("ls"), "seller": o.get("nm"),
                    "stats": [{"slug": x, "value": v, "positive": p} for x, v, p in o["s"]]}
                   for s, o in top],
     }
+
+
+import json as _json
+from pathlib import Path as _Path
+
+_WSTATS = None
+PHYS_STAT = {"impact_damage": "impact", "puncture_damage": "puncture", "slash_damage": "slash"}
+
+
+def weapon_stats(weapon):
+    """Datos del arma (reparto de daño, crítico, estado) de data/weapon_stats.json; None si no está."""
+    global _WSTATS
+    if _WSTATS is None:
+        try:
+            _WSTATS = _json.loads((_Path(__file__).parent / "data" / "weapon_stats.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            _WSTATS = {}
+    return _WSTATS.get(weapon)
+
+
+def weapon_adjust(weapon, stats):
+    """Ajuste por lo que el arma realmente usa. Devuelve (factor, motivos[{key, slug, ...}])."""
+    w = weapon_stats(weapon)
+    if not w:
+        return 1.0, []
+    share = w.get("share") or {}
+    factor, reasons = 1.0, []
+    for st in stats:
+        kind = PHYS_STAT.get(st["slug"])
+        if not kind:
+            continue
+        sh = share.get(kind, 0.0)
+        if not st["positive"]:
+            if sh >= 0.4:      # negativo sobre el daño principal: muy malo, escala con el valor
+                f = max(0.25, 1 - min(abs(st["value"]), 100) / 100 * 0.75 * min(1, sh / 0.6))
+                factor *= f
+                reasons.append({"key": "negMain", "slug": st["slug"], "share": round(sh * 100), "f": round(f, 2)})
+            elif sh <= 0.15:   # negativo sobre un daño que el arma casi no usa: casi gratis
+                factor *= 1.1
+                reasons.append({"key": "negUnused", "slug": st["slug"], "share": round(sh * 100), "f": 1.1})
+        elif sh <= 0.15:       # positivo sobre un daño que el arma casi no usa: vale poco
+            factor *= 0.85
+            reasons.append({"key": "posUnused", "slug": st["slug"], "share": round(sh * 100), "f": 0.85})
+        elif sh >= 0.5:
+            reasons.append({"key": "posMain", "slug": st["slug"], "share": round(sh * 100), "f": 1.0})
+    return factor, reasons

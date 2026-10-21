@@ -689,7 +689,7 @@ class Api:
             rtype = self._rtype(weapon)
         except (WFMError, requests.RequestException):
             rtype = None
-        est = estimate(view, list(pool.values()), exclude_id=exclude_id, rtype=rtype)
+        est = estimate(view, list(pool.values()), exclude_id=exclude_id, rtype=rtype, weapon=weapon)
         if est:   # los comparables también se abren: se reconstruye el contrato desde lo guardado
             for c in est["comps"]:
                 o = pool.get(c["id"])

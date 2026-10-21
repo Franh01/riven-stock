@@ -1,0 +1,8880 @@
+{
+"acceltra": {
+"crit": 32,
+"critx": 2.8,
+"multishot": 1,
+"rate": 12,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 6,
+"total": 35,
+"type": "Rifle"
+},
+"acceltra_prime": {
+"crit": 34,
+"critx": 3,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 18,
+"total": 44,
+"type": "Rifle"
+},
+"ack_brunt": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 10,
+"total": 149.0,
+"type": "Melee"
+},
+"acrid": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"toxin": 1.0
+},
+"shot": "Projectile",
+"status": 10,
+"total": 43,
+"type": "Pistol"
+},
+"aegrit": {
+"crit": 37,
+"critx": 1.9,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.5,
+"puncture": 0.2,
+"slash": 0.3
+},
+"shot": "Projectile",
+"status": 19,
+"total": 9.0,
+"type": "Throwing"
+},
+"aeolak": {
+"crit": 21,
+"critx": 2.3,
+"multishot": 1,
+"rate": 6,
+"share": {
+"impact": 0.25,
+"puncture": 0.383,
+"radiation": 0.083,
+"slash": 0.283
+},
+"shot": "Projectile",
+"status": 33,
+"total": 60,
+"type": "Rifle"
+},
+"afentis": {
+"crit": 26,
+"critx": 2.2,
+"multishot": 1,
+"rate": 0.833,
+"share": {
+"impact": 0.2,
+"puncture": 0.6,
+"slash": 0.2
+},
+"shot": "Projectile",
+"status": 24,
+"total": 100,
+"type": "Rifle"
+},
+"afentis_prime": {
+"crit": 26,
+"critx": 2.6,
+"multishot": 1,
+"rate": 0.833,
+"share": {
+"impact": 0.2,
+"puncture": 0.6,
+"slash": 0.2
+},
+"shot": "Projectile",
+"status": 30,
+"total": 200,
+"type": "Rifle"
+},
+"afuris": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 12.5,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 20,
+"type": "Dual Pistols"
+},
+"afuris_prime": {
+"crit": 16,
+"critx": 2,
+"multishot": 1,
+"rate": 12.5,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 26.0,
+"type": "Pistol"
+},
+"agkuza": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": null,
+"status": 15,
+"total": 436.0,
+"type": "Arch-Melee"
+},
+"akarius": {
+"crit": 6,
+"critx": 1.8,
+"multishot": 1,
+"rate": 4.33,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 28,
+"total": 68,
+"type": "Pistol"
+},
+"akarius_prime": {
+"crit": 18,
+"critx": 2,
+"multishot": 1,
+"rate": 3.667,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 34,
+"total": 68,
+"type": "Pistol"
+},
+"akbolto": {
+"crit": 16,
+"critx": 2.4,
+"multishot": 1,
+"rate": 4.5,
+"share": {
+"impact": 0.1,
+"puncture": 0.9
+},
+"shot": "Projectile",
+"status": 2.2,
+"total": 64.0,
+"type": "Dual Pistols"
+},
+"akbolto_prime": {
+"crit": 36,
+"critx": 2.8,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.1,
+"puncture": 0.86,
+"slash": 0.04
+},
+"shot": "Projectile",
+"status": 14,
+"total": 44.0,
+"type": "Pistol"
+},
+"akbronco": {
+"crit": 6,
+"critx": 2,
+"multishot": 7,
+"rate": 5,
+"share": {
+"impact": 0.8,
+"puncture": 0.1,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 3.14,
+"total": 42.0,
+"type": "Dual Pistols"
+},
+"akbronco_prime": {
+"crit": 6,
+"critx": 2,
+"multishot": 7,
+"rate": 4.33,
+"share": {
+"impact": 0.8,
+"puncture": 0.1,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 12.86,
+"total": 50,
+"type": "Dual Pistols"
+},
+"akjagara": {
+"crit": 6,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": "Hit-Scan",
+"status": 28,
+"total": 36.0,
+"type": "Pistol"
+},
+"akjagara_prime": {
+"crit": 18,
+"critx": 2.2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": "Hit-Scan",
+"status": 32,
+"total": 38.0,
+"type": "Pistol"
+},
+"aklato": {
+"crit": 10,
+"critx": 1.8,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.15,
+"puncture": 0.25,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 6,
+"total": 40,
+"type": "Dual Pistols"
+},
+"aklex": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 1.58,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 130,
+"type": "Dual Pistols"
+},
+"aklex_prime": {
+"crit": 25,
+"critx": 2,
+"multishot": 1,
+"rate": 2.67,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 25,
+"total": 150,
+"type": "Dual Pistols"
+},
+"akmagnus": {
+"crit": 22,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.45,
+"puncture": 0.275,
+"slash": 0.275
+},
+"shot": "Hit-Scan",
+"status": 22,
+"total": 98.0,
+"type": "Dual Pistols"
+},
+"akmagnus_prime": {
+"crit": 28,
+"critx": 2.8,
+"multishot": 1,
+"rate": 5.67,
+"share": {
+"impact": 0.45,
+"puncture": 0.275,
+"slash": 0.275
+},
+"shot": "Hit-Scan",
+"status": 28,
+"total": 98.0,
+"type": "Dual Pistols"
+},
+"aksomati": {
+"crit": 24,
+"critx": 3,
+"multishot": 1,
+"rate": 12.5,
+"share": {
+"impact": 0.1,
+"puncture": 0.4,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 8,
+"total": 18.0,
+"type": "Pistol"
+},
+"aksomati_prime": {
+"crit": 24,
+"critx": 3,
+"multishot": 1,
+"rate": 13.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.4,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 18,
+"total": 20,
+"type": "Pistol"
+},
+"aksondol": {
+"crit": 24,
+"critx": 2.6,
+"multishot": 1,
+"rate": 4,
+"share": {
+"cold": 0.5,
+"puncture": 0.5
+},
+"shot": "Projectile",
+"status": 22,
+"total": 140,
+"type": "Pistol"
+},
+"akstiletto": {
+"crit": 18,
+"critx": 1.8,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 0.6,
+"puncture": 0.1,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 18,
+"total": 28.0,
+"type": "Pistol"
+},
+"akstiletto_prime": {
+"crit": 15,
+"critx": 2,
+"multishot": 1,
+"rate": 7.08,
+"share": {
+"impact": 0.6,
+"puncture": 0.1,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 36.0,
+"type": "Pistol"
+},
+"akvasto": {
+"crit": 16,
+"critx": 1.8,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.25,
+"puncture": 0.25,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 90.0,
+"type": "Dual Pistols"
+},
+"akvasto_prime": {
+"crit": 22,
+"critx": 2.4,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": "Hit-Scan",
+"status": 22,
+"total": 110.0,
+"type": "Pistol"
+},
+"akzani": {
+"crit": 14,
+"critx": 2,
+"multishot": 1,
+"rate": 20,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 14,
+"total": 12.0,
+"type": "Pistol"
+},
+"alternox": {
+"crit": 14,
+"critx": 2.2,
+"multishot": 1,
+"rate": 4.33,
+"share": {
+"electricity": 1.0
+},
+"shot": "Projectile",
+"status": 30,
+"total": 62,
+"type": "Rifle"
+},
+"alternox_prime": {
+"crit": 20,
+"critx": 2.2,
+"multishot": 1,
+"rate": 5.33,
+"share": {
+"electricity": 1.0
+},
+"shot": "Projectile",
+"status": 40,
+"total": 75,
+"type": "Rifle"
+},
+"amanata": {
+"crit": 24,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"puncture": 0.3,
+"slash": 0.7
+},
+"shot": null,
+"status": 24,
+"total": 126.0,
+"type": "Melee"
+},
+"ambassador": {
+"crit": 14,
+"critx": 2.8,
+"multishot": 1,
+"rate": 13.33,
+"share": {
+"electricity": 1.0
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 29,
+"type": "Rifle"
+},
+"amphis": {
+"crit": 13,
+"critx": 1.7,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 21,
+"total": 130.0,
+"type": "Melee"
+},
+"amprex": {
+"crit": 32,
+"critx": 2.2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"electricity": 1.0
+},
+"shot": "Hit-Scan",
+"status": 22,
+"total": 22,
+"type": "Rifle"
+},
+"angstrum": {
+"crit": 16,
+"critx": 2,
+"multishot": 1,
+"rate": 2,
+"share": {
+"blast": 1.0
+},
+"shot": "Projectile",
+"status": 22,
+"total": 200,
+"type": "Pistol"
+},
+"anku": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.15,
+"puncture": 0.8,
+"slash": 0.05
+},
+"shot": null,
+"status": 10,
+"total": 170.0,
+"type": "Melee"
+},
+"ankyros": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 10,
+"total": 90.0,
+"type": "Melee"
+},
+"ankyros_prime": {
+"crit": 28,
+"critx": 2.4,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 16,
+"total": 128.0,
+"type": "Melee"
+},
+"arbucep": {
+"crit": 10,
+"critx": 2.9,
+"multishot": 6,
+"rate": 1.5,
+"share": {
+"blast": 1.0
+},
+"shot": "Projectile",
+"status": 34.9,
+"total": 16,
+"type": "Arch-Gun"
+},
+"arca_plasmor": {
+"crit": 22,
+"critx": 1.6,
+"multishot": 1,
+"rate": 1.1,
+"share": {
+"radiation": 1.0
+},
+"shot": "Projectile",
+"status": 28,
+"total": 600,
+"type": "Shotgun"
+},
+"arca_scisco": {
+"crit": 18,
+"critx": 1.6,
+"multishot": 1,
+"rate": 4.667,
+"share": {
+"puncture": 0.6,
+"slash": 0.4
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 60,
+"type": "Pistol"
+},
+"arca_titron": {
+"crit": 24,
+"critx": 2,
+"multishot": null,
+"rate": 0.733,
+"share": {
+"impact": 0.65,
+"slash": 0.35
+},
+"shot": null,
+"status": 38,
+"total": 360,
+"type": "Melee"
+},
+"argo_vel": {
+"crit": 32,
+"critx": 2.4,
+"multishot": null,
+"rate": 0.8,
+"share": {
+"impact": 0.2,
+"slash": 0.8
+},
+"shot": null,
+"status": 24,
+"total": 300,
+"type": "Melee"
+},
+"argonak": {
+"crit": 27,
+"critx": 2.3,
+"multishot": 1,
+"rate": 4.33,
+"share": {
+"impact": 0.43,
+"puncture": 0.11,
+"slash": 0.46
+},
+"shot": "Hit-Scan",
+"status": 19,
+"total": 57.0,
+"type": "Rifle"
+},
+"arum_spinosa": {
+"crit": 9,
+"critx": 1.9,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.12,
+"puncture": 0.2,
+"slash": 0.68
+},
+"shot": null,
+"status": 37,
+"total": 297.0,
+"type": "Melee"
+},
+"astilla": {
+"crit": 17,
+"critx": 1.9,
+"multishot": 1,
+"rate": 4.33,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 33,
+"total": 70,
+"type": "Shotgun"
+},
+"astilla_prime": {
+"crit": 21,
+"critx": 1.9,
+"multishot": 1,
+"rate": 4.33,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 37,
+"total": 100,
+"type": "Shotgun"
+},
+"athodai": {
+"crit": 32,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"heat": 0.686,
+"puncture": 0.314
+},
+"shot": "Hit-Scan",
+"status": 8,
+"total": 70,
+"type": "Pistol"
+},
+"athodai_prime": {
+"crit": 40,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"heat": 0.7,
+"puncture": 0.3
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 80,
+"type": "Pistol"
+},
+"atomos": {
+"crit": 15,
+"critx": 1.7,
+"multishot": 1,
+"rate": 8,
+"share": {
+"heat": 1.0
+},
+"shot": "Hit-Scan",
+"status": 21,
+"total": 29,
+"type": "Pistol"
+},
+"atterax": {
+"crit": 25,
+"critx": 3,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.05,
+"puncture": 0.05,
+"slash": 0.9
+},
+"shot": null,
+"status": 20,
+"total": 129.0,
+"type": "Melee"
+},
+"attica": {
+"crit": 25,
+"critx": 3,
+"multishot": 1,
+"rate": 3.67,
+"share": {
+"impact": 0.05,
+"puncture": 0.75,
+"slash": 0.2
+},
+"shot": "Projectile",
+"status": 10,
+"total": 80,
+"type": "Rifle"
+},
+"ax_52": {
+"crit": 26,
+"critx": 2.4,
+"multishot": 1,
+"rate": 10,
+"share": {
+"puncture": 1.0
+},
+"shot": "Hit-Scan",
+"status": 18,
+"total": 40,
+"type": "Rifle"
+},
+"azima": {
+"crit": 16,
+"critx": 2,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 0.1,
+"puncture": 0.25,
+"slash": 0.65
+},
+"shot": "Hit-Scan",
+"status": 16,
+"total": 20,
+"type": "Pistol"
+},
+"azothane": {
+"crit": 34,
+"critx": 3,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.3,
+"puncture": 0.2,
+"slash": 0.5
+},
+"shot": null,
+"status": 22,
+"total": 170,
+"type": "Melee"
+},
+"balla": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.05,
+"puncture": 0.6,
+"slash": 0.35
+},
+"shot": null,
+"status": 18,
+"total": 224.0,
+"type": "Zaw Component"
+},
+"ballistica": {
+"crit": 2.5,
+"critx": 1.5,
+"multishot": 1,
+"rate": 6.67,
+"share": {
+"impact": 0.25,
+"puncture": 0.5,
+"slash": 0.25
+},
+"shot": "Projectile",
+"status": 2.5,
+"total": 25.0,
+"type": "Pistol"
+},
+"ballistica_prime": {
+"crit": 20,
+"critx": 2,
+"multishot": 4,
+"rate": 3.33,
+"share": {
+"impact": 0.05,
+"puncture": 0.55,
+"slash": 0.4
+},
+"shot": "Projectile",
+"status": 15,
+"total": 40,
+"type": "Pistol"
+},
+"basmu": {
+"crit": 15,
+"critx": 2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"electricity": 1.0
+},
+"shot": "Projectile",
+"status": 29,
+"total": 39,
+"type": "Rifle"
+},
+"battacor": {
+"crit": 32,
+"critx": 2.4,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"magnetic": 0.636,
+"puncture": 0.364
+},
+"shot": "Projectile",
+"status": 18,
+"total": 66,
+"type": "Rifle"
+},
+"baza": {
+"crit": 26,
+"critx": 3,
+"multishot": 1,
+"rate": 16.67,
+"share": {
+"impact": 0.36,
+"puncture": 0.42,
+"slash": 0.22
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 16.0,
+"type": "Rifle"
+},
+"baza_prime": {
+"crit": 28,
+"critx": 3,
+"multishot": 1,
+"rate": 16.67,
+"share": {
+"impact": 0.36,
+"puncture": 0.42,
+"slash": 0.22
+},
+"shot": "Hit-Scan",
+"status": 14,
+"total": 16.0,
+"type": "Rifle"
+},
+"bo": {
+"crit": 12.5,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.9,
+"puncture": 0.1
+},
+"shot": null,
+"status": 20,
+"total": 140,
+"type": "Melee"
+},
+"bo_prime": {
+"crit": 24,
+"critx": 2.6,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.9,
+"puncture": 0.1
+},
+"shot": null,
+"status": 32,
+"total": 176.0,
+"type": "Melee"
+},
+"boar": {
+"crit": 10,
+"critx": 1.5,
+"multishot": 8,
+"rate": 4.17,
+"share": {
+"impact": 0.55,
+"puncture": 0.15,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 7.5,
+"total": 22.0,
+"type": "Shotgun"
+},
+"boar_prime": {
+"crit": 15,
+"critx": 2,
+"multishot": 8,
+"rate": 4.67,
+"share": {
+"impact": 0.65,
+"puncture": 0.15,
+"slash": 0.2
+},
+"shot": "Hit-Scan",
+"status": 11.25,
+"total": 40,
+"type": "Shotgun"
+},
+"boltace": {
+"crit": 6,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": null,
+"status": 28,
+"total": 176.0,
+"type": "Melee"
+},
+"bolto": {
+"crit": 16,
+"critx": 2.4,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.9
+},
+"shot": "Projectile",
+"status": 2.2,
+"total": 64.0,
+"type": "Pistol"
+},
+"boltor": {
+"crit": 10,
+"critx": 1.8,
+"multishot": 1,
+"rate": 8.75,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Projectile",
+"status": 14,
+"total": 25.0,
+"type": "Rifle"
+},
+"boltor_prime": {
+"crit": 12,
+"critx": 2,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 0.1,
+"puncture": 0.9
+},
+"shot": "Projectile",
+"status": 34,
+"total": 46.0,
+"type": "Rifle"
+},
+"brakk": {
+"crit": 17,
+"critx": 2,
+"multishot": 10,
+"rate": 5,
+"share": {
+"impact": 0.45,
+"puncture": 0.25,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 5.1,
+"total": 20,
+"type": "Pistol"
+},
+"braton": {
+"crit": 12,
+"critx": 1.6,
+"multishot": 1,
+"rate": 8.75,
+"share": {
+"impact": 0.33,
+"puncture": 0.33,
+"slash": 0.34
+},
+"shot": "Hit-Scan",
+"status": 6,
+"total": 24.0,
+"type": "Rifle"
+},
+"braton_prime": {
+"crit": 12,
+"critx": 2,
+"multishot": 1,
+"rate": 9.58,
+"share": {
+"impact": 0.05,
+"puncture": 0.35,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 35.0,
+"type": "Rifle"
+},
+"braton_vandal": {
+"crit": 16,
+"critx": 2,
+"multishot": 1,
+"rate": 7.5,
+"share": {
+"impact": 0.35,
+"puncture": 0.05,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 16,
+"total": 35.0,
+"type": "Rifle"
+},
+"broken_scepter": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.7,
+"puncture": 0.1,
+"slash": 0.2
+},
+"shot": null,
+"status": 30,
+"total": 179.0,
+"type": "Melee"
+},
+"broken_war": {
+"crit": 35,
+"critx": 2.2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 20,
+"total": 187.0,
+"type": "Melee"
+},
+"bronco": {
+"crit": 6,
+"critx": 2,
+"multishot": 7,
+"rate": 4,
+"share": {
+"impact": 0.8,
+"puncture": 0.1,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 9.43,
+"total": 42.0,
+"type": "Pistol"
+},
+"bronco_prime": {
+"crit": 6,
+"critx": 2,
+"multishot": 7,
+"rate": 4.17,
+"share": {
+"impact": 0.8,
+"puncture": 0.1,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 12.86,
+"total": 50,
+"type": "Pistol"
+},
+"bubonico": {
+"crit": 25,
+"critx": 2.3,
+"multishot": 7,
+"rate": 3.83,
+"share": {
+"impact": 0.049,
+"puncture": 0.317,
+"slash": 0.463,
+"toxin": 0.171
+},
+"shot": "Projectile",
+"status": 9.29,
+"total": 41,
+"type": "Shotgun"
+},
+"burston": {
+"crit": 6,
+"critx": 1.6,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.333,
+"puncture": 0.333,
+"slash": 0.333
+},
+"shot": "Hit-Scan",
+"status": 18,
+"total": 30,
+"type": "Rifle"
+},
+"burston_prime": {
+"crit": 18,
+"critx": 1.8,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.3,
+"puncture": 0.3,
+"slash": 0.4
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 46.0,
+"type": "Rifle"
+},
+"buzlok": {
+"crit": 23,
+"critx": 2.5,
+"multishot": 1,
+"rate": 6.25,
+"share": {
+"impact": 0.5,
+"puncture": 0.4,
+"slash": 0.1
+},
+"shot": "Projectile",
+"status": 21,
+"total": 60,
+"type": "Sniper"
+},
+"cadus": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"electricity": 0.462,
+"impact": 0.538
+},
+"shot": null,
+"status": 25,
+"total": 130,
+"type": "Melee"
+},
+"cantare": {
+"crit": 18,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"puncture": 0.3,
+"slash": 0.7
+},
+"shot": "Projectile",
+"status": 22,
+"total": 90,
+"type": "Throwing"
+},
+"carmine_penta": {
+"crit": 10,
+"critx": 2,
+"multishot": 1,
+"rate": 2.7,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 10,
+"total": 75,
+"type": "Launcher"
+},
+"cassowar": {
+"crit": 6,
+"critx": 1.4,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.22,
+"puncture": 0.34,
+"slash": 0.44
+},
+"shot": null,
+"status": 28,
+"total": 188.0,
+"type": "Melee"
+},
+"castanas": {
+"crit": 8,
+"critx": 1.5,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"electricity": 1.0
+},
+"shot": "Projectile",
+"status": 22,
+"total": 160,
+"type": "Throwing"
+},
+"catabolyst": {
+"crit": 11,
+"critx": 2.9,
+"multishot": 1,
+"rate": 12,
+"share": {
+"corrosive": 1.0
+},
+"shot": "Hit-Scan",
+"status": 43,
+"total": 53,
+"type": "Pistol"
+},
+"caustacyst": {
+"crit": 9,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"corrosive": 0.396,
+"impact": 0.065,
+"puncture": 0.273,
+"slash": 0.265
+},
+"shot": null,
+"status": 37,
+"total": 260,
+"type": "Melee"
+},
+"cedo": {
+"crit": 20,
+"critx": 2.4,
+"multishot": 6,
+"rate": 3.83,
+"share": {
+"puncture": 1.0
+},
+"shot": "Hit-Scan",
+"status": 0.3,
+"total": 30,
+"type": "Shotgun"
+},
+"cedo_prime": {
+"crit": 24,
+"critx": 2.4,
+"multishot": 7,
+"rate": 4.5,
+"share": {
+"puncture": 1.0
+},
+"shot": "Hit-Scan",
+"status": 2,
+"total": 32,
+"type": "Shotgun"
+},
+"centaur": {
+"crit": 25,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.1,
+"puncture": 0.2,
+"slash": 0.7
+},
+"shot": null,
+"status": 20,
+"total": 376.0,
+"type": "Arch-Melee"
+},
+"ceramic_dagger": {
+"crit": 10,
+"critx": 1.5,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.9
+},
+"shot": null,
+"status": 20,
+"total": 140,
+"type": "Melee"
+},
+"cerata": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.104,
+"puncture": 0.197,
+"slash": 0.284,
+"toxin": 0.415
+},
+"shot": null,
+"status": 30,
+"total": 183,
+"type": "Melee"
+},
+"cernos": {
+"crit": 36,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.9,
+"puncture": 0.05,
+"slash": 0.05
+},
+"shot": "Projectile",
+"status": 18,
+"total": 190.0,
+"type": "Bow"
+},
+"cernos_prime": {
+"crit": 35,
+"critx": 2,
+"multishot": 3,
+"rate": 1,
+"share": {
+"impact": 0.9,
+"puncture": 0.05,
+"slash": 0.05
+},
+"shot": "Projectile",
+"status": 30,
+"total": 92.0,
+"type": "Bow"
+},
+"cestra": {
+"crit": 6,
+"critx": 1.6,
+"multishot": 1,
+"rate": 8.33,
+"share": {
+"impact": 0.2,
+"puncture": 0.8
+},
+"shot": "Projectile",
+"status": 20,
+"total": 26.0,
+"type": "Pistol"
+},
+"ceti_lacera": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"electricity": 0.463,
+"impact": 0.056,
+"puncture": 0.176,
+"slash": 0.306
+},
+"shot": null,
+"status": 40,
+"total": 216,
+"type": "Melee"
+},
+"cinta": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 0.667,
+"share": {
+"puncture": 0.8,
+"slash": 0.2
+},
+"shot": "Projectile",
+"status": 30,
+"total": 450,
+"type": "Bow"
+},
+"cobra_crane": {
+"crit": 15,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.7,
+"puncture": 0.3
+},
+"shot": null,
+"status": 36,
+"total": 296.0,
+"type": "Melee"
+},
+"cobra_crane_prime": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.7,
+"puncture": 0.3
+},
+"shot": null,
+"status": 38,
+"total": 300,
+"type": "Melee"
+},
+"coda_bassocyst": {
+"crit": 18,
+"critx": 2.2,
+"multishot": 1,
+"rate": 1.17,
+"share": {
+"blast": 0.976,
+"radiation": 0.024
+},
+"shot": "Projectile",
+"status": 40,
+"total": 808,
+"type": "Shotgun"
+},
+"coda_bubonico": {
+"crit": 27,
+"critx": 2.3,
+"multishot": 7,
+"rate": 5.33,
+"share": {
+"impact": 0.049,
+"puncture": 0.317,
+"slash": 0.463,
+"toxin": 0.171
+},
+"shot": "Projectile",
+"status": 10.14,
+"total": 41,
+"type": "Rifle"
+},
+"coda_catabolyst": {
+"crit": 11,
+"critx": 2.9,
+"multishot": 1,
+"rate": 12,
+"share": {
+"corrosive": 1.0
+},
+"shot": "Hit-Scan",
+"status": 50,
+"total": 56,
+"type": "Pistol"
+},
+"coda_caustacyst": {
+"crit": 19,
+"critx": 2.3,
+"multishot": null,
+"rate": 1,
+"share": {
+"corrosive": 0.421,
+"impact": 0.07,
+"puncture": 0.263,
+"slash": 0.246
+},
+"shot": null,
+"status": 41,
+"total": 285,
+"type": "Melee"
+},
+"coda_hema": {
+"crit": 20,
+"critx": 2.3,
+"multishot": 1,
+"rate": 5.33,
+"share": {
+"viral": 1.0
+},
+"shot": "Projectile",
+"status": 30,
+"total": 52,
+"type": "Rifle"
+},
+"coda_hirudo": {
+"crit": 34,
+"critx": 3.1,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.8,
+"slash": 0.05
+},
+"shot": null,
+"status": 18,
+"total": 175.0,
+"type": "Melee"
+},
+"coda_mire": {
+"crit": 18,
+"critx": 2.4,
+"multishot": null,
+"rate": 1.083,
+"share": {
+"impact": 0.191,
+"puncture": 0.191,
+"slash": 0.281,
+"toxin": 0.336
+},
+"shot": null,
+"status": 40,
+"total": 235,
+"type": "Melee"
+},
+"coda_motovore": {
+"crit": 25,
+"critx": 2.3,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.333,
+"puncture": 0.333,
+"slash": 0.333
+},
+"shot": null,
+"status": 30,
+"total": 250.0,
+"type": "Melee"
+},
+"coda_pathocyst": {
+"crit": 20,
+"critx": 2.3,
+"multishot": null,
+"rate": 0.667,
+"share": {
+"impact": 0.215,
+"puncture": 0.204,
+"slash": 0.241,
+"viral": 0.341
+},
+"shot": null,
+"status": 35,
+"total": 270,
+"type": "Melee"
+},
+"coda_pox": {
+"crit": 10,
+"critx": 2.2,
+"multishot": 1,
+"rate": 2.08,
+"share": {
+"toxin": 1.0
+},
+"shot": "Projectile",
+"status": 45,
+"total": 55,
+"type": "Pistol"
+},
+"coda_sporothrix": {
+"crit": 5,
+"critx": 3,
+"multishot": 1,
+"rate": 1.83,
+"share": {
+"impact": 0.27,
+"puncture": 0.31,
+"slash": 0.42
+},
+"shot": "Projectile",
+"status": 55,
+"total": 376.0,
+"type": "Sniper"
+},
+"coda_synapse": {
+"crit": 40,
+"critx": 2.7,
+"multishot": 1,
+"rate": 12,
+"share": {
+"corrosive": 1.0
+},
+"shot": "Hit-Scan",
+"status": 15,
+"total": 26,
+"type": "Rifle"
+},
+"coda_tysis": {
+"crit": 13,
+"critx": 2,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.237,
+"puncture": 0.421,
+"slash": 0.342
+},
+"shot": "Projectile",
+"status": 50,
+"total": 76,
+"type": "Pistol"
+},
+"convectrix": {
+"crit": 16,
+"critx": 2.4,
+"multishot": 2,
+"rate": 12,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": "Hit-Scan",
+"status": 45,
+"total": 12.0,
+"type": "Shotgun"
+},
+"corinth": {
+"crit": 30,
+"critx": 2.8,
+"multishot": 6,
+"rate": 1.17,
+"share": {
+"impact": 0.28,
+"puncture": 0.42,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 6,
+"total": 90.0,
+"type": "Shotgun"
+},
+"corinth_prime": {
+"crit": 30,
+"critx": 2.8,
+"multishot": 6,
+"rate": 1.42,
+"share": {
+"impact": 0.28,
+"puncture": 0.42,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 9,
+"total": 90.0,
+"type": "Shotgun"
+},
+"cortege": {
+"crit": 20,
+"critx": 1.9,
+"multishot": 1,
+"rate": 12,
+"share": {
+"heat": 1.0
+},
+"shot": "Hit-Scan",
+"status": 40,
+"total": 90,
+"type": "Arch-Gun"
+},
+"corufell": {
+"crit": 26,
+"critx": 2.4,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.48,
+"puncture": 0.34,
+"slash": 0.18
+},
+"shot": null,
+"status": 14,
+"total": 200,
+"type": "Melee"
+},
+"corufell_prime": {
+"crit": 30,
+"critx": 2.5,
+"multishot": null,
+"rate": 1.0833334,
+"share": {
+"impact": 0.48,
+"puncture": 0.34,
+"slash": 0.18
+},
+"shot": null,
+"status": 20,
+"total": 225.0,
+"type": "Arch-Melee"
+},
+"corvas": {
+"crit": 40,
+"critx": 2.6,
+"multishot": 1,
+"rate": 2,
+"share": {
+"heat": 0.545,
+"impact": 0.455
+},
+"shot": "Projectile",
+"status": 13,
+"total": 440,
+"type": "Arch-Gun"
+},
+"corvas_prime": {
+"crit": 44,
+"critx": 3,
+"multishot": 1,
+"rate": 2,
+"share": {
+"heat": 0.589,
+"impact": 0.411
+},
+"shot": "Projectile",
+"status": 20,
+"total": 560,
+"type": "Arch-Gun"
+},
+"cronus": {
+"crit": 6,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.3,
+"puncture": 0.15,
+"slash": 0.55
+},
+"shot": null,
+"status": 18,
+"total": 106.0,
+"type": "Melee"
+},
+"cyanex": {
+"crit": 8,
+"critx": 1.4,
+"multishot": 1,
+"rate": 4.67,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 32,
+"total": 50,
+"type": "Pistol"
+},
+"cyath": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.92,
+"share": {
+"impact": 0.2,
+"puncture": 0.05,
+"slash": 0.75
+},
+"shot": null,
+"status": 18,
+"total": 230.0,
+"type": "Zaw Component"
+},
+"cycron": {
+"crit": 12,
+"critx": 1.8,
+"multishot": 1,
+"rate": 12,
+"share": {
+"puncture": 0.348,
+"radiation": 0.435,
+"slash": 0.217
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 23,
+"type": "Pistol"
+},
+"cyngas": {
+"crit": 20,
+"critx": 2.2,
+"multishot": 1,
+"rate": 6.67,
+"share": {
+"impact": 0.33,
+"puncture": 0.33,
+"slash": 0.34
+},
+"shot": "Projectile",
+"status": 30,
+"total": 120.0,
+"type": "Arch-Gun"
+},
+"daikyu": {
+"crit": 34,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.3,
+"puncture": 0.4,
+"slash": 0.3
+},
+"shot": "Projectile",
+"status": 46,
+"total": 700,
+"type": "Bow"
+},
+"daikyu_prime": {
+"crit": 40,
+"critx": 2.4,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.3,
+"puncture": 0.4,
+"slash": 0.3
+},
+"shot": "Projectile",
+"status": 50,
+"total": 375.0,
+"type": "Bow"
+},
+"dakra_prime": {
+"crit": 36,
+"critx": 2.4,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 18,
+"total": 170,
+"type": "Melee"
+},
+"dark_dagger": {
+"crit": 8,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"puncture": 0.377,
+"radiation": 0.39,
+"slash": 0.234
+},
+"shot": null,
+"status": 22,
+"total": 154,
+"type": "Melee"
+},
+"dark_split_sword": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"puncture": 0.339,
+"radiation": 0.435,
+"slash": 0.226
+},
+"shot": null,
+"status": 25,
+"total": 230,
+"type": "Melee"
+},
+"dark_sword": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"puncture": 0.462,
+"radiation": 0.308,
+"slash": 0.231
+},
+"shot": null,
+"status": 40,
+"total": 260,
+"type": "Melee"
+},
+"dehtat": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.92,
+"share": {
+"impact": 0.1,
+"puncture": 0.5,
+"slash": 0.4
+},
+"shot": null,
+"status": 18,
+"total": 224.0,
+"type": "Zaw Component"
+},
+"dera": {
+"crit": 8,
+"critx": 1.6,
+"multishot": 1,
+"rate": 11.25,
+"share": {
+"impact": 0.2,
+"puncture": 0.75,
+"slash": 0.05
+},
+"shot": "Projectile",
+"status": 22,
+"total": 30.0,
+"type": "Rifle"
+},
+"dera_vandal": {
+"crit": 8,
+"critx": 2,
+"multishot": 1,
+"rate": 11.25,
+"share": {
+"impact": 0.2,
+"puncture": 0.75,
+"slash": 0.05
+},
+"shot": "Projectile",
+"status": 30,
+"total": 32.0,
+"type": "Rifle"
+},
+"despair": {
+"crit": 16,
+"critx": 1.6,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.05,
+"puncture": 0.8,
+"slash": 0.15
+},
+"shot": "Projectile",
+"status": 16,
+"total": 58.0,
+"type": "Throwing"
+},
+"destreza": {
+"crit": 28,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.025,
+"puncture": 0.85,
+"slash": 0.125
+},
+"shot": null,
+"status": 14,
+"total": 158.0,
+"type": "Melee"
+},
+"destreza_prime": {
+"crit": 32,
+"critx": 3,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.12,
+"puncture": 0.7,
+"slash": 0.18
+},
+"shot": null,
+"status": 20,
+"total": 170.0,
+"type": "Melee"
+},
+"detron": {
+"crit": 4,
+"critx": 1.5,
+"multishot": 7,
+"rate": 3.33,
+"share": {
+"radiation": 1.0
+},
+"shot": "Projectile",
+"status": 12.86,
+"total": 40,
+"type": "Pistol"
+},
+"dex_dakra": {
+"crit": 16,
+"critx": 2,
+"multishot": null,
+"rate": 0.883,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 24,
+"total": 142.0,
+"type": "Melee"
+},
+"dex_furis": {
+"crit": 14,
+"critx": 2,
+"multishot": 1,
+"rate": 20,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 28,
+"total": 16.0,
+"type": "Pistol"
+},
+"dex_nikana": {
+"crit": 24,
+"critx": 2.6,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.15,
+"slash": 0.75
+},
+"shot": null,
+"status": 18,
+"total": 168.0,
+"type": "Melee"
+},
+"dex_sybaris": {
+"crit": 35,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.3,
+"puncture": 0.25,
+"slash": 0.45
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 75.0,
+"type": "Rifle"
+},
+"dokrahm": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.35,
+"slash": 0.5
+},
+"shot": null,
+"status": 18,
+"total": 309.0,
+"type": "Zaw Component"
+},
+"dorrclave": {
+"crit": 26,
+"critx": 2.2,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"slash": 1.0
+},
+"shot": null,
+"status": 24,
+"total": 222,
+"type": "Melee"
+},
+"dragon_nikana": {
+"crit": 22,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.05,
+"puncture": 0.1,
+"slash": 0.85
+},
+"shot": null,
+"status": 22,
+"total": 188.0,
+"type": "Melee"
+},
+"drakgoon": {
+"crit": 5,
+"critx": 2,
+"multishot": 10,
+"rate": 3.33,
+"share": {
+"impact": 0.2,
+"puncture": 0.2,
+"slash": 0.6
+},
+"shot": "Projectile",
+"status": 6.3,
+"total": 40,
+"type": "Shotgun"
+},
+"dread": {
+"crit": 50,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": "Projectile",
+"status": 20,
+"total": 168.0,
+"type": "Bow"
+},
+"dual_cestra": {
+"crit": 6,
+"critx": 1.6,
+"multishot": 1,
+"rate": 18.75,
+"share": {
+"impact": 0.2,
+"puncture": 0.8
+},
+"shot": "Projectile",
+"status": 20,
+"total": 26.0,
+"type": "Pistol"
+},
+"dual_cleavers": {
+"crit": 25,
+"critx": 3,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 10,
+"total": 157.0,
+"type": "Melee"
+},
+"dual_coda_torxica": {
+"crit": 25,
+"critx": 2.4,
+"multishot": 1,
+"rate": 6,
+"share": {
+"puncture": 0.35,
+"slash": 0.65
+},
+"shot": "Hit-Scan",
+"status": 28,
+"total": 50.0,
+"type": "Pistol"
+},
+"dual_decurion": {
+"crit": 28,
+"critx": 2.2,
+"multishot": 1,
+"rate": 10.42,
+"share": {
+"impact": 0.45,
+"puncture": 0.275,
+"slash": 0.275
+},
+"shot": "Projectile",
+"status": 14,
+"total": 110.0,
+"type": "Arch-Gun"
+},
+"dual_ether": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 28,
+"total": 180,
+"type": "Melee"
+},
+"dual_heat_swords": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 20,
+"total": 147.0,
+"type": "Melee"
+},
+"dual_ichor": {
+"crit": 25,
+"critx": 3,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.156,
+"puncture": 0.09,
+"slash": 0.369,
+"toxin": 0.385
+},
+"shot": null,
+"status": 15,
+"total": 122,
+"type": "Melee"
+},
+"dual_kamas": {
+"crit": 10,
+"critx": 1.5,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.05,
+"puncture": 0.1,
+"slash": 0.85
+},
+"shot": null,
+"status": 15,
+"total": 96.0,
+"type": "Melee"
+},
+"dual_kamas_prime": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.05,
+"puncture": 0.2,
+"slash": 0.75
+},
+"shot": null,
+"status": 25,
+"total": 160,
+"type": "Melee"
+},
+"dual_keres": {
+"crit": 28,
+"critx": 2.6,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.12,
+"puncture": 0.3,
+"slash": 0.58
+},
+"shot": null,
+"status": 14,
+"total": 115.0,
+"type": "Melee"
+},
+"dual_keres_prime": {
+"crit": 32,
+"critx": 2.6,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.12,
+"puncture": 0.3,
+"slash": 0.58
+},
+"shot": null,
+"status": 24,
+"total": 180.0,
+"type": "Melee"
+},
+"dual_raza": {
+"crit": 25,
+"critx": 3,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.1,
+"puncture": 0.3,
+"slash": 0.6
+},
+"shot": null,
+"status": 10,
+"total": 110,
+"type": "Melee"
+},
+"dual_skana": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 16,
+"total": 120,
+"type": "Melee"
+},
+"dual_toxocyst": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 37,
+"total": 75.0,
+"type": "Pistol"
+},
+"dual_viciss": {
+"crit": 23,
+"critx": 2.1,
+"multishot": null,
+"rate": 1,
+"share": {
+"gas": 0.6,
+"puncture": 0.2,
+"slash": 0.2
+},
+"shot": null,
+"status": 29,
+"total": 255,
+"type": "Rifle"
+},
+"dual_zoren": {
+"crit": 25,
+"critx": 3,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.05,
+"puncture": 0.05,
+"slash": 0.9
+},
+"shot": null,
+"status": 5,
+"total": 70.0,
+"type": "Melee"
+},
+"dual_zoren_prime": {
+"crit": 30,
+"critx": 3.2,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.05,
+"puncture": 0.05,
+"slash": 0.9
+},
+"shot": null,
+"status": 22,
+"total": 140,
+"type": "Melee"
+},
+"edun": {
+"crit": 34,
+"critx": 2.6,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.2,
+"puncture": 0.3,
+"slash": 0.5
+},
+"shot": null,
+"status": 20,
+"total": 220,
+"type": "Melee"
+},
+"efv_5_jupiter": {
+"crit": 21,
+"critx": 2.3,
+"multishot": 1,
+"rate": 7.8334,
+"share": {
+"corrosive": 0.115,
+"puncture": 0.508,
+"slash": 0.377
+},
+"shot": "Hit-Scan",
+"status": 25,
+"total": 61,
+"type": "Rifle"
+},
+"efv_8_mars": {
+"crit": 27,
+"critx": 2.1,
+"multishot": 1,
+"rate": 6.5,
+"share": {
+"impact": 0.267,
+"puncture": 0.733
+},
+"shot": "Hit-Scan",
+"status": 17,
+"total": 75,
+"type": "Pistol"
+},
+"ekhein": {
+"crit": 30,
+"critx": 2.4,
+"multishot": null,
+"rate": 0.767,
+"share": {
+"impact": 1.0
+},
+"shot": null,
+"status": 15,
+"total": 340,
+"type": "Rifle"
+},
+"embolist": {
+"crit": 3,
+"critx": 1.5,
+"multishot": 1,
+"rate": 8,
+"share": {
+"toxin": 1.0
+},
+"shot": "Hit-Scan",
+"status": 41,
+"total": 35,
+"type": "Pistol"
+},
+"endura": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.05,
+"puncture": 0.7,
+"slash": 0.25
+},
+"shot": null,
+"status": 36,
+"total": 200,
+"type": "Melee"
+},
+"enkaus": {
+"crit": 16,
+"critx": 1.8,
+"multishot": 1,
+"rate": 12,
+"share": {
+"corrosive": 0.714,
+"puncture": 0.286
+},
+"shot": "Hit-Scan",
+"status": 32,
+"total": 28,
+"type": "Rifle"
+},
+"epitaph": {
+"crit": 48,
+"critx": 2.6,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"impact": 0.4,
+"puncture": 0.15,
+"slash": 0.45
+},
+"shot": "Projectile",
+"status": 4,
+"total": 300,
+"type": "Pistol"
+},
+"epitaph_prime": {
+"crit": 50,
+"critx": 3,
+"multishot": 1,
+"rate": 1.75,
+"share": {
+"impact": 0.4,
+"puncture": 0.15,
+"slash": 0.45
+},
+"shot": "Projectile",
+"status": 14,
+"total": 315.0,
+"type": "Pistol"
+},
+"ether_daggers": {
+"crit": 10,
+"critx": 1.8,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 30,
+"total": 224.0,
+"type": "Melee"
+},
+"ether_reaper": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 20,
+"total": 180,
+"type": "Melee"
+},
+"ether_sword": {
+"crit": 10,
+"critx": 1.5,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 34,
+"total": 192.0,
+"type": "Melee"
+},
+"euphona_prime": {
+"crit": 30,
+"critx": 2.5,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"impact": 0.9,
+"puncture": 0.05,
+"slash": 0.05
+},
+"shot": "Projectile",
+"status": 2,
+"total": 325.0,
+"type": "Pistol"
+},
+"evensong": {
+"crit": 25,
+"critx": 2.2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"puncture": 0.3,
+"slash": 0.7
+},
+"shot": "Projectile",
+"status": 38,
+"total": 325.0,
+"type": "Bow"
+},
+"exergis": {
+"crit": 8,
+"critx": 1.4,
+"multishot": 3,
+"rate": 3.33,
+"share": {
+"impact": 0.037,
+"puncture": 0.222,
+"radiation": 0.259,
+"slash": 0.481
+},
+"shot": "Projectile",
+"status": 36,
+"total": 540,
+"type": "Shotgun"
+},
+"falcor": {
+"crit": 12,
+"critx": 1.6,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"electricity": 0.365,
+"impact": 0.157,
+"puncture": 0.078,
+"slash": 0.4
+},
+"shot": null,
+"status": 34,
+"total": 230,
+"type": "Melee"
+},
+"fang": {
+"crit": 8,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": null,
+"status": 16,
+"total": 108.0,
+"type": "Melee"
+},
+"fang_prime": {
+"crit": 26,
+"critx": 2.6,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": null,
+"status": 26,
+"total": 178.0,
+"type": "Melee"
+},
+"felarx": {
+"crit": 20,
+"critx": 2,
+"multishot": 4,
+"rate": 3,
+"share": {
+"impact": 0.2,
+"puncture": 0.36,
+"slash": 0.44
+},
+"shot": "Projectile",
+"status": 5.5,
+"total": 190.0,
+"type": "Shotgun"
+},
+"ferrox": {
+"crit": 32,
+"critx": 2.8,
+"multishot": 1,
+"rate": 1.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.7,
+"slash": 0.2
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 350,
+"type": "Rifle"
+},
+"fluctus": {
+"crit": 22,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.2,
+"puncture": 0.1,
+"slash": 0.7
+},
+"shot": "Projectile",
+"status": 16,
+"total": 250,
+"type": "Arch-Gun"
+},
+"flux_rifle": {
+"crit": 10,
+"critx": 2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"puncture": 0.22,
+"slash": 0.78
+},
+"shot": "Hit-Scan",
+"status": 24,
+"total": 22.0,
+"type": "Rifle"
+},
+"fragor": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 10,
+"total": 200,
+"type": "Melee"
+},
+"fragor_prime": {
+"crit": 40,
+"critx": 2.5,
+"multishot": null,
+"rate": 0.8,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 18,
+"total": 270.0,
+"type": "Melee"
+},
+"fulmin": {
+"crit": 28,
+"critx": 2.4,
+"multishot": 1,
+"rate": 9.33,
+"share": {
+"electricity": 0.758,
+"puncture": 0.242
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 33,
+"type": "Rifle"
+},
+"fulmin_prime": {
+"crit": 34,
+"critx": 2.4,
+"multishot": 1,
+"rate": 9.33,
+"share": {
+"electricity": 0.758,
+"puncture": 0.242
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 33,
+"type": "Rifle"
+},
+"furax": {
+"crit": 25,
+"critx": 2.3,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 11,
+"total": 135.0,
+"type": "Melee"
+},
+"furax_wraith": {
+"crit": 30,
+"critx": 2.7,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 15,
+"total": 139.0,
+"type": "Melee"
+},
+"furis": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 20,
+"type": "Pistol"
+},
+"fusilai": {
+"crit": 23,
+"critx": 1.7,
+"multishot": 1,
+"rate": 2.83,
+"share": {
+"puncture": 0.4,
+"slash": 0.6
+},
+"shot": "Projectile",
+"status": 29,
+"total": 77.0,
+"type": "Throwing"
+},
+"galariak_prime": {
+"crit": 19,
+"critx": 2.5,
+"multishot": null,
+"rate": 1.083,
+"share": {
+"impact": 0.129,
+"puncture": 0.814,
+"slash": 0.056
+},
+"shot": null,
+"status": 32,
+"total": 234.0,
+"type": "Melee"
+},
+"galatine": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.025,
+"puncture": 0.025,
+"slash": 0.95
+},
+"shot": null,
+"status": 20,
+"total": 182.0,
+"type": "Melee"
+},
+"galatine_prime": {
+"crit": 26,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.025,
+"puncture": 0.025,
+"slash": 0.95
+},
+"shot": null,
+"status": 26,
+"total": 280,
+"type": "Melee"
+},
+"galvacord": {
+"crit": 12,
+"critx": 1.8,
+"multishot": null,
+"rate": 0.75,
+"share": {
+"electricity": 0.457,
+"impact": 0.057,
+"puncture": 0.181,
+"slash": 0.305
+},
+"shot": null,
+"status": 30,
+"total": 210,
+"type": "Melee"
+},
+"gammacor": {
+"crit": 8,
+"critx": 1.8,
+"multishot": 1,
+"rate": 12,
+"share": {
+"magnetic": 1.0
+},
+"shot": "Hit-Scan",
+"status": 20,
+"total": 16,
+"type": "Pistol"
+},
+"gazal_machete": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.15,
+"slash": 0.75
+},
+"shot": null,
+"status": 30,
+"total": 178.0,
+"type": "Melee"
+},
+"ghoulsaw": {
+"crit": 15,
+"critx": 1.9,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.19,
+"puncture": 0.23,
+"slash": 0.58
+},
+"shot": null,
+"status": 27,
+"total": 197.0,
+"type": "Melee"
+},
+"glaive": {
+"crit": 12,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 12,
+"total": 105.0,
+"type": "Melee"
+},
+"glaive_prime": {
+"crit": 22,
+"critx": 2,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 30,
+"total": 164.0,
+"type": "Melee"
+},
+"glaxion": {
+"crit": 8,
+"critx": 2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"cold": 1.0
+},
+"shot": "Hit-Scan",
+"status": 34,
+"total": 26,
+"type": "Rifle"
+},
+"glaxion_vandal": {
+"crit": 14,
+"critx": 2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"cold": 1.0
+},
+"shot": "Hit-Scan",
+"status": 38,
+"total": 29,
+"type": "Rifle"
+},
+"gorgon": {
+"crit": 17,
+"critx": 1.5,
+"multishot": 1,
+"rate": 12.5,
+"share": {
+"impact": 0.75,
+"puncture": 0.15,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 9,
+"total": 25.0,
+"type": "Rifle"
+},
+"gorgon_wraith": {
+"crit": 15,
+"critx": 1.9,
+"multishot": 1,
+"rate": 13.33,
+"share": {
+"impact": 0.85,
+"puncture": 0.1,
+"slash": 0.05
+},
+"shot": "Hit-Scan",
+"status": 21,
+"total": 27.0,
+"type": "Rifle"
+},
+"gotva_prime": {
+"crit": 23,
+"critx": 2.5,
+"multishot": 1,
+"rate": 13.33,
+"share": {
+"puncture": 1.0
+},
+"shot": "Hit-Scan",
+"status": 27,
+"total": 25,
+"type": "Rifle"
+},
+"grakata": {
+"crit": 25,
+"critx": 2,
+"multishot": 1,
+"rate": 20,
+"share": {
+"impact": 0.4,
+"puncture": 0.336,
+"slash": 0.264
+},
+"shot": "Hit-Scan",
+"status": 20,
+"total": 11.0,
+"type": "Rifle"
+},
+"gram": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 0.95,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 15,
+"total": 160,
+"type": "Melee"
+},
+"gram_prime": {
+"crit": 32,
+"critx": 2.6,
+"multishot": null,
+"rate": 0.8,
+"share": {
+"impact": 0.2,
+"puncture": 0.05,
+"slash": 0.75
+},
+"shot": null,
+"status": 32,
+"total": 300,
+"type": "Melee"
+},
+"grattler": {
+"crit": 25,
+"critx": 2,
+"multishot": 1,
+"rate": 6.25,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Projectile",
+"status": 25,
+"total": 150,
+"type": "Arch-Gun"
+},
+"grimoire": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"electricity": 1.0
+},
+"shot": "Projectile",
+"status": 26,
+"total": 100,
+"type": "Pistol"
+},
+"grinlok": {
+"crit": 15,
+"critx": 2.5,
+"multishot": 1,
+"rate": 1.67,
+"share": {
+"impact": 0.5,
+"puncture": 0.1,
+"slash": 0.4
+},
+"shot": "Hit-Scan",
+"status": 35,
+"total": 187.0,
+"type": "Rifle"
+},
+"guandao": {
+"crit": 28,
+"critx": 2.2,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.25,
+"puncture": 0.05,
+"slash": 0.7
+},
+"shot": null,
+"status": 4,
+"total": 202.0,
+"type": "Melee"
+},
+"guandao_prime": {
+"crit": 32,
+"critx": 2.4,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.25,
+"puncture": 0.05,
+"slash": 0.7
+},
+"shot": null,
+"status": 20,
+"total": 240,
+"type": "Melee"
+},
+"gunsen": {
+"crit": 16,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.08,
+"puncture": 0.12,
+"slash": 0.8
+},
+"shot": null,
+"status": 28,
+"total": 160.0,
+"type": "Melee"
+},
+"gunsen_prime": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.04,
+"puncture": 0.06,
+"slash": 0.9
+},
+"shot": null,
+"status": 34,
+"total": 225.0,
+"type": "Melee"
+},
+"halikar": {
+"crit": 17,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": null,
+"status": 29,
+"total": 149.0,
+"type": "Melee"
+},
+"halikar_wraith": {
+"crit": 19,
+"critx": 2.3,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": null,
+"status": 35,
+"total": 225.0,
+"type": "Melee"
+},
+"harmony": {
+"crit": 20,
+"critx": 2.2,
+"multishot": null,
+"rate": 1.083,
+"share": {
+"puncture": 0.7,
+"slash": 0.3
+},
+"shot": null,
+"status": 36,
+"total": 240,
+"type": "Melee"
+},
+"harpak": {
+"crit": 20,
+"critx": 2.3,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.1,
+"puncture": 0.75,
+"slash": 0.15
+},
+"shot": "Projectile",
+"status": 17,
+"total": 50.0,
+"type": "Rifle"
+},
+"hate": {
+"crit": 30,
+"critx": 2.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 20,
+"total": 230.0,
+"type": "Melee"
+},
+"heat_dagger": {
+"crit": 14,
+"critx": 1.6,
+"multishot": null,
+"rate": 0.75,
+"share": {
+"heat": 0.298,
+"impact": 0.067,
+"puncture": 0.365,
+"slash": 0.269
+},
+"shot": null,
+"status": 14,
+"total": 208,
+"type": "Melee"
+},
+"heat_sword": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 20,
+"total": 147.0,
+"type": "Melee"
+},
+"hek": {
+"crit": 10,
+"critx": 2,
+"multishot": 7,
+"rate": 2.17,
+"share": {
+"impact": 0.15,
+"puncture": 0.65,
+"slash": 0.2
+},
+"shot": "Hit-Scan",
+"status": 10.7,
+"total": 75.0,
+"type": "Shotgun"
+},
+"heliocor": {
+"crit": 38,
+"critx": 2,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.85,
+"puncture": 0.1,
+"slash": 0.05
+},
+"shot": null,
+"status": 12,
+"total": 280,
+"type": "Melee"
+},
+"hema": {
+"crit": 11,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"viral": 1.0
+},
+"shot": "Projectile",
+"status": 25,
+"total": 47,
+"type": "Rifle"
+},
+"hespar": {
+"crit": 24,
+"critx": 2.2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.4,
+"puncture": 0.12,
+"slash": 0.48
+},
+"shot": null,
+"status": 28,
+"total": 280.0,
+"type": "Melee"
+},
+"higasa": {
+"crit": 24,
+"critx": 2,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"puncture": 0.6,
+"slash": 0.4
+},
+"shot": "Projectile",
+"status": 18,
+"total": 26.0,
+"type": "Rifle"
+},
+"hikou": {
+"crit": 4,
+"critx": 1.6,
+"multishot": 1,
+"rate": 6.67,
+"share": {
+"impact": 0.1,
+"puncture": 0.6,
+"slash": 0.3
+},
+"shot": "Projectile",
+"status": 10,
+"total": 26.0,
+"type": "Throwing"
+},
+"hikou_prime": {
+"crit": 6,
+"critx": 1.8,
+"multishot": 1,
+"rate": 5.83,
+"share": {
+"impact": 0.1,
+"puncture": 0.85,
+"slash": 0.05
+},
+"shot": "Projectile",
+"status": 28,
+"total": 36.0,
+"type": "Throwing"
+},
+"hind": {
+"crit": 7,
+"critx": 1.5,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.25,
+"puncture": 0.25,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 15,
+"total": 30.0,
+"type": "Rifle"
+},
+"hirudo": {
+"crit": 30,
+"critx": 3,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.8,
+"slash": 0.05
+},
+"shot": null,
+"status": 11,
+"total": 130.0,
+"type": "Melee"
+},
+"hystrix": {
+"crit": 24,
+"critx": 2.2,
+"multishot": 1,
+"rate": 7,
+"share": {
+"impact": 0.06,
+"puncture": 0.86,
+"slash": 0.08
+},
+"shot": "Projectile",
+"status": 10,
+"total": 36.0,
+"type": "Pistol"
+},
+"hystrix_prime": {
+"crit": 28,
+"critx": 2.2,
+"multishot": 1,
+"rate": 7,
+"share": {
+"impact": 0.06,
+"puncture": 0.86,
+"slash": 0.08
+},
+"shot": "Projectile",
+"status": 20,
+"total": 46.0,
+"type": "Pistol"
+},
+"ignis": {
+"crit": 11,
+"critx": 2,
+"multishot": 1,
+"rate": 8,
+"share": {
+"heat": 1.0
+},
+"shot": "Hit-Scan",
+"status": 27,
+"total": 33,
+"type": "Rifle"
+},
+"ignis_wraith": {
+"crit": 17,
+"critx": 2.5,
+"multishot": 1,
+"rate": 8,
+"share": {
+"heat": 1.0
+},
+"shot": "Hit-Scan",
+"status": 29,
+"total": 35,
+"type": "Rifle"
+},
+"imperator": {
+"crit": 24,
+"critx": 2,
+"multishot": 1,
+"rate": 16.7,
+"share": {
+"impact": 0.4,
+"puncture": 0.35,
+"slash": 0.25
+},
+"shot": "Projectile",
+"status": 12,
+"total": 50.0,
+"type": "Arch-Gun"
+},
+"imperator_vandal": {
+"crit": 28,
+"critx": 2.4,
+"multishot": 1,
+"rate": 25,
+"share": {
+"impact": 0.4,
+"puncture": 0.35,
+"slash": 0.25
+},
+"shot": "Projectile",
+"status": 12,
+"total": 50.0,
+"type": "Arch-Gun"
+},
+"innodem": {
+"crit": 22,
+"critx": 2,
+"multishot": null,
+"rate": 0.75,
+"share": {
+"impact": 0.1,
+"puncture": 0.4,
+"slash": 0.5
+},
+"shot": null,
+"status": 22,
+"total": 360,
+"type": "Melee"
+},
+"jat_kittag": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.8,
+"puncture": 0.15,
+"slash": 0.05
+},
+"shot": null,
+"status": 25,
+"total": 200,
+"type": "Melee"
+},
+"jat_kusar": {
+"crit": 35,
+"critx": 2.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"heat": 0.372,
+"impact": 0.362,
+"puncture": 0.06,
+"slash": 0.206
+},
+"shot": null,
+"status": 19,
+"total": 218,
+"type": "Melee"
+},
+"javlok": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"heat": 1.0
+},
+"shot": "Projectile",
+"status": 25,
+"total": 160,
+"type": "Rifle"
+},
+"jaw_sword": {
+"crit": 8,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.05,
+"puncture": 0.2,
+"slash": 0.75
+},
+"shot": null,
+"status": 16,
+"total": 120,
+"type": "Melee"
+},
+"kama": {
+"crit": 12,
+"critx": 1.8,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 10,
+"total": 90.0,
+"type": "Melee"
+},
+"karak": {
+"crit": 9,
+"critx": 1.5,
+"multishot": 1,
+"rate": 11.67,
+"share": {
+"impact": 0.45,
+"puncture": 0.3,
+"slash": 0.25
+},
+"shot": "Hit-Scan",
+"status": 15,
+"total": 29.0,
+"type": "Rifle"
+},
+"karak_wraith": {
+"crit": 13,
+"critx": 2,
+"multishot": 1,
+"rate": 11.67,
+"share": {
+"impact": 0.45,
+"puncture": 0.3,
+"slash": 0.25
+},
+"shot": "Hit-Scan",
+"status": 25,
+"total": 31.0,
+"type": "Rifle"
+},
+"karyst": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 0.75,
+"share": {
+"impact": 0.11,
+"puncture": 0.308,
+"slash": 0.264,
+"toxin": 0.319
+},
+"shot": null,
+"status": 26,
+"total": 273,
+"type": "Melee"
+},
+"karyst_prime": {
+"crit": 24,
+"critx": 2.2,
+"multishot": null,
+"rate": 0.667,
+"share": {
+"impact": 0.145,
+"puncture": 0.279,
+"slash": 0.297,
+"toxin": 0.279
+},
+"shot": null,
+"status": 30,
+"total": 344,
+"type": "Melee"
+},
+"kaszas": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.05,
+"puncture": 0.8,
+"slash": 0.15
+},
+"shot": null,
+"status": 20,
+"total": 392.0,
+"type": "Arch-Melee"
+},
+"keratinos": {
+"crit": 13,
+"critx": 2.1,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.324,
+"puncture": 0.184,
+"slash": 0.357,
+"viral": 0.135
+},
+"shot": null,
+"status": 29,
+"total": 244,
+"type": "Melee"
+},
+"kesheg": {
+"crit": 19,
+"critx": 2.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.4,
+"puncture": 0.1,
+"slash": 0.5
+},
+"shot": null,
+"status": 23,
+"total": 241.0,
+"type": "Melee"
+},
+"kestrel": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 10,
+"total": 84.0,
+"type": "Melee"
+},
+"kestrel_prime": {
+"crit": 20,
+"critx": 2.2,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.75,
+"puncture": 0.1,
+"slash": 0.15
+},
+"shot": null,
+"status": 40,
+"total": 210.0,
+"type": "Melee"
+},
+"knell": {
+"crit": 20,
+"critx": 1.5,
+"multishot": 1,
+"rate": 4,
+"share": {
+"impact": 0.42,
+"puncture": 0.46,
+"slash": 0.12
+},
+"shot": "Hit-Scan",
+"status": 5,
+"total": 150,
+"type": "Pistol"
+},
+"knell_prime": {
+"crit": 40,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.42,
+"puncture": 0.46,
+"slash": 0.12
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 180.0,
+"type": "Pistol"
+},
+"knux": {
+"crit": 13,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.9,
+"puncture": 0.05,
+"slash": 0.05
+},
+"shot": null,
+"status": 30,
+"total": 445.0,
+"type": "Arch-Melee"
+},
+"kogake": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 10,
+"total": 120,
+"type": "Melee"
+},
+"kogake_prime": {
+"crit": 16,
+"critx": 1.8,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 38,
+"total": 242.0,
+"type": "Melee"
+},
+"kohm": {
+"crit": 11,
+"critx": 2.3,
+"multishot": 9,
+"rate": 0.7333,
+"share": {
+"impact": 0.2,
+"puncture": 0.2,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 75,
+"total": 30,
+"type": "Shotgun"
+},
+"kohmak": {
+"crit": 11,
+"critx": 2,
+"multishot": 5,
+"rate": 1,
+"share": {
+"impact": 0.2,
+"puncture": 0.2,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 69,
+"total": 30,
+"type": "Pistol"
+},
+"komorex": {
+"crit": 16,
+"critx": 2.1,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.1,
+"puncture": 0.42,
+"slash": 0.48
+},
+"shot": "Projectile",
+"status": 35,
+"total": 97.0,
+"type": "Sniper"
+},
+"kompressa": {
+"crit": 6,
+"critx": 1.8,
+"multishot": 4,
+"rate": 3.33,
+"share": {
+"viral": 1.0
+},
+"shot": "Projectile",
+"status": 30,
+"total": 2,
+"type": "Pistol"
+},
+"kompressa_prime": {
+"crit": 16,
+"critx": 1.8,
+"multishot": 4,
+"rate": 3.33,
+"share": {
+"viral": 1.0
+},
+"shot": "Projectile",
+"status": 36,
+"total": 2,
+"type": "Pistol"
+},
+"korrudo": {
+"crit": 31,
+"critx": 2.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.57,
+"puncture": 0.03,
+"slash": 0.4
+},
+"shot": null,
+"status": 9,
+"total": 193.0,
+"type": "Melee"
+},
+"korumm": {
+"crit": 24,
+"critx": 2.2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.2,
+"puncture": 0.4,
+"slash": 0.4
+},
+"shot": null,
+"status": 30,
+"total": 260,
+"type": "Melee"
+},
+"kraken": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 2.83,
+"share": {
+"impact": 0.75,
+"puncture": 0.125,
+"slash": 0.125
+},
+"shot": "Hit-Scan",
+"status": 13,
+"total": 49.0,
+"type": "Pistol"
+},
+"kreska": {
+"crit": 14,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"heat": 0.526,
+"impact": 0.158,
+"puncture": 0.079,
+"slash": 0.237
+},
+"shot": null,
+"status": 22,
+"total": 190,
+"type": "Melee"
+},
+"krohkur": {
+"crit": 29,
+"critx": 2.3,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.12,
+"puncture": 0.18,
+"slash": 0.7
+},
+"shot": null,
+"status": 19,
+"total": 217.0,
+"type": "Melee"
+},
+"kronen": {
+"crit": 10,
+"critx": 1.5,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 20,
+"total": 130,
+"type": "Melee"
+},
+"kronen_prime": {
+"crit": 22,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 34,
+"total": 212.0,
+"type": "Melee"
+},
+"kronsh": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.85,
+"share": {
+"impact": 0.7,
+"slash": 0.3
+},
+"shot": null,
+"status": 18,
+"total": 234.0,
+"type": "Zaw Component"
+},
+"kulstar": {
+"crit": 17,
+"critx": 2.3,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 19,
+"total": 200,
+"type": "Pistol"
+},
+"kunai": {
+"crit": 8,
+"critx": 1.6,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.75,
+"slash": 0.15
+},
+"shot": "Projectile",
+"status": 8,
+"total": 46.0,
+"type": "Throwing"
+},
+"kuva_ayanga": {
+"crit": 35,
+"critx": 2,
+"multishot": 1,
+"rate": 4.58,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 20,
+"total": 87,
+"type": "Arch-Gun"
+},
+"kuva_brakk": {
+"crit": 29,
+"critx": 2,
+"multishot": 10,
+"rate": 5,
+"share": {
+"impact": 0.45,
+"puncture": 0.25,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 11.1,
+"total": 15.0,
+"type": "Pistol"
+},
+"kuva_bramma": {
+"crit": 35,
+"critx": 2.1,
+"multishot": 1,
+"rate": 0.667,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 21,
+"total": 187,
+"type": "Bow"
+},
+"kuva_chakkhurr": {
+"crit": 50,
+"critx": 2.3,
+"multishot": 1,
+"rate": 1.17,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 27,
+"total": 260,
+"type": "Rifle"
+},
+"kuva_drakgoon": {
+"crit": 19,
+"critx": 2.1,
+"multishot": 10,
+"rate": 3.33,
+"share": {
+"impact": 0.2,
+"puncture": 0.2,
+"slash": 0.6
+},
+"shot": "Projectile",
+"status": 9,
+"total": 23.0,
+"type": "Shotgun"
+},
+"kuva_ghoulsaw": {
+"crit": 25,
+"critx": 2.1,
+"multishot": null,
+"rate": 1.2,
+"share": {
+"impact": 0.19,
+"puncture": 0.23,
+"slash": 0.58
+},
+"shot": null,
+"status": 32,
+"total": 211.0,
+"type": "Melee"
+},
+"kuva_grattler": {
+"crit": 27,
+"critx": 2.1,
+"multishot": 1,
+"rate": 5.55,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Projectile",
+"status": 27,
+"total": 94.0,
+"type": "Arch-Gun"
+},
+"kuva_hek": {
+"crit": 23,
+"critx": 2.1,
+"multishot": 7,
+"rate": 2.17,
+"share": {
+"impact": 0.15,
+"puncture": 0.65,
+"slash": 0.2
+},
+"shot": "Hit-Scan",
+"status": 13.3,
+"total": 87.0,
+"type": "Shotgun"
+},
+"kuva_hind": {
+"crit": 25,
+"critx": 2.1,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.25,
+"puncture": 0.25,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 33,
+"total": 30.0,
+"type": "Rifle"
+},
+"kuva_karak": {
+"crit": 23,
+"critx": 2.1,
+"multishot": 1,
+"rate": 11.67,
+"share": {
+"impact": 0.31,
+"puncture": 0.27,
+"slash": 0.42
+},
+"shot": "Hit-Scan",
+"status": 31,
+"total": 23.0,
+"type": "Rifle"
+},
+"kuva_kohm": {
+"crit": 19,
+"critx": 2.3,
+"multishot": 9,
+"rate": 0.8333,
+"share": {
+"impact": 0.2,
+"puncture": 0.2,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 90,
+"total": 20,
+"type": "Shotgun"
+},
+"kuva_kraken": {
+"crit": 21,
+"critx": 2.3,
+"multishot": 1,
+"rate": 2.83,
+"share": {
+"impact": 0.75,
+"puncture": 0.125,
+"slash": 0.125
+},
+"shot": "Hit-Scan",
+"status": 29,
+"total": 43.0,
+"type": "Pistol"
+},
+"kuva_nukor": {
+"crit": 7,
+"critx": 5,
+"multishot": 1,
+"rate": 10,
+"share": {
+"radiation": 1.0
+},
+"shot": "Hit-Scan",
+"status": 50,
+"total": 21,
+"type": "Pistol"
+},
+"kuva_ogris": {
+"crit": 9,
+"critx": 2,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"impact": 0.7,
+"puncture": 0.3
+},
+"shot": "Projectile",
+"status": 47,
+"total": 27.0,
+"type": "Launcher"
+},
+"kuva_quartakk": {
+"crit": 21,
+"critx": 1.9,
+"multishot": 1,
+"rate": 4.83,
+"share": {
+"impact": 0.37,
+"puncture": 0.29,
+"slash": 0.34
+},
+"shot": "Hit-Scan",
+"status": 33,
+"total": 54.0,
+"type": "Rifle"
+},
+"kuva_seer": {
+"crit": 21,
+"critx": 1.9,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.2,
+"puncture": 0.52,
+"slash": 0.28
+},
+"shot": "Projectile",
+"status": 33,
+"total": 131.0,
+"type": "Pistol"
+},
+"kuva_shildeg": {
+"crit": 31,
+"critx": 2.7,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.37,
+"puncture": 0.49,
+"slash": 0.14
+},
+"shot": null,
+"status": 27,
+"total": 205.0,
+"type": "Melee"
+},
+"kuva_sobek": {
+"crit": 21,
+"critx": 2.3,
+"multishot": 5,
+"rate": 2.5,
+"share": {
+"impact": 0.75,
+"puncture": 0.125,
+"slash": 0.125
+},
+"shot": "Hit-Scan",
+"status": 21,
+"total": 77.0,
+"type": "Shotgun"
+},
+"kuva_tonkor": {
+"crit": 30,
+"critx": 2.5,
+"multishot": 1,
+"rate": 3.17,
+"share": {
+"puncture": 1.0
+},
+"shot": "Projectile",
+"status": 17,
+"total": 59,
+"type": "Launcher"
+},
+"kuva_twin_stubbas": {
+"crit": 23,
+"critx": 1.9,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 0.43,
+"puncture": 0.1,
+"slash": 0.47
+},
+"shot": "Hit-Scan",
+"status": 31,
+"total": 27.0,
+"type": "Dual Pistols"
+},
+"kuva_zarr": {
+"crit": 25,
+"critx": 2.5,
+"multishot": 1,
+"rate": 2.17,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 31,
+"total": 50,
+"type": "Launcher"
+},
+"lacera": {
+"crit": 5,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"electricity": 0.463,
+"impact": 0.056,
+"puncture": 0.176,
+"slash": 0.306
+},
+"shot": null,
+"status": 45,
+"total": 216,
+"type": "Melee"
+},
+"laetum": {
+"crit": 22,
+"critx": 2.2,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.4,
+"slash": 0.6
+},
+"shot": "Projectile",
+"status": 22,
+"total": 160,
+"type": "Pistol"
+},
+"lanka": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": null,
+"share": {
+"electricity": 1.0
+},
+"shot": "Projectile",
+"status": 25,
+"total": 200,
+"type": "Sniper"
+},
+"larkspur": {
+"crit": 10,
+"critx": 1.4,
+"multishot": 1,
+"rate": 12,
+"share": {
+"impact": 0.111,
+"radiation": 0.889
+},
+"shot": "Hit-Scan",
+"status": 50,
+"total": 90,
+"type": "Arch-Gun"
+},
+"larkspur_prime": {
+"crit": 14,
+"critx": 1.6,
+"multishot": 1,
+"rate": 12,
+"share": {
+"impact": 0.111,
+"radiation": 0.889
+},
+"shot": "Hit-Scan",
+"status": 50,
+"total": 90,
+"type": "Arch-Gun"
+},
+"lato": {
+"crit": 10,
+"critx": 1.8,
+"multishot": 1,
+"rate": 4.5,
+"share": {
+"impact": 0.25,
+"puncture": 0.25,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 6,
+"total": 40,
+"type": "Pistol"
+},
+"lato_prime": {
+"crit": 30,
+"critx": 2.6,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.1,
+"puncture": 0.2,
+"slash": 0.7
+},
+"shot": "Hit-Scan",
+"status": 20,
+"total": 60,
+"type": "Pistol"
+},
+"lato_vandal": {
+"crit": 26,
+"critx": 2.4,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.15,
+"puncture": 0.25,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 46.0,
+"type": "Pistol"
+},
+"latron": {
+"crit": 12,
+"critx": 2,
+"multishot": 1,
+"rate": 4.17,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 55.0,
+"type": "Rifle"
+},
+"latron_prime": {
+"crit": 22,
+"critx": 2.8,
+"multishot": 1,
+"rate": 4.17,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 90,
+"type": "Rifle"
+},
+"latron_wraith": {
+"crit": 26,
+"critx": 2.8,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.25,
+"puncture": 0.7,
+"slash": 0.05
+},
+"shot": "Hit-Scan",
+"status": 14,
+"total": 62.0,
+"type": "Rifle"
+},
+"lecta": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 1,
+"share": {
+"electricity": 0.554,
+"puncture": 0.198,
+"slash": 0.248
+},
+"shot": null,
+"status": 25,
+"total": 101,
+"type": "Melee"
+},
+"lenz": {
+"crit": 50,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 5,
+"total": 50,
+"type": "Bow"
+},
+"lesion": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.2,
+"puncture": 0.05,
+"slash": 0.75
+},
+"shot": null,
+"status": 37,
+"total": 237.0,
+"type": "Melee"
+},
+"lex": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 1.08,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 130,
+"type": "Pistol"
+},
+"lex_prime": {
+"crit": 25,
+"critx": 2,
+"multishot": 1,
+"rate": 2.08,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 25,
+"total": 180,
+"type": "Pistol"
+},
+"machete": {
+"crit": 10,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 15,
+"total": 120,
+"type": "Melee"
+},
+"machete_wraith": {
+"crit": 19,
+"critx": 2.1,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 33,
+"total": 211.0,
+"type": "Melee"
+},
+"magistar": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.8,
+"puncture": 0.15,
+"slash": 0.05
+},
+"shot": null,
+"status": 10,
+"total": 210.0,
+"type": "Melee"
+},
+"magnus": {
+"crit": 22,
+"critx": 2,
+"multishot": 1,
+"rate": 4.33,
+"share": {
+"impact": 0.45,
+"puncture": 0.275,
+"slash": 0.275
+},
+"shot": "Hit-Scan",
+"status": 22,
+"total": 98.0,
+"type": "Pistol"
+},
+"magnus_prime": {
+"crit": 28,
+"critx": 2.8,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.45,
+"puncture": 0.275,
+"slash": 0.275
+},
+"shot": "Hit-Scan",
+"status": 28,
+"total": 98.0,
+"type": "Pistol"
+},
+"mandonel": {
+"crit": 25,
+"critx": 2,
+"multishot": 8,
+"rate": 3,
+"share": {
+"impact": 0.278,
+"puncture": 0.167,
+"radiation": 0.444,
+"slash": 0.111
+},
+"shot": "Projectile",
+"status": 15,
+"total": 90,
+"type": "Arch-Gun"
+},
+"mara_detron": {
+"crit": 8,
+"critx": 1.5,
+"multishot": 7,
+"rate": 3.33,
+"share": {
+"radiation": 1.0
+},
+"shot": "Projectile",
+"status": 13.71,
+"total": 40,
+"type": "Pistol"
+},
+"marelok": {
+"crit": 15,
+"critx": 1.5,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.5,
+"puncture": 0.1,
+"slash": 0.4
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 160,
+"type": "Pistol"
+},
+"masseter": {
+"crit": 24,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.56,
+"slash": 0.44
+},
+"shot": null,
+"status": 28,
+"total": 241.0,
+"type": "Melee"
+},
+"masseter_prime": {
+"crit": 26,
+"critx": 2.2,
+"multishot": null,
+"rate": 1.083,
+"share": {
+"impact": 0.56,
+"slash": 0.44
+},
+"shot": null,
+"status": 36,
+"total": 260.0,
+"type": "Melee"
+},
+"mausolon": {
+"crit": 30,
+"critx": 2.2,
+"multishot": 1,
+"rate": 8.33,
+"share": {
+"heat": 0.417,
+"impact": 0.2,
+"puncture": 0.383
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 120,
+"type": "Arch-Gun"
+},
+"mewan": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.85,
+"share": {
+"impact": 0.25,
+"puncture": 0.35,
+"slash": 0.4
+},
+"shot": null,
+"status": 18,
+"total": 224.0,
+"type": "Zaw Component"
+},
+"mios": {
+"crit": 19,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.3,
+"puncture": 0.25,
+"slash": 0.45
+},
+"shot": null,
+"status": 25,
+"total": 177.0,
+"type": "Melee"
+},
+"mire": {
+"crit": 9,
+"critx": 1.5,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.146,
+"puncture": 0.146,
+"slash": 0.297,
+"toxin": 0.411
+},
+"shot": null,
+"status": 31,
+"total": 158,
+"type": "Melee"
+},
+"miter": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.2,
+"puncture": 0.1,
+"slash": 0.7
+},
+"shot": "Projectile",
+"status": 20,
+"total": 100,
+"type": "Rifle"
+},
+"mk1_bo": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.9,
+"puncture": 0.1
+},
+"shot": null,
+"status": 10,
+"total": 90,
+"type": "Rifle"
+},
+"mk1_braton": {
+"crit": 8,
+"critx": 1.5,
+"multishot": 1,
+"rate": 7.5,
+"share": {
+"impact": 0.25,
+"puncture": 0.25,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 5,
+"total": 18.0,
+"type": "Rifle"
+},
+"mk1_furax": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 10,
+"total": 90.0,
+"type": "Rifle"
+},
+"mk1_furis": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 8.33,
+"share": {
+"impact": 0.15,
+"puncture": 0.7,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 1,
+"total": 13.0,
+"type": "Pistol"
+},
+"mk1_kunai": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.75,
+"slash": 0.15
+},
+"shot": "Projectile",
+"status": 2.5,
+"total": 40,
+"type": "Throwing"
+},
+"mk1_paris": {
+"crit": 30,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.05,
+"puncture": 0.75,
+"slash": 0.2
+},
+"shot": "Projectile",
+"status": 15,
+"total": 115.0,
+"type": "Bow"
+},
+"mk1_strun": {
+"crit": 7.5,
+"critx": 2,
+"multishot": 10,
+"rate": 2.08,
+"share": {
+"impact": 0.55,
+"puncture": 0.15,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 6,
+"total": 18.0,
+"type": "Shotgun"
+},
+"morgha": {
+"crit": 30,
+"critx": 2.2,
+"multishot": 1,
+"rate": 3,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 28,
+"total": 32,
+"type": "Arch-Gun"
+},
+"mutalist_cernos": {
+"crit": 15,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.9,
+"puncture": 0.05,
+"slash": 0.05
+},
+"shot": "Projectile",
+"status": 49,
+"total": 205.0,
+"type": "Rifle"
+},
+"mutalist_quanta": {
+"crit": 2.5,
+"critx": 1.5,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 0.1,
+"puncture": 0.6,
+"slash": 0.3
+},
+"shot": "Projectile",
+"status": 15,
+"total": 25.0,
+"type": "Rifle"
+},
+"nagantaka": {
+"crit": 15,
+"critx": 2.3,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.01,
+"puncture": 0.09,
+"slash": 0.9
+},
+"shot": "Projectile",
+"status": 39,
+"total": 159.0,
+"type": "Rifle"
+},
+"nagantaka_prime": {
+"crit": 25,
+"critx": 2.3,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.01,
+"puncture": 0.09,
+"slash": 0.9
+},
+"shot": "Projectile",
+"status": 39,
+"total": 173.0,
+"type": "Rifle"
+},
+"nami_skyla": {
+"crit": 10,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 15,
+"total": 125.0,
+"type": "Melee"
+},
+"nami_skyla_prime": {
+"crit": 22,
+"critx": 2,
+"multishot": null,
+"rate": 1.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.2,
+"slash": 0.7
+},
+"shot": null,
+"status": 34,
+"total": 180,
+"type": "Melee"
+},
+"nami_solo": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 25,
+"total": 172.0,
+"type": "Melee"
+},
+"nataruk": {
+"crit": 20,
+"critx": 1.8,
+"multishot": 1,
+"rate": 0.667,
+"share": {
+"puncture": 0.9,
+"slash": 0.1
+},
+"shot": "Projectile",
+"status": 30,
+"total": 450,
+"type": "Bow"
+},
+"nepheri": {
+"crit": 21,
+"critx": 2.3,
+"multishot": null,
+"rate": 1,
+"share": {
+"heat": 0.352,
+"impact": 0.08,
+"puncture": 0.241,
+"slash": 0.326
+},
+"shot": null,
+"status": 33,
+"total": 261,
+"type": "Melee"
+},
+"nikana": {
+"crit": 16,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.05,
+"puncture": 0.1,
+"slash": 0.85
+},
+"shot": null,
+"status": 16,
+"total": 142.0,
+"type": "Melee"
+},
+"nikana_prime": {
+"crit": 28,
+"critx": 2.4,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.05,
+"puncture": 0.05,
+"slash": 0.9
+},
+"shot": null,
+"status": 28,
+"total": 198.0,
+"type": "Melee"
+},
+"ninkondi": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"electricity": 0.526,
+"impact": 0.474
+},
+"shot": null,
+"status": 35,
+"total": 190,
+"type": "Melee"
+},
+"ninkondi_prime": {
+"crit": 22,
+"critx": 2.4,
+"multishot": null,
+"rate": 1,
+"share": {
+"electricity": 0.385,
+"impact": 0.282,
+"puncture": 0.12,
+"slash": 0.214
+},
+"shot": null,
+"status": 36,
+"total": 234,
+"type": "Melee"
+},
+"nukor": {
+"crit": 3,
+"critx": 4,
+"multishot": 1,
+"rate": 10,
+"share": {
+"radiation": 1.0
+},
+"shot": "Hit-Scan",
+"status": 29,
+"total": 22,
+"type": "Pistol"
+},
+"nunchasa": {
+"crit": 32,
+"critx": 2.4,
+"multishot": 1,
+"rate": 1,
+"share": {
+"cold": 0.5,
+"puncture": 0.5
+},
+"shot": "Projectile",
+"status": 32,
+"total": 400,
+"type": "Bow"
+},
+"obex": {
+"crit": 25,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 10,
+"total": 120,
+"type": "Melee"
+},
+"ocucor": {
+"crit": 16,
+"critx": 1.8,
+"multishot": 1,
+"rate": 12,
+"share": {
+"puncture": 0.091,
+"radiation": 0.909
+},
+"shot": "Hit-Scan",
+"status": 24,
+"total": 11,
+"type": "Pistol"
+},
+"ogris": {
+"crit": 5,
+"critx": 2,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"blast": 1.0
+},
+"shot": "Projectile",
+"status": 35,
+"total": 100,
+"type": "Launcher"
+},
+"ohma": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"electricity": 0.491,
+"impact": 0.339,
+"slash": 0.17
+},
+"shot": null,
+"status": 30,
+"total": 224,
+"type": "Melee"
+},
+"okina": {
+"crit": 16,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.05,
+"puncture": 0.45,
+"slash": 0.5
+},
+"shot": null,
+"status": 20,
+"total": 140,
+"type": "Melee"
+},
+"okina_prime": {
+"crit": 30,
+"critx": 2.6,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.05,
+"puncture": 0.35,
+"slash": 0.6
+},
+"shot": null,
+"status": 24,
+"total": 184.0,
+"type": "Melee"
+},
+"onorix": {
+"crit": 15,
+"critx": 1.3,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.3,
+"puncture": 0.2,
+"slash": 0.5
+},
+"shot": null,
+"status": 5,
+"total": 412.0,
+"type": "Arch-Melee"
+},
+"onos": {
+"crit": 26,
+"critx": 2.4,
+"multishot": 1,
+"rate": 1.4,
+"share": {
+"puncture": 1.0
+},
+"shot": "Projectile",
+"status": 22,
+"total": 220,
+"type": "Pistol"
+},
+"ooltha": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.92,
+"share": {
+"impact": 0.1,
+"puncture": 0.4,
+"slash": 0.5
+},
+"shot": null,
+"status": 18,
+"total": 224.0,
+"type": "Zaw Component"
+},
+"opticor": {
+"crit": 20,
+"critx": 2.5,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.85,
+"slash": 0.05
+},
+"shot": "Hit-Scan",
+"status": 20,
+"total": 1000,
+"type": "Rifle"
+},
+"opticor_vandal": {
+"crit": 24,
+"critx": 2.6,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.1,
+"puncture": 0.7,
+"slash": 0.2
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 400,
+"type": "Rifle"
+},
+"orthos": {
+"crit": 6,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 18,
+"total": 185.0,
+"type": "Melee"
+},
+"orthos_prime": {
+"crit": 24,
+"critx": 2.2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 36,
+"total": 234.0,
+"type": "Melee"
+},
+"orvius": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.75,
+"share": {
+"impact": 0.2,
+"puncture": 0.05,
+"slash": 0.75
+},
+"shot": null,
+"status": 18,
+"total": 195.0,
+"type": "Melee"
+},
+"pandero": {
+"crit": 30,
+"critx": 2.8,
+"multishot": 1,
+"rate": 3,
+"share": {
+"impact": 0.25,
+"puncture": 0.25,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 72,
+"type": "Pistol"
+},
+"pandero_prime": {
+"crit": 30,
+"critx": 2.8,
+"multishot": 1,
+"rate": 3,
+"share": {
+"impact": 0.25,
+"puncture": 0.25,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 24,
+"total": 104,
+"type": "Pistol"
+},
+"pangolin_prime": {
+"crit": 26,
+"critx": 2.2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.05,
+"puncture": 0.15,
+"slash": 0.8
+},
+"shot": null,
+"status": 30,
+"total": 248.0,
+"type": "Melee"
+},
+"pangolin_sword": {
+"crit": 8,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.05,
+"puncture": 0.15,
+"slash": 0.8
+},
+"shot": null,
+"status": 22,
+"total": 150.0,
+"type": "Melee"
+},
+"panthera": {
+"crit": 12,
+"critx": 2,
+"multishot": 1,
+"rate": 3,
+"share": {
+"impact": 0.2,
+"puncture": 0.1,
+"slash": 0.7
+},
+"shot": "Projectile",
+"status": 24,
+"total": 100,
+"type": "Rifle"
+},
+"panthera_prime": {
+"crit": 18,
+"critx": 2,
+"multishot": 1,
+"rate": 3.67,
+"share": {
+"impact": 0.2,
+"puncture": 0.1,
+"slash": 0.7
+},
+"shot": "Projectile",
+"status": 30,
+"total": 100,
+"type": "Rifle"
+},
+"paracesis": {
+"crit": 31,
+"critx": 2.6,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.22,
+"puncture": 0.08,
+"slash": 0.7
+},
+"shot": null,
+"status": 22,
+"total": 222.0,
+"type": "Rifle"
+},
+"paracyst": {
+"crit": 10,
+"critx": 2,
+"multishot": 1,
+"rate": 8.33,
+"share": {
+"toxin": 1.0
+},
+"shot": "Projectile",
+"status": 30,
+"total": 33,
+"type": "Rifle"
+},
+"paris": {
+"crit": 30,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.05,
+"puncture": 0.75,
+"slash": 0.2
+},
+"shot": "Projectile",
+"status": 10,
+"total": 160,
+"type": "Bow"
+},
+"paris_prime": {
+"crit": 45,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.05,
+"puncture": 0.85,
+"slash": 0.1
+},
+"shot": "Projectile",
+"status": 20,
+"total": 180,
+"type": "Bow"
+},
+"pathocyst": {
+"crit": 15,
+"critx": 2.1,
+"multishot": null,
+"rate": 0.667,
+"share": {
+"impact": 0.218,
+"puncture": 0.21,
+"slash": 0.233,
+"viral": 0.34
+},
+"shot": null,
+"status": 30,
+"total": 262,
+"type": "Melee"
+},
+"pennant": {
+"crit": 32,
+"critx": 2.4,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.1,
+"puncture": 0.7,
+"slash": 0.2
+},
+"shot": null,
+"status": 10,
+"total": 200,
+"type": "Melee"
+},
+"penta": {
+"crit": 10,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 10,
+"total": 75,
+"type": "Launcher"
+},
+"perigale": {
+"crit": 28,
+"critx": 2.6,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.12,
+"puncture": 0.56,
+"slash": 0.32
+},
+"shot": "Hit-Scan",
+"status": 16,
+"total": 172.0,
+"type": "Sniper"
+},
+"perigale_prime": {
+"crit": 32,
+"critx": 2.6,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.12,
+"puncture": 0.56,
+"slash": 0.32
+},
+"shot": "Hit-Scan",
+"status": 20,
+"total": 184.0,
+"type": "Rifle"
+},
+"phaedra": {
+"crit": 14,
+"critx": 2,
+"multishot": 1,
+"rate": 18.75,
+"share": {
+"impact": 0.25,
+"puncture": 0.65,
+"slash": 0.1
+},
+"shot": "Projectile",
+"status": 30,
+"total": 56.0,
+"type": "Arch-Gun"
+},
+"phage": {
+"crit": 19,
+"critx": 2,
+"multishot": 7,
+"rate": 12,
+"share": {
+"viral": 1.0
+},
+"shot": "Hit-Scan",
+"status": 15.5,
+"total": 5,
+"type": "Shotgun"
+},
+"phantasma": {
+"crit": 3,
+"critx": 1.5,
+"multishot": 6,
+"rate": 12,
+"share": {
+"impact": 0.333,
+"radiation": 0.667
+},
+"shot": "Hit-Scan",
+"status": 22.2,
+"total": 15,
+"type": "Shotgun"
+},
+"phantasma_prime": {
+"crit": 11,
+"critx": 1.9,
+"multishot": 6,
+"rate": 12,
+"share": {
+"impact": 0.333,
+"radiation": 0.667
+},
+"shot": "Hit-Scan",
+"status": 22.2,
+"total": 15,
+"type": "Shotgun"
+},
+"phenmor": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 3,
+"share": {
+"puncture": 0.3,
+"slash": 0.7
+},
+"shot": "Projectile",
+"status": 20,
+"total": 140,
+"type": "Rifle"
+},
+"plague_keewar": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.88,
+"share": {
+"impact": 0.288,
+"puncture": 0.186,
+"slash": 0.297,
+"viral": 0.229
+},
+"shot": null,
+"status": 22,
+"total": 306,
+"type": "Zaw Component"
+},
+"plague_kripath": {
+"crit": 22,
+"critx": 2.2,
+"multishot": null,
+"rate": 0.95,
+"share": {
+"impact": 0.141,
+"puncture": 0.329,
+"slash": 0.23,
+"viral": 0.3
+},
+"shot": null,
+"status": 18,
+"total": 213,
+"type": "Zaw Component"
+},
+"plasma_sword": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.667,
+"share": {
+"electricity": 0.33,
+"impact": 0.17,
+"puncture": 0.06,
+"slash": 0.44
+},
+"shot": null,
+"status": 18,
+"total": 200,
+"type": "Melee"
+},
+"plinx": {
+"crit": 32,
+"critx": 3,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"heat": 0.435,
+"puncture": 0.565
+},
+"shot": "Hit-Scan",
+"status": 4,
+"total": 46,
+"type": "Pistol"
+},
+"pox": {
+"crit": 1,
+"critx": 2,
+"multishot": 1,
+"rate": 2.08,
+"share": {
+"toxin": 1.0
+},
+"shot": "Projectile",
+"status": 35,
+"total": 50,
+"type": "Pistol"
+},
+"praedos": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 20,
+"total": 200,
+"type": "Melee"
+},
+"pride": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1.2,
+"share": {
+"puncture": 0.5,
+"slash": 0.5
+},
+"shot": null,
+"status": 35,
+"total": 250,
+"type": "Melee"
+},
+"prisma_angstrum": {
+"crit": 18,
+"critx": 2.2,
+"multishot": 1,
+"rate": 2,
+"share": {
+"blast": 1.0
+},
+"shot": "Projectile",
+"status": 26,
+"total": 200,
+"type": "Pistol"
+},
+"prisma_dual_cleavers": {
+"crit": 25,
+"critx": 3,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 25,
+"total": 133.0,
+"type": "Melee"
+},
+"prisma_dual_decurions": {
+"crit": 30,
+"critx": 2.2,
+"multishot": 1,
+"rate": 12.5,
+"share": {
+"impact": 0.45,
+"puncture": 0.275,
+"slash": 0.275
+},
+"shot": "Projectile",
+"status": 24,
+"total": 110.0,
+"type": "Arch-Gun"
+},
+"prisma_gorgon": {
+"crit": 30,
+"critx": 2.3,
+"multishot": 1,
+"rate": 14.17,
+"share": {
+"impact": 0.75,
+"puncture": 0.15,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 15,
+"total": 23.0,
+"type": "Rifle"
+},
+"prisma_grakata": {
+"crit": 25,
+"critx": 2.5,
+"multishot": 1,
+"rate": 21.67,
+"share": {
+"impact": 0.4,
+"puncture": 0.333,
+"slash": 0.267
+},
+"shot": "Hit-Scan",
+"status": 21,
+"total": 15,
+"type": "Rifle"
+},
+"prisma_grinlok": {
+"crit": 21,
+"critx": 2.9,
+"multishot": 1,
+"rate": 1.67,
+"share": {
+"impact": 0.4,
+"puncture": 0.1,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 37,
+"total": 187.0,
+"type": "Rifle"
+},
+"prisma_lenz": {
+"crit": 50,
+"critx": 2.8,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 16,
+"total": 56,
+"type": "Bow"
+},
+"prisma_machete": {
+"crit": 15,
+"critx": 1.9,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 31,
+"total": 193.0,
+"type": "Melee"
+},
+"prisma_obex": {
+"crit": 25,
+"critx": 2,
+"multishot": null,
+"rate": 1.33,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 30,
+"total": 150.0,
+"type": "Melee"
+},
+"prisma_ohma": {
+"crit": 30,
+"critx": 2.2,
+"multishot": null,
+"rate": 1,
+"share": {
+"electricity": 0.496,
+"impact": 0.328,
+"slash": 0.176
+},
+"shot": null,
+"status": 20,
+"total": 250,
+"type": "Melee"
+},
+"prisma_skana": {
+"crit": 28,
+"critx": 2.2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 16,
+"total": 170.0,
+"type": "Rifle"
+},
+"prisma_tetra": {
+"crit": 10,
+"critx": 2,
+"multishot": 1,
+"rate": 7.08,
+"share": {
+"impact": 0.2,
+"puncture": 0.8
+},
+"shot": "Projectile",
+"status": 24,
+"total": 38.0,
+"type": "Rifle"
+},
+"prisma_twin_gremlins": {
+"crit": 23,
+"critx": 1.9,
+"multishot": 1,
+"rate": 8.83,
+"share": {
+"impact": 0.11,
+"puncture": 0.47,
+"slash": 0.42
+},
+"shot": "Projectile",
+"status": 23,
+"total": 27.0,
+"type": "Pistol"
+},
+"prisma_veritux": {
+"crit": 30,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 20,
+"total": 394.0,
+"type": "Arch-Melee"
+},
+"proboscis_cernos": {
+"crit": 7,
+"critx": 1.9,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.37,
+"puncture": 0.11,
+"slash": 0.52
+},
+"shot": "Projectile",
+"status": 43,
+"total": 279.0,
+"type": "Bow"
+},
+"prova": {
+"crit": 14,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"electricity": 0.594,
+"impact": 0.406
+},
+"shot": null,
+"status": 16,
+"total": 128,
+"type": "Rifle"
+},
+"prova_vandal": {
+"crit": 14,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"electricity": 0.596,
+"impact": 0.404
+},
+"shot": null,
+"status": 32,
+"total": 198,
+"type": "Rifle"
+},
+"pulmonars": {
+"crit": 19,
+"critx": 2.3,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.666,
+"viral": 0.334
+},
+"shot": null,
+"status": 33,
+"total": 290,
+"type": "Melee"
+},
+"pupacyst": {
+"crit": 13,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.489,
+"viral": 0.511
+},
+"shot": null,
+"status": 27,
+"total": 284,
+"type": "Melee"
+},
+"purgator_1": {
+"crit": 31,
+"critx": 2.3,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"impact": 0.45,
+"puncture": 0.55
+},
+"shot": "Projectile",
+"status": 19,
+"total": 781.0,
+"type": "Rifle"
+},
+"pyrana": {
+"crit": 20,
+"critx": 2,
+"multishot": 12,
+"rate": 4.17,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": "Hit-Scan",
+"status": 2.5,
+"total": 22.0,
+"type": "Pistol"
+},
+"pyrana_prime": {
+"crit": 24,
+"critx": 2.2,
+"multishot": 10,
+"rate": 4,
+"share": {
+"impact": 0.08,
+"puncture": 0.08,
+"slash": 0.84
+},
+"shot": "Hit-Scan",
+"status": 3.6,
+"total": 24.0,
+"type": "Pistol"
+},
+"quanta": {
+"crit": 16,
+"critx": 2.2,
+"multishot": 2,
+"rate": 12,
+"share": {
+"electricity": 1.0
+},
+"shot": "Hit-Scan",
+"status": 24,
+"total": 10,
+"type": "Rifle"
+},
+"quanta_vandal": {
+"crit": 22,
+"critx": 2.4,
+"multishot": 2,
+"rate": 12,
+"share": {
+"electricity": 1.0
+},
+"shot": "Hit-Scan",
+"status": 45,
+"total": 13,
+"type": "Rifle"
+},
+"quartakk": {
+"crit": 19,
+"critx": 2.3,
+"multishot": 1,
+"rate": 1.58,
+"share": {
+"impact": 0.37,
+"puncture": 0.29,
+"slash": 0.34
+},
+"shot": "Hit-Scan",
+"status": 27,
+"total": 49.0,
+"type": "Rifle"
+},
+"quassus": {
+"crit": 30,
+"critx": 2,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.12,
+"puncture": 0.2,
+"slash": 0.68
+},
+"shot": null,
+"status": 12,
+"total": 230.0,
+"type": "Melee"
+},
+"quassus_prime": {
+"crit": 35,
+"critx": 2.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.1,
+"puncture": 0.2,
+"slash": 0.7
+},
+"shot": null,
+"status": 18,
+"total": 260,
+"type": "Melee"
+},
+"quatz": {
+"crit": 13,
+"critx": 1.5,
+"multishot": 1,
+"rate": 15,
+"share": {
+"electricity": 0.379,
+"impact": 0.31,
+"puncture": 0.069,
+"slash": 0.241
+},
+"shot": "Hit-Scan",
+"status": 27,
+"total": 29,
+"type": "Pistol"
+},
+"quellor": {
+"crit": 12,
+"critx": 1.6,
+"multishot": 1,
+"rate": 6,
+"share": {
+"cold": 0.276,
+"impact": 0.138,
+"puncture": 0.379,
+"slash": 0.207
+},
+"shot": "Hit-Scan",
+"status": 38,
+"total": 58,
+"type": "Rifle"
+},
+"rabvee": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 0.85,
+"share": {
+"impact": 0.6,
+"puncture": 0.05,
+"slash": 0.35
+},
+"shot": null,
+"status": 18,
+"total": 234.0,
+"type": "Zaw Component"
+},
+"rakta_ballistica": {
+"crit": 5,
+"critx": 1.5,
+"multishot": 1,
+"rate": 6.67,
+"share": {
+"impact": 0.25,
+"puncture": 0.5,
+"slash": 0.25
+},
+"shot": "Projectile",
+"status": 5,
+"total": 75.0,
+"type": "Pistol"
+},
+"rakta_cernos": {
+"crit": 35,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"impact": 0.9,
+"puncture": 0.05,
+"slash": 0.05
+},
+"shot": "Projectile",
+"status": 15,
+"total": 235.0,
+"type": "Bow"
+},
+"rakta_dark_dagger": {
+"crit": 12,
+"critx": 1.8,
+"multishot": null,
+"rate": 1,
+"share": {
+"puncture": 0.358,
+"radiation": 0.39,
+"slash": 0.252
+},
+"shot": null,
+"status": 30,
+"total": 246,
+"type": "Melee"
+},
+"rathbone": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.8,
+"puncture": 0.15,
+"slash": 0.05
+},
+"shot": null,
+"status": 12,
+"total": 450.0,
+"type": "Arch-Melee"
+},
+"rauta": {
+"crit": 6,
+"critx": 2,
+"multishot": 8,
+"rate": 0.8,
+"share": {
+"impact": 0.2,
+"puncture": 0.2,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 130,
+"type": "Shotgun"
+},
+"reaper_prime": {
+"crit": 35,
+"critx": 2.5,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 25,
+"total": 200,
+"type": "Melee"
+},
+"reconifex": {
+"crit": 28,
+"critx": 2.8,
+"multishot": 1,
+"rate": 8,
+"share": {
+"impact": 0.4,
+"puncture": 0.6
+},
+"shot": "Hit-Scan",
+"status": 16,
+"total": 40,
+"type": "Rifle"
+},
+"redeemer": {
+"crit": 10,
+"critx": 1.8,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.1,
+"puncture": 0.2,
+"slash": 0.7
+},
+"shot": null,
+"status": 22,
+"total": 180,
+"type": "Melee"
+},
+"redeemer_prime": {
+"crit": 24,
+"critx": 2.2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.1,
+"puncture": 0.2,
+"slash": 0.7
+},
+"shot": null,
+"status": 30,
+"total": 212.0,
+"type": "Melee"
+},
+"riot_848": {
+"crit": 26,
+"critx": 2.2,
+"multishot": 1,
+"rate": 8,
+"share": {
+"puncture": 1.0
+},
+"shot": "Projectile",
+"status": 26,
+"total": 12,
+"type": "Pistol"
+},
+"ripkas": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 0.883,
+"share": {
+"impact": 0.05,
+"puncture": 0.1,
+"slash": 0.85
+},
+"shot": null,
+"status": 15,
+"total": 173.0,
+"type": "Melee"
+},
+"rubico": {
+"crit": 30,
+"critx": 3,
+"multishot": 1,
+"rate": 2.67,
+"share": {
+"impact": 0.8,
+"puncture": 0.15,
+"slash": 0.05
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 180,
+"type": "Sniper"
+},
+"rubico_prime": {
+"crit": 38,
+"critx": 3,
+"multishot": 1,
+"rate": 3.67,
+"share": {
+"impact": 0.8,
+"puncture": 0.15,
+"slash": 0.05
+},
+"shot": "Hit-Scan",
+"status": 16,
+"total": 187.0,
+"type": "Sniper"
+},
+"rumblejack": {
+"crit": 13,
+"critx": 1.8,
+"multishot": null,
+"rate": 0.67,
+"share": {
+"electricity": 0.6,
+"impact": 0.4
+},
+"shot": null,
+"status": 40,
+"total": 300,
+"type": "Melee"
+},
+"ruvox": {
+"crit": 26,
+"critx": 2.2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 1.0
+},
+"shot": null,
+"status": 20,
+"total": 170,
+"type": "Rifle"
+},
+"sagek_prime": {
+"crit": 30,
+"critx": 2.2,
+"multishot": 1,
+"rate": 12.33,
+"share": {
+"impact": 0.235,
+"puncture": 0.317,
+"slash": 0.448
+},
+"shot": "Hit-Scan",
+"status": 1,
+"total": 26.0,
+"type": "Pistol"
+},
+"sampotes": {
+"crit": 30,
+"critx": 3,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": null,
+"status": 28,
+"total": 248.0,
+"type": "Melee"
+},
+"sancti_castanas": {
+"crit": 24,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"electricity": 1.0
+},
+"shot": "Projectile",
+"status": 34,
+"total": 300,
+"type": "Pistol"
+},
+"sancti_magistar": {
+"crit": 30,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.8,
+"puncture": 0.15,
+"slash": 0.05
+},
+"shot": null,
+"status": 20,
+"total": 240,
+"type": "Melee"
+},
+"sancti_tigris": {
+"crit": 15,
+"critx": 1.5,
+"multishot": 6,
+"rate": 2,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": "Hit-Scan",
+"status": 14,
+"total": 210,
+"type": "Shotgun"
+},
+"sarofang": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.4,
+"puncture": 0.04,
+"slash": 0.56
+},
+"shot": null,
+"status": 20,
+"total": 200,
+"type": "Melee"
+},
+"sarofang_prime": {
+"crit": 30,
+"critx": 3,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.3,
+"puncture": 0.04,
+"slash": 0.66
+},
+"shot": null,
+"status": 30,
+"total": 220.0,
+"type": "Melee"
+},
+"sarpa": {
+"crit": 14,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.2,
+"slash": 0.7
+},
+"shot": null,
+"status": 28,
+"total": 160,
+"type": "Melee"
+},
+"scindo": {
+"crit": 15,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 10,
+"total": 200,
+"type": "Melee"
+},
+"scindo_prime": {
+"crit": 26,
+"critx": 2.4,
+"multishot": null,
+"rate": 0.967,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 24,
+"total": 250,
+"type": "Melee"
+},
+"scoliac": {
+"crit": 13,
+"critx": 1.5,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 29,
+"total": 150.0,
+"type": "Melee"
+},
+"scourge": {
+"crit": 2,
+"critx": 1.5,
+"multishot": 1,
+"rate": 2.67,
+"share": {
+"corrosive": 1.0
+},
+"shot": "Projectile",
+"status": 30,
+"total": 70,
+"type": "Rifle"
+},
+"scourge_prime": {
+"crit": 10,
+"critx": 2,
+"multishot": 1,
+"rate": 2.67,
+"share": {
+"corrosive": 1.0
+},
+"shot": "Projectile",
+"status": 30,
+"total": 80,
+"type": "Rifle"
+},
+"scyotid": {
+"crit": 24,
+"critx": 2.4,
+"multishot": 4,
+"rate": 2.4,
+"share": {
+"puncture": 0.2,
+"toxin": 0.8
+},
+"shot": "Projectile",
+"status": 18,
+"total": 40,
+"type": "Throwing"
+},
+"secura_dual_cestra": {
+"crit": 16,
+"critx": 1.6,
+"multishot": 1,
+"rate": 12.5,
+"share": {
+"impact": 0.2,
+"puncture": 0.8
+},
+"shot": "Projectile",
+"status": 28,
+"total": 28.0,
+"type": "Pistol"
+},
+"secura_lecta": {
+"crit": 15,
+"critx": 1.5,
+"multishot": null,
+"rate": 1.25,
+"share": {
+"electricity": 0.455,
+"puncture": 0.17,
+"slash": 0.375
+},
+"shot": null,
+"status": 30,
+"total": 176,
+"type": "Melee"
+},
+"secura_penta": {
+"crit": 26,
+"critx": 2,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 26,
+"total": 75,
+"type": "Launcher"
+},
+"seer": {
+"crit": 5,
+"critx": 1.5,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.333,
+"puncture": 0.333,
+"slash": 0.333
+},
+"shot": "Projectile",
+"status": 13,
+"total": 101.0,
+"type": "Pistol"
+},
+"sepfahn": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 0.92,
+"share": {
+"impact": 0.1,
+"puncture": 0.25,
+"slash": 0.65
+},
+"shot": null,
+"status": 20,
+"total": 226.0,
+"type": "Zaw Component"
+},
+"sepulcrum": {
+"crit": 30,
+"critx": 2.2,
+"multishot": 1,
+"rate": 1.83,
+"share": {
+"impact": 0.2,
+"puncture": 0.56,
+"slash": 0.24
+},
+"shot": "Projectile",
+"status": 14,
+"total": 48.0,
+"type": "Pistol"
+},
+"serro": {
+"crit": 8,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"electricity": 0.59,
+"slash": 0.41
+},
+"shot": null,
+"status": 26,
+"total": 234,
+"type": "Melee"
+},
+"shaku": {
+"crit": 18,
+"critx": 2,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 1.0
+},
+"shot": null,
+"status": 34,
+"total": 180,
+"type": "Melee"
+},
+"shedu": {
+"crit": 25,
+"critx": 2.1,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"heat": 1.0
+},
+"shot": "Projectile",
+"status": 23,
+"total": 71,
+"type": "Rifle"
+},
+"sheev": {
+"crit": 13,
+"critx": 2.1,
+"multishot": null,
+"rate": 0.667,
+"share": {
+"impact": 0.05,
+"puncture": 0.05,
+"slash": 0.9
+},
+"shot": null,
+"status": 25,
+"total": 270.0,
+"type": "Melee"
+},
+"sibear": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"cold": 0.481,
+"impact": 0.259,
+"puncture": 0.074,
+"slash": 0.185
+},
+"shot": null,
+"status": 30,
+"total": 270,
+"type": "Melee"
+},
+"sicarus": {
+"crit": 16,
+"critx": 2,
+"multishot": 1,
+"rate": 3.5,
+"share": {
+"impact": 0.7,
+"puncture": 0.15,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 6,
+"total": 30.0,
+"type": "Pistol"
+},
+"sicarus_prime": {
+"crit": 25,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.4,
+"puncture": 0.3,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 20,
+"total": 50,
+"type": "Pistol"
+},
+"sigma_octantis": {
+"crit": 28,
+"critx": 2.2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.22,
+"puncture": 0.16,
+"slash": 0.62
+},
+"shot": null,
+"status": 16,
+"total": 174.0,
+"type": "Melee"
+},
+"silva_aegis": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 1,
+"share": {
+"heat": 1.0
+},
+"shot": null,
+"status": 20,
+"total": 98,
+"type": "Melee"
+},
+"silva_aegis_prime": {
+"crit": 25,
+"critx": 2,
+"multishot": null,
+"rate": 0.75,
+"share": {
+"heat": 1.0
+},
+"shot": null,
+"status": 30,
+"total": 318,
+"type": "Melee"
+},
+"simulor": {
+"crit": 12,
+"critx": 2,
+"multishot": 1,
+"rate": 3,
+"share": {
+"magnetic": 1.0
+},
+"shot": "AoE",
+"status": 30,
+"total": 100,
+"type": "Rifle"
+},
+"sirocco": {
+"crit": 40,
+"critx": 2,
+"multishot": 1,
+"rate": 3,
+"share": {
+"void": 1.0
+},
+"shot": "Projectile",
+"status": 20,
+"total": 2000,
+"type": "Pistol"
+},
+"skana": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 16,
+"total": 120,
+"type": "Melee"
+},
+"skana_prime": {
+"crit": 26,
+"critx": 2.6,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 26,
+"total": 210.0,
+"type": "Melee"
+},
+"skiajati": {
+"crit": 19,
+"critx": 2.1,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.15,
+"puncture": 0.07,
+"slash": 0.78
+},
+"shot": null,
+"status": 30,
+"total": 175.0,
+"type": "Melee"
+},
+"slaytra": {
+"crit": 21,
+"critx": 1.9,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.22,
+"puncture": 0.28,
+"slash": 0.5
+},
+"shot": null,
+"status": 35,
+"total": 333.0,
+"type": "Melee"
+},
+"snipetron": {
+"crit": 30,
+"critx": 1.5,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 180,
+"type": "Sniper"
+},
+"snipetron_vandal": {
+"crit": 28,
+"critx": 2,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.05,
+"puncture": 0.9,
+"slash": 0.05
+},
+"shot": "Hit-Scan",
+"status": 16,
+"total": 200,
+"type": "Sniper"
+},
+"sobek": {
+"crit": 11,
+"critx": 2,
+"multishot": 5,
+"rate": 2.5,
+"share": {
+"impact": 0.75,
+"puncture": 0.125,
+"slash": 0.125
+},
+"shot": "Hit-Scan",
+"status": 16.2,
+"total": 70.0,
+"type": "Shotgun"
+},
+"soma": {
+"crit": 30,
+"critx": 3,
+"multishot": 1,
+"rate": 15,
+"share": {
+"impact": 0.1,
+"puncture": 0.4,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 7,
+"total": 12.0,
+"type": "Rifle"
+},
+"soma_prime": {
+"crit": 30,
+"critx": 3,
+"multishot": 1,
+"rate": 15,
+"share": {
+"impact": 0.1,
+"puncture": 0.4,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 12.0,
+"type": "Rifle"
+},
+"sonicor": {
+"crit": 0,
+"critx": 1,
+"multishot": 1,
+"rate": 1.25,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 0,
+"total": 150,
+"type": "Pistol"
+},
+"spectra": {
+"crit": 14,
+"critx": 2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"puncture": 0.42,
+"slash": 0.58
+},
+"shot": "Hit-Scan",
+"status": 22,
+"total": 18.0,
+"type": "Pistol"
+},
+"spectra_vandal": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"puncture": 0.42,
+"slash": 0.58
+},
+"shot": "Hit-Scan",
+"status": 28,
+"total": 22.0,
+"type": "Pistol"
+},
+"spinnerex": {
+"crit": 16,
+"critx": 2.4,
+"multishot": null,
+"rate": 1.36,
+"share": {
+"toxin": 1.0
+},
+"shot": null,
+"status": 40,
+"total": 168,
+"type": "Melee"
+},
+"spira": {
+"crit": 30,
+"critx": 2,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.1,
+"puncture": 0.6,
+"slash": 0.3
+},
+"shot": "Projectile",
+"status": 8,
+"total": 82.0,
+"type": "Throwing"
+},
+"spira_prime": {
+"crit": 30,
+"critx": 3,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.8,
+"slash": 0.1
+},
+"shot": "Projectile",
+"status": 14,
+"total": 60,
+"type": "Throwing"
+},
+"sporothrix": {
+"crit": 1,
+"critx": 3,
+"multishot": 1,
+"rate": 1.83,
+"share": {
+"impact": 0.27,
+"puncture": 0.31,
+"slash": 0.42
+},
+"shot": "Projectile",
+"status": 53,
+"total": 371.0,
+"type": "Sniper"
+},
+"stahlta": {
+"crit": 24,
+"critx": 1.8,
+"multishot": 1,
+"rate": 6,
+"share": {
+"impact": 0.14,
+"puncture": 0.32,
+"slash": 0.54
+},
+"shot": "Projectile",
+"status": 22,
+"total": 52.0,
+"type": "Rifle"
+},
+"staticor": {
+"crit": 14,
+"critx": 2.2,
+"multishot": 1,
+"rate": 3.5,
+"share": {
+"radiation": 1.0
+},
+"shot": "Projectile",
+"status": 28,
+"total": 44,
+"type": "Pistol"
+},
+"steflos": {
+"crit": 14,
+"critx": 2.2,
+"multishot": 1,
+"rate": 3,
+"share": {
+"heat": 0.594,
+"impact": 0.406
+},
+"shot": "Projectile",
+"status": 22,
+"total": 320,
+"type": "Shotgun"
+},
+"steflos_prime": {
+"crit": 18,
+"critx": 2.2,
+"multishot": 1,
+"rate": 3,
+"share": {
+"heat": 0.594,
+"impact": 0.406
+},
+"shot": "Projectile",
+"status": 28,
+"total": 480,
+"type": "Shotgun"
+},
+"stradavar": {
+"crit": 24,
+"critx": 2,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 0.35,
+"puncture": 0.35,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 28.0,
+"type": "Rifle"
+},
+"stradavar_prime": {
+"crit": 24,
+"critx": 2.6,
+"multishot": 1,
+"rate": 10,
+"share": {
+"impact": 0.35,
+"puncture": 0.35,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 30.0,
+"type": "Rifle"
+},
+"stropha": {
+"crit": 30,
+"critx": 2.4,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.28,
+"puncture": 0.34,
+"slash": 0.38
+},
+"shot": null,
+"status": 14,
+"total": 220.0,
+"type": "Melee"
+},
+"strun": {
+"crit": 7.5,
+"critx": 1.5,
+"multishot": 12,
+"rate": 2.5,
+"share": {
+"impact": 0.55,
+"puncture": 0.15,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 5,
+"total": 25.0,
+"type": "Shotgun"
+},
+"strun_prime": {
+"crit": 24,
+"critx": 2.2,
+"multishot": 12,
+"rate": 3.33,
+"share": {
+"impact": 0.45,
+"puncture": 0.15,
+"slash": 0.4
+},
+"shot": "Hit-Scan",
+"status": 6.67,
+"total": 54.0,
+"type": "Shotgun"
+},
+"strun_wraith": {
+"crit": 18,
+"critx": 2.2,
+"multishot": 10,
+"rate": 2.5,
+"share": {
+"impact": 0.65,
+"puncture": 0.15,
+"slash": 0.2
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 40,
+"type": "Shotgun"
+},
+"stubba": {
+"crit": 23,
+"critx": 1.9,
+"multishot": 1,
+"rate": 6.33,
+"share": {
+"impact": 0.43,
+"puncture": 0.1,
+"slash": 0.47
+},
+"shot": "Hit-Scan",
+"status": 13,
+"total": 33.0,
+"type": "Pistol"
+},
+"stug": {
+"crit": 5,
+"critx": 1.5,
+"multishot": 1,
+"rate": 4,
+"share": {
+"corrosive": 1.0
+},
+"shot": "AoE",
+"status": 10,
+"total": 4,
+"type": "Pistol"
+},
+"sun_moon": {
+"crit": 20,
+"critx": 2.4,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.2,
+"puncture": 0.24,
+"slash": 0.56
+},
+"shot": null,
+"status": 22,
+"total": 190.0,
+"type": "Melee"
+},
+"supra": {
+"crit": 12,
+"critx": 1.8,
+"multishot": 1,
+"rate": 12.5,
+"share": {
+"impact": 0.1,
+"puncture": 0.75,
+"slash": 0.15
+},
+"shot": "Projectile",
+"status": 30,
+"total": 40,
+"type": "Rifle"
+},
+"supra_vandal": {
+"crit": 16,
+"critx": 2,
+"multishot": 1,
+"rate": 12.5,
+"share": {
+"impact": 0.1,
+"puncture": 0.75,
+"slash": 0.15
+},
+"shot": "Projectile",
+"status": 30,
+"total": 40,
+"type": "Rifle"
+},
+"syam": {
+"crit": 22,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.2,
+"puncture": 0.4,
+"slash": 0.4
+},
+"shot": null,
+"status": 34,
+"total": 270,
+"type": "Melee"
+},
+"sybaris": {
+"crit": 25,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.33,
+"puncture": 0.33,
+"slash": 0.34
+},
+"shot": "Hit-Scan",
+"status": 10,
+"total": 80.0,
+"type": "Rifle"
+},
+"sybaris_prime": {
+"crit": 30,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"impact": 0.33,
+"puncture": 0.33,
+"slash": 0.34
+},
+"shot": "Hit-Scan",
+"status": 25,
+"total": 88.0,
+"type": "Rifle"
+},
+"sydon": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.05,
+"puncture": 0.95
+},
+"shot": null,
+"status": 25,
+"total": 225.0,
+"type": "Melee"
+},
+"synapse": {
+"crit": 39,
+"critx": 2.7,
+"multishot": 1,
+"rate": 12,
+"share": {
+"corrosive": 1.0
+},
+"shot": "Hit-Scan",
+"status": 13,
+"total": 20,
+"type": "Rifle"
+},
+"synoid_gammacor": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"magnetic": 1.0
+},
+"shot": "Hit-Scan",
+"status": 28,
+"total": 21,
+"type": "Pistol"
+},
+"synoid_heliocor": {
+"crit": 16,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.85,
+"puncture": 0.1,
+"slash": 0.05
+},
+"shot": null,
+"status": 40,
+"total": 280,
+"type": "Melee"
+},
+"synoid_simulor": {
+"crit": 14,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"magnetic": 1.0
+},
+"shot": "AoE",
+"status": 35,
+"total": 125,
+"type": "Rifle"
+},
+"tak_lug": {
+"crit": 21,
+"critx": 1.9,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.2,
+"slash": 0.8
+},
+"shot": null,
+"status": 31,
+"total": 197.0,
+"type": "Melee"
+},
+"talons": {
+"crit": 22,
+"critx": 2,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"blast": 1.0
+},
+"shot": "AoE",
+"status": 26,
+"total": 120,
+"type": "Throwing"
+},
+"tatsu": {
+"crit": 16,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.093,
+"puncture": 0.252,
+"radiation": 0.336,
+"slash": 0.318
+},
+"shot": null,
+"status": 28,
+"total": 214,
+"type": "Melee"
+},
+"tatsu_prime": {
+"crit": 22,
+"critx": 2.4,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.087,
+"puncture": 0.235,
+"radiation": 0.348,
+"slash": 0.33
+},
+"shot": null,
+"status": 30,
+"total": 230,
+"type": "Melee"
+},
+"tekko": {
+"crit": 30,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.2,
+"puncture": 0.1,
+"slash": 0.7
+},
+"shot": null,
+"status": 10,
+"total": 160,
+"type": "Melee"
+},
+"tekko_prime": {
+"crit": 30,
+"critx": 2.4,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.22,
+"puncture": 0.14,
+"slash": 0.64
+},
+"shot": null,
+"status": 26,
+"total": 180.0,
+"type": "Melee"
+},
+"telos_akbolto": {
+"crit": 13,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.1,
+"puncture": 0.9
+},
+"shot": "Projectile",
+"status": 29,
+"total": 70,
+"type": "Pistol"
+},
+"telos_boltace": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.1,
+"puncture": 0.85,
+"slash": 0.05
+},
+"shot": null,
+"status": 35,
+"total": 210.0,
+"type": "Melee"
+},
+"telos_boltor": {
+"crit": 30,
+"critx": 2.4,
+"multishot": 1,
+"rate": 9.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.9
+},
+"shot": "Projectile",
+"status": 16,
+"total": 30,
+"type": "Rifle"
+},
+"tenet_agendus": {
+"crit": 24,
+"critx": 2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"electricity": 0.538,
+"impact": 0.462
+},
+"shot": null,
+"status": 28,
+"total": 260,
+"type": "Melee"
+},
+"tenet_arca_plasmor": {
+"crit": 22,
+"critx": 2,
+"multishot": 1,
+"rate": 1,
+"share": {
+"radiation": 1.0
+},
+"shot": "Projectile",
+"status": 34,
+"total": 760,
+"type": "Shotgun"
+},
+"tenet_cycron": {
+"crit": 20,
+"critx": 1.8,
+"multishot": 1,
+"rate": 12,
+"share": {
+"heat": 1.0
+},
+"shot": "Hit-Scan",
+"status": 40,
+"total": 22,
+"type": "Pistol"
+},
+"tenet_detron": {
+"crit": 18,
+"critx": 2,
+"multishot": 10,
+"rate": 3.33,
+"share": {
+"radiation": 1.0
+},
+"shot": "Projectile",
+"status": 10,
+"total": 26,
+"type": "Pistol"
+},
+"tenet_diplos": {
+"crit": 36,
+"critx": 2.2,
+"multishot": 1,
+"rate": 9.67,
+"share": {
+"impact": 0.4,
+"puncture": 0.321,
+"slash": 0.279
+},
+"shot": "Projectile",
+"status": 14,
+"total": 28.0,
+"type": "Pistol"
+},
+"tenet_envoy": {
+"crit": 28,
+"critx": 2.6,
+"multishot": 1,
+"rate": 0.83,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 24,
+"total": 100,
+"type": "Launcher"
+},
+"tenet_exec": {
+"crit": 38,
+"critx": 2.4,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.54,
+"slash": 0.46
+},
+"shot": null,
+"status": 22,
+"total": 190.0,
+"type": "Melee"
+},
+"tenet_ferrox": {
+"crit": 34,
+"critx": 3,
+"multishot": 1,
+"rate": 2.67,
+"share": {
+"impact": 0.1,
+"puncture": 0.7,
+"slash": 0.2
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 200,
+"type": "Rifle"
+},
+"tenet_flux_rifle": {
+"crit": 20,
+"critx": 1.8,
+"multishot": 1,
+"rate": 15,
+"share": {
+"puncture": 0.22,
+"slash": 0.78
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 22.0,
+"type": "Rifle"
+},
+"tenet_glaxion": {
+"crit": 20,
+"critx": 2.2,
+"multishot": 1,
+"rate": 12,
+"share": {
+"cold": 1.0
+},
+"shot": "Hit-Scan",
+"status": 40,
+"total": 34,
+"type": "Rifle"
+},
+"tenet_grigori": {
+"crit": 24,
+"critx": 1.6,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.04,
+"puncture": 0.36,
+"slash": 0.6
+},
+"shot": null,
+"status": 38,
+"total": 228.0,
+"type": "Melee"
+},
+"tenet_livia": {
+"crit": 28,
+"critx": 2.2,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.05,
+"puncture": 0.05,
+"slash": 0.9
+},
+"shot": null,
+"status": 28,
+"total": 198.0,
+"type": "Melee"
+},
+"tenet_plinx": {
+"crit": 44,
+"critx": 3,
+"multishot": 1,
+"rate": 3.33,
+"share": {
+"heat": 0.429,
+"puncture": 0.571
+},
+"shot": "Hit-Scan",
+"status": 12,
+"total": 70,
+"type": "Pistol"
+},
+"tenet_quanta": {
+"crit": 31,
+"critx": 2.5,
+"multishot": 2,
+"rate": 10,
+"share": {
+"electricity": 1.0
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 18,
+"type": "Rifle"
+},
+"tenet_spirex": {
+"crit": 26,
+"critx": 2.4,
+"multishot": 1,
+"rate": 2.33,
+"share": {
+"heat": 0.5,
+"impact": 0.333,
+"puncture": 0.167
+},
+"shot": "Projectile",
+"status": 40,
+"total": 120,
+"type": "Pistol"
+},
+"tenet_tetra": {
+"crit": 28,
+"critx": 2.2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.22,
+"puncture": 0.56,
+"slash": 0.22
+},
+"shot": "Projectile",
+"status": 30,
+"total": 60.0,
+"type": "Rifle"
+},
+"tenora": {
+"crit": 28,
+"critx": 2,
+"multishot": 1,
+"rate": 11.67,
+"share": {
+"impact": 0.3,
+"puncture": 0.4,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 16,
+"total": 24.0,
+"type": "Rifle"
+},
+"tenora_prime": {
+"crit": 30,
+"critx": 2.2,
+"multishot": 1,
+"rate": 12.67,
+"share": {
+"impact": 0.3,
+"puncture": 0.4,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 24,
+"total": 28.0,
+"type": "Rifle"
+},
+"tetra": {
+"crit": 4,
+"critx": 1.5,
+"multishot": 1,
+"rate": 6.67,
+"share": {
+"impact": 0.2,
+"puncture": 0.8
+},
+"shot": "Projectile",
+"status": 20,
+"total": 32.0,
+"type": "Rifle"
+},
+"thalys": {
+"crit": 30,
+"critx": 2.2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"puncture": 0.3,
+"slash": 0.7
+},
+"shot": null,
+"status": 24,
+"total": 300,
+"type": "Melee"
+},
+"thornbak": {
+"crit": 6,
+"critx": 1.4,
+"multishot": 1,
+"rate": 6,
+"share": {
+"impact": 0.333,
+"puncture": 0.333,
+"slash": 0.334
+},
+"shot": "Hit-Scan",
+"status": 36,
+"total": 28.0,
+"type": "Rifle"
+},
+"tiberon": {
+"crit": 26,
+"critx": 2.4,
+"multishot": 1,
+"rate": 6.67,
+"share": {
+"impact": 0.25,
+"puncture": 0.5,
+"slash": 0.25
+},
+"shot": "Hit-Scan",
+"status": 16,
+"total": 44,
+"type": "Rifle"
+},
+"tiberon_prime": {
+"crit": 28,
+"critx": 3,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.3,
+"puncture": 0.4,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 20,
+"total": 48.0,
+"type": "Rifle"
+},
+"tigris": {
+"crit": 10,
+"critx": 2,
+"multishot": 5,
+"rate": 2,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": "Hit-Scan",
+"status": 16.8,
+"total": 210,
+"type": "Shotgun"
+},
+"tigris_prime": {
+"crit": 10,
+"critx": 2,
+"multishot": 8,
+"rate": 2,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": "Hit-Scan",
+"status": 11.25,
+"total": 195.0,
+"type": "Shotgun"
+},
+"tipedo": {
+"crit": 20,
+"critx": 2,
+"multishot": null,
+"rate": 1.33,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 20,
+"total": 124.0,
+"type": "Melee"
+},
+"tipedo_prime": {
+"crit": 24,
+"critx": 2.4,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.1,
+"puncture": 0.1,
+"slash": 0.8
+},
+"shot": null,
+"status": 24,
+"total": 170,
+"type": "Melee"
+},
+"tonbo": {
+"crit": 5,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.15,
+"slash": 0.75
+},
+"shot": null,
+"status": 25,
+"total": 184.0,
+"type": "Melee"
+},
+"tonkkatt": {
+"crit": 23,
+"critx": 2.1,
+"multishot": null,
+"rate": 1.0833,
+"share": {
+"puncture": 0.2,
+"slash": 0.8
+},
+"shot": null,
+"status": 21,
+"total": 165,
+"type": "Melee"
+},
+"tonkor": {
+"crit": 25,
+"critx": 2.5,
+"multishot": 1,
+"rate": 3.17,
+"share": {
+"puncture": 1.0
+},
+"shot": "Projectile",
+"status": 10,
+"total": 75,
+"type": "Launcher"
+},
+"torid": {
+"crit": 15,
+"critx": 2,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"toxin": 1.0
+},
+"shot": "Projectile",
+"status": 23,
+"total": 100,
+"type": "Launcher"
+},
+"trumna": {
+"crit": 24,
+"critx": 2.2,
+"multishot": 1,
+"rate": 4.67,
+"share": {
+"heat": 0.646,
+"impact": 0.354
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 82,
+"type": "Rifle"
+},
+"trumna_prime": {
+"crit": 24,
+"critx": 2.4,
+"multishot": 1,
+"rate": 4.67,
+"share": {
+"heat": 0.624,
+"impact": 0.376
+},
+"shot": "Hit-Scan",
+"status": 34,
+"total": 85,
+"type": "Rifle"
+},
+"twin_basolk": {
+"crit": 5,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"heat": 0.405,
+"impact": 0.262,
+"puncture": 0.071,
+"slash": 0.262
+},
+"shot": null,
+"status": 40,
+"total": 210,
+"type": "Melee"
+},
+"twin_grakatas": {
+"crit": 25,
+"critx": 2.7,
+"multishot": 2,
+"rate": 20,
+"share": {
+"impact": 0.4,
+"puncture": 0.333,
+"slash": 0.267
+},
+"shot": "Hit-Scan",
+"status": 16.5,
+"total": 10.0,
+"type": "Dual Pistols"
+},
+"twin_gremlins": {
+"crit": 15,
+"critx": 1.5,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.333,
+"puncture": 0.333,
+"slash": 0.333
+},
+"shot": "Projectile",
+"status": 15,
+"total": 37.0,
+"type": "Dual Pistols"
+},
+"twin_kohmak": {
+"crit": 11,
+"critx": 2,
+"multishot": 5,
+"rate": 1.334,
+"share": {
+"impact": 0.2,
+"puncture": 0.2,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 69,
+"total": 30,
+"type": "Pistol"
+},
+"twin_krohkur": {
+"crit": 19,
+"critx": 1.7,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.12,
+"puncture": 0.18,
+"slash": 0.7
+},
+"shot": null,
+"status": 33,
+"total": 250,
+"type": "Melee"
+},
+"twin_rogga": {
+"crit": 10,
+"critx": 2,
+"multishot": 15,
+"rate": 2.5,
+"share": {
+"impact": 0.4,
+"puncture": 0.5,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 6.6,
+"total": 47.0,
+"type": "Pistol"
+},
+"twin_vipers": {
+"crit": 15,
+"critx": 1.5,
+"multishot": 1,
+"rate": 25,
+"share": {
+"impact": 0.6,
+"puncture": 0.1,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 11,
+"total": 17.0,
+"type": "Dual Pistols"
+},
+"twin_vipers_wraith": {
+"crit": 19,
+"critx": 2,
+"multishot": 1,
+"rate": 25,
+"share": {
+"impact": 0.8,
+"puncture": 0.1,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 9,
+"total": 18.0,
+"type": "Pistol"
+},
+"tysis": {
+"crit": 3,
+"critx": 1.5,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.184,
+"puncture": 0.469,
+"slash": 0.347
+},
+"shot": "Projectile",
+"status": 50,
+"total": 49,
+"type": "Pistol"
+},
+"vadarya_prime": {
+"crit": 40,
+"critx": 2.8,
+"multishot": 1,
+"rate": 2.8,
+"share": {
+"electricity": 1.0
+},
+"shot": "Hit-Scan",
+"status": 18,
+"total": 400,
+"type": "Sniper"
+},
+"vastilok": {
+"crit": 19,
+"critx": 1.7,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.07,
+"puncture": 0.09,
+"slash": 0.84
+},
+"shot": null,
+"status": 31,
+"total": 279.0,
+"type": "Melee"
+},
+"vasto": {
+"crit": 20,
+"critx": 1.8,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.25,
+"puncture": 0.25,
+"slash": 0.5
+},
+"shot": "Hit-Scan",
+"status": 8,
+"total": 90.0,
+"type": "Pistol"
+},
+"vasto_prime": {
+"crit": 22,
+"critx": 2.4,
+"multishot": 1,
+"rate": 2.5,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": "Hit-Scan",
+"status": 22,
+"total": 110.0,
+"type": "Pistol"
+},
+"vaykor_hek": {
+"crit": 25,
+"critx": 2,
+"multishot": 7,
+"rate": 3,
+"share": {
+"impact": 0.15,
+"puncture": 0.65,
+"slash": 0.2
+},
+"shot": "Hit-Scan",
+"status": 10.7,
+"total": 75.0,
+"type": "Shotgun"
+},
+"vaykor_marelok": {
+"crit": 20,
+"critx": 1.5,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.6,
+"puncture": 0.1,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 35,
+"total": 160,
+"type": "Pistol"
+},
+"vaykor_sydon": {
+"crit": 21,
+"critx": 2.5,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.05,
+"puncture": 0.95
+},
+"shot": null,
+"status": 33,
+"total": 213.0,
+"type": "Melee"
+},
+"vectis": {
+"crit": 25,
+"critx": 2,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"impact": 0.4,
+"puncture": 0.35,
+"slash": 0.25
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 225.0,
+"type": "Sniper"
+},
+"vectis_prime": {
+"crit": 30,
+"critx": 2,
+"multishot": 1,
+"rate": 2.67,
+"share": {
+"impact": 0.4,
+"puncture": 0.45,
+"slash": 0.15
+},
+"shot": "Hit-Scan",
+"status": 30,
+"total": 350.0,
+"type": "Sniper"
+},
+"veldt": {
+"crit": 22,
+"critx": 2.2,
+"multishot": 1,
+"rate": 3.67,
+"share": {
+"impact": 0.26,
+"puncture": 0.26,
+"slash": 0.48
+},
+"shot": "Hit-Scan",
+"status": 22,
+"total": 90.0,
+"type": "Rifle"
+},
+"velocitus": {
+"crit": 30,
+"critx": 2,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.25,
+"magnetic": 0.25,
+"puncture": 0.25,
+"slash": 0.25
+},
+"shot": "Projectile",
+"status": 25,
+"total": 600,
+"type": "Arch-Gun"
+},
+"velox": {
+"crit": 14,
+"critx": 1.8,
+"multishot": 1,
+"rate": 15,
+"share": {
+"impact": 0.18,
+"puncture": 0.34,
+"slash": 0.48
+},
+"shot": "Hit-Scan",
+"status": 22,
+"total": 24.0,
+"type": "Pistol"
+},
+"velox_prime": {
+"crit": 14,
+"critx": 2,
+"multishot": 1,
+"rate": 17,
+"share": {
+"impact": 0.24,
+"puncture": 0.28,
+"slash": 0.48
+},
+"shot": "Hit-Scan",
+"status": 32,
+"total": 27.0,
+"type": "Pistol"
+},
+"venato": {
+"crit": 27,
+"critx": 2.1,
+"multishot": null,
+"rate": 1.08,
+"share": {
+"impact": 0.15,
+"puncture": 0.5,
+"slash": 0.35
+},
+"shot": null,
+"status": 24,
+"total": 220,
+"type": "Rifle"
+},
+"venato_prime": {
+"crit": 34,
+"critx": 2.3,
+"multishot": null,
+"rate": 1.166,
+"share": {
+"impact": 0.15,
+"puncture": 0.5,
+"slash": 0.35
+},
+"shot": null,
+"status": 32,
+"total": 245.0,
+"type": "Melee"
+},
+"venka": {
+"crit": 15,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.05,
+"puncture": 0.25,
+"slash": 0.7
+},
+"shot": null,
+"status": 15,
+"total": 140,
+"type": "Melee"
+},
+"venka_prime": {
+"crit": 32,
+"critx": 2.6,
+"multishot": null,
+"rate": 1.05,
+"share": {
+"impact": 0.05,
+"puncture": 0.2,
+"slash": 0.75
+},
+"shot": null,
+"status": 24,
+"total": 188.0,
+"type": "Melee"
+},
+"verdilac": {
+"crit": 30,
+"critx": 2.5,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.1,
+"puncture": 0.4,
+"slash": 0.5
+},
+"shot": null,
+"status": 21,
+"total": 213.0,
+"type": "Melee"
+},
+"vericres": {
+"crit": 22,
+"critx": 2,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.12,
+"puncture": 0.16,
+"slash": 0.72
+},
+"shot": null,
+"status": 20,
+"total": 180.0,
+"type": "Melee"
+},
+"veritux": {
+"crit": 5,
+"critx": 1.5,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.15,
+"puncture": 0.15,
+"slash": 0.7
+},
+"shot": null,
+"status": 10,
+"total": 470.0,
+"type": "Arch-Melee"
+},
+"vesper_77": {
+"crit": 24,
+"critx": 2.6,
+"multishot": 1,
+"rate": 2.08,
+"share": {
+"impact": 0.4,
+"puncture": 0.6
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 180,
+"type": "Pistol"
+},
+"vinquibus": {
+"crit": 40,
+"critx": 3.2,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"puncture": 0.7,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 20,
+"total": 400,
+"type": "Rifle"
+},
+"viper": {
+"crit": 15,
+"critx": 1.5,
+"multishot": 1,
+"rate": 14.38,
+"share": {
+"impact": 0.6,
+"puncture": 0.1,
+"slash": 0.3
+},
+"shot": "Hit-Scan",
+"status": 11,
+"total": 17.0,
+"type": "Pistol"
+},
+"viper_wraith": {
+"crit": 19,
+"critx": 2,
+"multishot": 1,
+"rate": 14.38,
+"share": {
+"impact": 0.8,
+"puncture": 0.1,
+"slash": 0.1
+},
+"shot": "Hit-Scan",
+"status": 9,
+"total": 18.0,
+"type": "Pistol"
+},
+"vitrica": {
+"crit": 23,
+"critx": 2.3,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"impact": 0.3,
+"puncture": 0.3,
+"slash": 0.4
+},
+"shot": null,
+"status": 33,
+"total": 333.0,
+"type": "Melee"
+},
+"volnus": {
+"crit": 18,
+"critx": 1.6,
+"multishot": null,
+"rate": 1.2,
+"share": {
+"impact": 0.22,
+"puncture": 0.32,
+"slash": 0.46
+},
+"shot": null,
+"status": 30,
+"total": 220.0,
+"type": "Melee"
+},
+"volnus_prime": {
+"crit": 20,
+"critx": 1.8,
+"multishot": null,
+"rate": 1.2,
+"share": {
+"impact": 0.22,
+"puncture": 0.32,
+"slash": 0.46
+},
+"shot": null,
+"status": 34,
+"total": 250,
+"type": "Melee"
+},
+"vulkar": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 1.5,
+"share": {
+"impact": 0.8,
+"puncture": 0.15,
+"slash": 0.05
+},
+"shot": "Hit-Scan",
+"status": 25,
+"total": 225.0,
+"type": "Sniper"
+},
+"vulkar_wraith": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 2,
+"share": {
+"impact": 0.9,
+"puncture": 0.1
+},
+"shot": "Hit-Scan",
+"status": 25,
+"total": 273.0,
+"type": "Sniper"
+},
+"war": {
+"crit": 26,
+"critx": 2.6,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.48,
+"puncture": 0.24,
+"slash": 0.28
+},
+"shot": null,
+"status": 26,
+"total": 250,
+"type": "Melee"
+},
+"war_prime": {
+"crit": 26,
+"critx": 3.2,
+"multishot": null,
+"rate": 0.917,
+"share": {
+"impact": 0.72,
+"puncture": 0.12,
+"slash": 0.16
+},
+"shot": null,
+"status": 32,
+"total": 270.0,
+"type": "Melee"
+},
+"wolf_sledge": {
+"crit": 17,
+"critx": 1.9,
+"multishot": null,
+"rate": 1,
+"share": {
+"impact": 0.51,
+"puncture": 0.03,
+"slash": 0.46
+},
+"shot": null,
+"status": 33,
+"total": 259.0,
+"type": "Melee"
+},
+"wrath": {
+"crit": 30,
+"critx": 2,
+"multishot": null,
+"rate": 1.2,
+"share": {
+"puncture": 0.2,
+"slash": 0.8
+},
+"shot": null,
+"status": 15,
+"total": 220,
+"type": "Melee"
+},
+"xoris": {
+"crit": 20,
+"critx": 2.4,
+"multishot": null,
+"rate": 1.17,
+"share": {
+"impact": 0.2,
+"puncture": 0.34,
+"slash": 0.46
+},
+"shot": null,
+"status": 18,
+"total": 120.0,
+"type": "Melee"
+},
+"zakti": {
+"crit": 2,
+"critx": 1.5,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.4,
+"puncture": 0.6
+},
+"shot": "Projectile",
+"status": 20,
+"total": 30,
+"type": "Pistol"
+},
+"zakti_prime": {
+"crit": 8,
+"critx": 1.8,
+"multishot": 1,
+"rate": 5,
+"share": {
+"impact": 0.4,
+"puncture": 0.6
+},
+"shot": "Projectile",
+"status": 42,
+"total": 30,
+"type": "Pistol"
+},
+"zarr": {
+"crit": 17,
+"critx": 2.5,
+"multishot": 1,
+"rate": 1.67,
+"share": {
+"impact": 1.0
+},
+"shot": "Projectile",
+"status": 29,
+"total": 25,
+"type": "Launcher"
+},
+"zenistar": {
+"crit": 10,
+"critx": 2,
+"multishot": null,
+"rate": 0.833,
+"share": {
+"heat": 0.503,
+"impact": 0.268,
+"slash": 0.228
+},
+"shot": null,
+"status": 30,
+"total": 298,
+"type": "Melee"
+},
+"zenith": {
+"crit": 10,
+"critx": 2,
+"multishot": 1,
+"rate": 10.83,
+"share": {
+"impact": 0.15,
+"puncture": 0.2,
+"slash": 0.65
+},
+"shot": "Hit-Scan",
+"status": 34,
+"total": 30.0,
+"type": "Rifle"
+},
+"zhuge": {
+"crit": 20,
+"critx": 2,
+"multishot": 1,
+"rate": 4.17,
+"share": {
+"impact": 0.05,
+"puncture": 0.75,
+"slash": 0.2
+},
+"shot": "Projectile",
+"status": 35,
+"total": 100,
+"type": "Rifle"
+},
+"zhuge_prime": {
+"crit": 26,
+"critx": 2,
+"multishot": 1,
+"rate": 5.5,
+"share": {
+"impact": 0.2,
+"puncture": 0.45,
+"slash": 0.35
+},
+"shot": "Projectile",
+"status": 30,
+"total": 50.0,
+"type": "Rifle"
+},
+"zylok": {
+"crit": 8,
+"critx": 2,
+"multishot": 1,
+"rate": 1.8,
+"share": {
+"impact": 0.32,
+"puncture": 0.12,
+"slash": 0.56
+},
+"shot": "Hit-Scan",
+"status": 26,
+"total": 140.0,
+"type": "Pistol"
+},
+"zylok_prime": {
+"crit": 12,
+"critx": 2.4,
+"multishot": 1,
+"rate": 1.8,
+"share": {
+"impact": 0.3,
+"puncture": 0.1,
+"slash": 0.6
+},
+"shot": "Hit-Scan",
+"status": 36,
+"total": 210,
+"type": "Pistol"
+},
+"zymos": {
+"crit": 5,
+"critx": 2.3,
+"multishot": 1,
+"rate": 1.33,
+"share": {
+"impact": 0.4,
+"puncture": 0.6
+},
+"shot": "Projectile",
+"status": 30,
+"total": 23.0,
+"type": "Pistol"
+}
+}
