@@ -541,7 +541,7 @@ class Api:
             e = self._cache.get(w, self.CACHE_MAX_AGE_S)
             if not e or not e.get("market"):
                 continue
-            for o in opportunities.find(e["market"], self._rtype(w), thr, gain, mine):
+            for o in opportunities.find(e["market"], self._rtype(w), thr, gain, mine, weapon=w):
                 text = json.dumps({"weapon": w, **o}, ensure_ascii=False)
                 with store.connect() as conn:
                     if store.add_opportunity(conn, o["id"], text):
@@ -586,7 +586,7 @@ class Api:
             except (WFMError, requests.RequestException):
                 rtype = None
             pos = stockcheck.position(auction_view(a), e["market"], rtype, h.get("hours"),
-                                      h.get("hours_override") or base)
+                                      h.get("hours_override") or base, weapon=w)
             if pos:
                 out[aid] = pos
         return out

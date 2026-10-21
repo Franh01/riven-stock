@@ -6,7 +6,7 @@ MAX_PER_WEAPON = 3      # avisos por arma y pasada (las mejores)
 CHEAP_FRACTION = 0.3    # solo se evalúan las más baratas del mercado: las caras no pueden ser oportunidad
 
 
-def find(market, rtype, threshold, min_gain, skip_ids=()):
+def find(market, rtype, threshold, min_gain, skip_ids=(), weapon=None):
     """market: publicaciones slim de un arma. threshold: % por debajo del estimado (p. ej. 30).
     Devuelve las oportunidades, la de mayor ganancia primero."""
     live = sorted((o for o in market if o.get("p") and o["id"] not in skip_ids), key=lambda o: o["p"])
@@ -15,7 +15,7 @@ def find(market, rtype, threshold, min_gain, skip_ids=()):
     for o in cheap:
         view = {"stats": [{"slug": s, "value": v, "positive": p} for s, v, p in o["s"]],
                 "rolls": o.get("r") or 0, "rank": o.get("k")}
-        est = estimate(view, market, exclude_id=o["id"], rtype=rtype)
+        est = estimate(view, market, exclude_id=o["id"], rtype=rtype, weapon=weapon)
         if not est or est["confidence"] == "baja" or est["n"] < 3:
             continue
         gain = est["price"] - o["p"]
