@@ -29,39 +29,65 @@ function summarize(auctions) {
   };
 }
 
-exports.handler = async () => {
+const MARGIN_MS = 60000;   // tiempo que se deja para cerrar y relanzarse
+const MAX_CHAIN = 30;      // tope de relevos encadenados en un mismo día (evita bucles infinitos)
+
+async function relaunch(chain) {
+  const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda");
+  await new LambdaClient({}).send(new InvokeCommand({
+    FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME,
+    InvocationType: "Event",
+    Payload: JSON.stringify({ chain: chain + 1 }),
+  }));
+}
+
+exports.handler = async (event, context) => {
+  const chain = event?.chain || 0;
   const day = new Date().toISOString().slice(0, 10);
   const weapons = (await get("/v2/riven/weapons")).data.map((w) => w.slug);
   const col = await snapshots();
-  // Si una corrida anterior del día quedó a medias, retoma solo lo que falta.
+  // Cola de pendientes: lo que ya está guardado hoy no se repite, así cada corrida retoma donde quedó la anterior.
   const done = new Set((await col.find({ day }, { projection: { weapon: 1 } }).toArray()).map((d) => d.weapon));
-  const queue = weapons.filter((w) => !done.has(w));
-  let ok = 0;
-  const failed = [];
-  let next = 0;
+  let pending = weapons.filter((w) => !done.has(w));
+  const start = pending.length;
+  const deadline = () => context.getRemainingTimeInMillis() - MARGIN_MS;
   let lastStart = 0;
+  let lastError = "";
+  let round = 0;
 
-  // Tres pedidos en vuelo a la vez; las salidas se espacian para no pasar de ~3 por segundo.
-  async function worker() {
-    while (next < queue.length) {
-      const weapon = queue[next++];
-      const wait = lastStart + PAUSE_MS - Date.now();
-      lastStart = Math.max(Date.now(), lastStart + PAUSE_MS);
-      if (wait > 0) await sleep(wait);
-      try {
-        const qs = new URLSearchParams({ type: "riven", weapon_url_name: weapon, buyout_policy: "direct", sort_by: "price_asc" });
-        const auctions = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
-        await col.updateOne({ weapon, day }, { $set: { weapon, day, ...summarize(auctions) } }, { upsert: true });
-        ok++;
-      } catch (e) {
-        failed.push(`${weapon}: ${e.message}`);
+  while (pending.length && deadline() > 0) {
+    const queue = pending;
+    pending = [];
+    let next = 0;
+    // Tres pedidos en vuelo a la vez; las salidas se espacian para no pasar de ~3 por segundo.
+    const worker = async () => {
+      while (next < queue.length) {
+        const weapon = queue[next++];
+        if (deadline() <= 0) { pending.push(weapon); continue; }
+        const wait = lastStart + PAUSE_MS - Date.now();
+        lastStart = Math.max(Date.now(), lastStart + PAUSE_MS);
+        if (wait > 0) await sleep(wait);
+        try {
+          const qs = new URLSearchParams({ type: "riven", weapon_url_name: weapon, buyout_policy: "direct", sort_by: "price_asc" });
+          const auctions = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
+          await col.updateOne({ weapon, day }, { $set: { weapon, day, ...summarize(auctions) } }, { upsert: true });
+        } catch (e) {
+          lastError = `${weapon}: ${e.message}`;
+          pending.push(weapon);   // vuelve a la cola para la próxima ronda
+        }
       }
-      if ((ok + failed.length) % 50 === 0) console.log(JSON.stringify({ progress: ok + failed.length, of: queue.length }));
-    }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    console.log(JSON.stringify({ round: ++round, saved: queue.length - pending.length, pending: pending.length }));
+    // Si falló algo, se espera antes de reintentar (más cada ronda) para no seguir golpeando el límite.
+    if (pending.length && deadline() > 0) await sleep(Math.min(5000 * round, 30000, Math.max(0, deadline())));
   }
-  await Promise.all([worker(), worker(), worker()]);
 
-  console.log(JSON.stringify({ day, total: weapons.length, skipped: done.size, ok, failed: failed.length, sample: failed.slice(0, 5) }));
-  if (queue.length && ok === 0) throw new Error("No se pudo guardar ninguna arma: " + failed[0]);
-  return { day, ok, failed: failed.length };
+  const result = { day, total: weapons.length, skipped: done.size, saved: start - pending.length, pending: pending.length, chain, lastError };
+  if (pending.length) {
+    if (chain < MAX_CHAIN) { await relaunch(chain); result.relaunched = true; }
+    else console.error("Se agotaron los relevos con armas pendientes", pending.length);
+  }
+  console.log(JSON.stringify(result));
+  return result;
 };

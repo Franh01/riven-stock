@@ -15,6 +15,13 @@ provider:
     MONGODB_URI: ${env:MONGODB_URI}
   tags:
     project: riven-stock
+  iam:
+    role:
+      statements:
+        # El colector se relanza a sí mismo si le quedan armas pendientes al agotar su tiempo.
+        - Effect: Allow
+          Action: lambda:InvokeFunction
+          Resource: arn:aws:lambda:us-east-1:*:function:riven-stock-collector
 
 package:
   patterns:
