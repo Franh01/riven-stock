@@ -232,7 +232,7 @@
   .bell .count { position: absolute; top: -2px; right: -2px; background: #e5546b; color: #fff; border-radius: 9px; font-size: 11px; padding: 0 5px; }
   .bell .count[hidden] { display: none; }
   #cfg-dialog { width: min(1060px, 95vw); height: min(860px, 92vh); }
-  #opp-dialog { width: min(560px, 95vw); height: auto; max-height: 92vh; }
+  #opp-dialog { width: min(560px, 95vw); height: fit-content; max-height: none; overflow: visible; }
   #opp-dialog .combo-list { top: auto; bottom: calc(100% + 4px); max-height: 220px; }
   #opp-dialog button:focus { outline: none; box-shadow: none; }
   #opp-dialog .switch-row > span:first-child { flex: 1 1 auto; min-width: 0; }
