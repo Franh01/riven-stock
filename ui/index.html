@@ -1760,7 +1760,7 @@ document.addEventListener('mousedown', (e) => {
     if (!chip) return;
     usePrice(chip.dataset.price);
     $("#confirm").hidden = true;
-    if (typeof tour !== "undefined" && tour) setTimeout(() => tour && tourStep(tour.i), 600);   // el scroll al precio descoloca el resaltado: se vuelve a centrar
+    if (typeof tour !== "undefined" && tour && TOURS[tour.id].steps[tour.i].el === "#ref-section") setTimeout(() => tour && tourStep(tour.i + 1), 700);   // en el recorrido, usar un precio lleva al paso siguiente (donde se ve cargado)
   });
   $("#ref-go").addEventListener("click", runReference);
 
@@ -2374,7 +2374,7 @@ document.addEventListener('mousedown', (e) => {
       { el: ".grid-riven", demo: "new", t: "Arma y datos", x: "Elegís el arma, la polaridad, MR, rango y rolls. Los cargué de ejemplo." },
       { el: "#stat-slots", demo: "new", t: "Stats", x: "Hasta tres stats positivos y uno negativo, con sus valores tal como figuran en el juego." },
       { el: "#name-chips", demo: "new", t: "Nombre", x: "El nombre sale de los stats; elegís entre las combinaciones posibles." },
-      { el: "#ref-section", demo: "new", t: "Precio de referencia", x: "Compara con las más baratas en venta del arma (acá son datos de ejemplo). Tocá Mínimo, Mediana o Promedio para usarlo como precio." },
+      { el: "#ref-section", demo: "new", t: "Precio de referencia", x: "Compara con las más baratas en venta del arma (acá son datos de ejemplo). Tocá Mínimo, Mediana o Promedio para usarlo como precio y pasamos al siguiente paso." },
       { el: "#publish-section", demo: "new", t: "Publicar", x: "Precio, costo (solo se guarda en la app), visibilidad y nota. Publicar te pide confirmación. En el recorrido está desactivado." },
       { el: ".grid-riven", demo: "edit", t: "Editar uno publicado", x: "Así queda el mismo riven ya publicado. Arma, stats, MR, rango y rolls quedan fijos; solo podés cambiar la polaridad." },
       { el: "#rd-auto", demo: "edit", t: "Baja automática", x: "El switch activa la [[Baja automática]] solo para este riven; los campos de al lado pisan los valores globales." },
