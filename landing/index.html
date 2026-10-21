@@ -40,6 +40,10 @@
   .shot img { display:block; width:100%; height:auto; }
   .steps .shot.small { margin:14px 0 2px; }
   .shot.small { max-width:760px; margin:26px 0 12px; }
+  .ss-grid { display:grid; grid-template-columns:380px 1fr; gap:44px; align-items:center; margin-top:10px; }
+  .ss-grid .car { margin:0; width:100%; }
+  .ss-text h2 { margin-top:0; }
+  @media (max-width:860px) { .ss-grid { grid-template-columns:1fr; gap:20px; } .ss-grid .car { max-width:380px; margin:0 auto; } }
   .car { max-width:380px; margin:28px auto; padding:14px 14px 16px; background:var(--card); border:1px solid var(--line); border-radius:20px; box-shadow:0 30px 80px -30px rgba(0,0,0,.8); }
   .car-view { position:relative; overflow:hidden; border-radius:12px; }
   .car-track { display:flex; transition:transform .45s cubic-bezier(.4,.1,.2,1); }
@@ -144,8 +148,7 @@
   </section>
 
   <section id="smartscreen">
-    <h2 data-i18n="ss.h"></h2>
-    <p data-i18n="ss.p"></p>
+    <div class="ss-grid">
     <div class="car" id="ssCar">
       <div class="car-view"><button type="button" class="car-arrow car-prev" aria-label="Anterior">&#8249;</button><button type="button" class="car-arrow car-next" aria-label="Siguiente">&#8250;</button><div class="car-track">
       <div class="car-slide"><div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-1.png" alt="" loading="lazy" width="534" height="500"></div><p data-n="1" data-i18n-html="ss.s1"></p></div>
@@ -153,7 +156,8 @@
       </div></div>
       <div class="car-nav"><button type="button" aria-label="1" class="on"></button><button type="button" aria-label="2"></button></div>
     </div>
-    <p data-i18n="ss.n"></p>
+    <div class="ss-text"><h2 data-i18n="ss.h"></h2><p data-i18n="ss.p"></p><p data-i18n="ss.n"></p></div>
+    </div>
   </section>
 
   <section id="instalacion">
