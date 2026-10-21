@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Tu stock se compara con el mercado: etiquetas Caro, Barato y Estancado en la tabla, filtro por etiqueta y un botón para ajustar el precio al estimado.
+
+#### English
+- Your stock is compared against the market: Pricey, Cheap and Stale tags in the table, a tag filter and a button to set the price to the estimate.
+
 ## [0.8.6] - 2026-10-21
 
 #### Español

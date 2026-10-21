@@ -46,6 +46,7 @@ import cloud_backup
 import feedback
 import store
 import opportunities
+import stockcheck
 import updater
 from orders import OrderCache
 from pricing import estimate
@@ -546,6 +547,30 @@ class Api:
                     if store.add_opportunity(conn, o["id"], text):
                         n_new += 1
         return n_new
+
+    def stock_position(self):
+        """Dónde está cada riven publicado respecto del estimado. Solo usa el caché: sin pedidos nuevos."""
+        with store.connect() as conn:
+            cfg, hours = store.settings(conn), store.riven_hours(conn)
+        base = cfg.get("autodrop_hours", 10)
+        out = {}
+        for aid, a in list(self._seen.items()):
+            if not a.get("visible", True):
+                continue
+            w = a["item"]["weapon_url_name"]
+            e = self._cache.get(w, self.CACHE_MAX_AGE_S)
+            if not e or not e.get("market"):
+                continue
+            h = hours.get(aid) or {}
+            try:
+                rtype = self._rtype(w)
+            except (WFMError, requests.RequestException):
+                rtype = None
+            pos = stockcheck.position(auction_view(a), e["market"], rtype, h.get("hours"),
+                                      h.get("hours_override") or base)
+            if pos:
+                out[aid] = pos
+        return out
 
     def market_trend(self, weapon, days=90):
         """Tendencia del arma: primero la nube (historial central de todas las armas); la foto local

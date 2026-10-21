@@ -658,6 +658,7 @@
         <button class="ghost" id="reload" data-i18n="mine.reload">Actualizar</button>
       </div>
     </div>
+    <div id="pos-filter" class="pos-filter" hidden></div>
     <div id="mine"><div style="padding:6px 0"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div></div>
   </section>
 
@@ -1162,6 +1163,8 @@ document.addEventListener('mousedown', (e) => {
   // (spinner, acciones bloqueadas) hasta que responde la API. Si falla, se revierte.
 
   let sort = { key: null, dir: 1 };
+  let position = {};     // auction_id -> {estimate, diff, pct, tags[]} (del caché, sin pedidos)
+  let posFilter = null;  // null | caro | barato | estancado
   // El orden se guarda en la base local (pywebview corre en modo privado: localStorage no persiste).
 
   async function loadMine() {
@@ -1173,6 +1176,7 @@ document.addEventListener('mousedown', (e) => {
       closed = [];
       applyLocal(data);
       renderAll();
+      loadPosition();
     } finally {
       $("#reload").disabled = false;
     }
@@ -1239,9 +1243,35 @@ document.addEventListener('mousedown', (e) => {
     }
   });
 
+  // Posición del stock contra el mercado: etiquetas en la fila y filtro arriba de la tabla.
+  function posBadges(a, busy) {
+    const p = position[a.id];
+    if (!p || !p.tags.length) return "";
+    const tip = tr("pos.tip", { e: p.estimate, p: (p.pct > 0 ? "+" : "") + p.pct });
+    const adj = (p.tags.includes("caro") || p.tags.includes("barato")) && !busy
+      ? `<button type="button" class="pos-adj" data-act="pos-adjust" title="${tr("pos.adjustTip", { p: p.estimate })}">→ ${p.estimate}p</button>` : "";
+    return `<div class="pos-tags" title="${esc(tip)}">${p.tags.map((t) => `<span class="pos-tag ${t}">${tr("pos." + t)}</span>`).join("")}${adj}</div>`;
+  }
+
+  function renderPosFilter() {
+    const box = $("#pos-filter");
+    const n = (t) => Object.keys(position).filter((id) => mine.some((a) => a.id === id) && position[id].tags.includes(t)).length;
+    const counts = { caro: n("caro"), barato: n("barato"), estancado: n("estancado") };
+    if (!counts.caro && !counts.barato && !counts.estancado) { box.hidden = true; posFilter = null; return; }
+    box.hidden = false;
+    box.innerHTML = `<button type="button" class="pos-chip ${posFilter ? "" : "on"}" data-pos="">${tr("pos.all")}</button>` +
+      ["caro", "barato", "estancado"].filter((t) => counts[t]).map((t) => `<button type="button" class="pos-chip ${posFilter === t ? "on" : ""}" data-pos="${t}">${tr("pos." + t)} · ${counts[t]}</button>`).join("");
+  }
+
+  async function loadPosition() {
+    try { position = (await api().stock_position()) || {}; } catch { position = {}; }
+    renderMine();
+  }
+
   function renderMine() {
     const visibles = mine.filter((a) => a.visible).length;
-    const rows = sortedMine().filter(matchesQuery);
+    const rows = sortedMine().filter(matchesQuery).filter((a) => !posFilter || position[a.id]?.tags.includes(posFilter));
+    renderPosFilter();
     $("#mine-title").textContent = tr("mine.title", { v: visibles, h: mine.length - visibles }) +
       (queryTokens.length ? ` · ${tr("mine.matches", { n: rows.length })}` : "");
     if (!mine.length && !demoRowOn) { $("#mine").innerHTML = `<div class="state">${tr("mine.empty")}</div>`; return; }
@@ -1257,7 +1287,7 @@ document.addEventListener('mousedown', (e) => {
         <td>${esc(a.rolls)}</td>
         <td>${esc(a.mr)}</td>
         <td class="nowrap"><span class="editable ${cost === undefined ? "muted" : ""}" data-act="edit-cost" title="${tr("row.costTip")}">${cost === undefined ? "—" : fmtP(cost)}</span></td>
-        <td class="price"><span class="editable" ${busy ? "" : `data-act="edit-price"`} title="${tr("row.editTip")}">${a.price}p</span></td>
+        <td class="price"><span class="editable" ${busy ? "" : `data-act="edit-price"`} title="${tr("row.editTip")}">${a.price}p</span>${posBadges(a, busy)}</td>
         <td class="nowrap muted" title="${tr("row.hoursTip")}">${hours[a.id] ? hours[a.id].hours.toFixed(1) + " h" : "—"}</td>
         <td class="nowrap muted" title="${esc(fullDate(a.updated))}">${esc(ago(a.updated))}</td>
         <td><span class="badge ${a.visible ? "on" : "off"}">${tr(a.visible ? "row.visible" : "row.hidden")}</span>${busy ? spinner : ""}</td>
@@ -1387,6 +1417,14 @@ document.addEventListener('mousedown', (e) => {
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) closeMenu(); });
   $("main").addEventListener("scroll", closeMenu);
 
+  $("#pos-filter").addEventListener("click", (e) => {
+    const c = e.target.closest("[data-pos]");
+    if (!c) return;
+    posFilter = c.dataset.pos || null;
+    renderMine();
+  });
+  setInterval(() => { if (mine.length && !document.hidden) loadPosition(); }, 300000);
+
   $("#mine").addEventListener("click", (e) => {
     const th = e.target.closest("th[data-sort]");
     if (th) {
@@ -1404,6 +1442,11 @@ document.addEventListener('mousedown', (e) => {
     const act = el.dataset.act;
     if (act === "menu") return menu.hidden || menuFor?.id !== a.id ? openMenu(el, a) : closeMenu();
     if (pending.has(a.id)) return;
+    if (act === "pos-adjust") {
+      const p = position[a.id];
+      if (p && p.estimate !== a.price) { runUpdate(a, { price: p.estimate }, tr("price.updated", { a: a.price, b: p.estimate })); delete position[a.id]; }
+      return;
+    }
     if (act === "edit-price") inlineEdit(el, a.price, (v) => {
       const price = parseInt(v, 10);
       if (!price || price === a.price) return renderMine();
@@ -3023,6 +3066,7 @@ document.addEventListener('mousedown', (e) => {
       { el: "#gear", t: "tour.inicio.3.t", x: "tour.inicio.3.x" },
       { el: "#views", t: "tour.inicio.4.t", x: "tour.inicio.4.x" },
       { el: "#mine", t: "tour.inicio.5.t", x: "tour.inicio.5.x" },
+      { el: "#mine", t: "tour.inicio.pos.t", x: "tour.inicio.pos.x" },
       { el: "#fab", click: true, t: "tour.inicio.6.t", x: "tour.inicio.6.x" },
       { el: ".grid-riven", demo: "new", t: "tour.inicio.7.t", x: "tour.inicio.7.x" },
       { el: "#stat-slots", demo: "new", t: "tour.inicio.8.t", x: "tour.inicio.8.x" },
@@ -3383,7 +3427,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     const s = await api().token_status(); tokHelpUrl = s.help_url;
     if (!s.has) openToken();
   }
-  const HELP_N = 15;
+  const HELP_N = 16;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button> <button class="ghost tour-btn" data-tour="opp">${tr("help.tourOpp")}</button>`;
@@ -3408,6 +3452,16 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
   #closing .spin { width: 38px; height: 38px; border-radius: 50%; border: 4px solid rgba(255,255,255,.25);
     border-top-color: #fff; animation: closing-spin .8s linear infinite; }
   @keyframes closing-spin { to { transform: rotate(360deg); } }
+  .pos-filter { display:flex; gap:6px; flex-wrap:wrap; margin:0 0 10px; }
+  .pos-chip { font-size:12px; padding:4px 11px; border-radius:99px; background:transparent; border:1px solid var(--border, #ffffff22); color:var(--muted); cursor:pointer; }
+  .pos-chip.on { color:var(--text, #fff); background:#ffffff14; }
+  .pos-tags { display:flex; gap:4px; align-items:center; margin-top:3px; flex-wrap:wrap; }
+  .pos-tag { font-size:11px; padding:1px 7px; border-radius:99px; }
+  .pos-tag.caro { background:#ff6b6b24; color:#ff8f8f; }
+  .pos-tag.barato { background:#7ee2a81f; color:var(--pos); }
+  .pos-tag.estancado { background:#9a8cba22; color:var(--muted); }
+  .pos-adj { font-size:11px; padding:1px 7px; border-radius:99px; background:transparent; border:1px solid currentColor; color:var(--muted); cursor:pointer; }
+  .pos-adj:hover { color:var(--text, #fff); }
 </style>
 <script>function showClosing() { document.getElementById("closing").hidden = false; }</script>
 </body>
