@@ -5,10 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
+- Nuevo en el Reporte: «Rentabilidad de rollear» (costo por riven vendible, porcentaje aprovechable, ganancia por tipo y armas que mejor se venden de tus lotes).
 - Corregido: las etiquetas Caro/Barato/Estancado no aparecían porque el caché de órdenes no se completaba mientras usabas la app; ahora se carga en segundo plano al abrir Mis ventas.
 - Corregido: el caché de órdenes ahora se guarda entre sesiones.
 
 #### English
+- New in Report: "Rolling profitability" (cost per sellable riven, usable share, profit by type and best-selling weapons from your lots).
 - Fixed: the Expensive/Cheap/Stale tags were not showing because the order cache was not filled while you used the app; it now loads in the background when opening My sales.
 - Fixed: the order cache is now saved between sessions.
 
