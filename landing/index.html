@@ -86,6 +86,7 @@
   .note { color:var(--muted); font-size:14px; margin-top:16px; }
   .warn { margin-top:22px; border:1px solid rgba(255,90,90,.6); border-left:5px solid #ff4d4d; background:rgba(255,77,77,.1); border-radius:14px; padding:16px 20px 16px 52px; color:#ffd9d9; position:relative; box-shadow:0 0 0 1px rgba(255,77,77,.12), 0 12px 32px -14px rgba(255,77,77,.5); }
   .warn::before { content:"!"; position:absolute; left:16px; top:16px; width:24px; height:24px; border-radius:50%; background:#ff4d4d; color:#fff; font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; }
+  .warn-top { margin:0 0 8px; }
   .warn strong { display:block; color:#ff7b7b; font-size:17px; margin-bottom:4px; }
 
   .trust { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
@@ -122,6 +123,8 @@
     </div>
     <div class="shot"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/app-ventas.jpg" alt="Riven Stock" width="1164" height="741"></div>
   </header>
+
+  <div class="warn warn-top" data-i18n-html="tk.top"></div>
 
   <section>
     <div class="eyebrow" data-i18n="f.eye"></div>
@@ -220,6 +223,7 @@ const T = {
     "tk.s4":"A la izquierda abrí <b>Cookies</b> y elegí <code>https://warframe.market</code>.",
     "tk.s5":"Buscá la fila llamada <code>JWT</code>, hacé clic y copiá el contenido completo de <b>Value</b> (un texto largo que empieza con <code>eyJ</code>).",
     "tk.s6":"En Riven Stock tocá el botón de la llave (arriba), pegá el token y guardalo.",
+    "tk.top":"<strong>Nunca le pases tu token (JWT) de warframe.market a nadie.</strong>Riven Stock lo guarda solo en tu PC y únicamente lo envía a warframe.market. Si alguien te pide el token para 'activar' algo, es una estafa: con él pueden operar en tu cuenta. Si creés que se filtró, cerrá sesión en warframe.market y volvé a entrar para generar uno nuevo, cambiá tu contraseña y pegá el token nuevo en la app.",
     "tk.w":"<strong>Tratá el token como una contraseña: no lo compartas ni lo publiques.</strong> Se guarda solo en tu PC y la app únicamente lo manda a warframe.market. Si algún día deja de funcionar, venció: repetí estos pasos y pegá uno nuevo.",
     ft:"Proyecto personal, sin relación oficial con Digital Extremes ni warframe.market.",
     info:"Versión {v} · Windows 10 / 11", info0:"Windows 10 / 11"
@@ -254,6 +258,7 @@ const T = {
     "tk.s4":"On the left open <b>Cookies</b> and pick <code>https://warframe.market</code>.",
     "tk.s5":"Find the row named <code>JWT</code>, click it and copy the full <b>Value</b> (a long text starting with <code>eyJ</code>).",
     "tk.s6":"In Riven Stock press the key button (top bar), paste the token and save it.",
+    "tk.top":"<strong>Never give your warframe.market token (JWT) to anyone.</strong>Riven Stock stores it only on your PC and sends it only to warframe.market. If someone asks you for the token to 'activate' something, it is a scam: with it they can act on your account. If you think it leaked, sign out of warframe.market and sign back in to get a new one, change your password and paste the new token in the app.",
     "tk.w":"<strong>Treat the token like a password: don't share or publish it.</strong> It is stored only on your PC and the app sends it only to warframe.market. If it ever stops working it has expired: repeat these steps and paste a new one.",
     ft:"Personal project, not officially related to Digital Extremes or warframe.market.",
     info:"Version {v} · Windows 10 / 11", info0:"Windows 10 / 11"
