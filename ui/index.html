@@ -264,7 +264,7 @@
   .below { color: var(--neg); } .above { color: var(--pos); }
   .comp-legend { font-size: 12px; color: var(--muted); margin: 2px 0 10px; line-height: 1.5; }
   .comp-legend b { color: var(--pos); }
-  .comp { display: grid; grid-template-columns: 96px 1fr 70px; gap: 14px; align-items: center; padding: 10px 4px; border-top: 1px solid var(--line); }
+  .comp { display: grid; grid-template-columns: 110px 1fr 100px; gap: 14px; align-items: center; padding: 10px 4px; border-top: 1px solid var(--line); }
   .comp-price b { display: block; font-size: 17px; }
   .comp-price span { display: block; font-size: 11px; color: var(--muted); }
   .rk { display: inline-block; margin-top: 3px; font-size: 10.5px; padding: 1px 6px; border-radius: 5px; }
@@ -273,6 +273,11 @@
   .comp .stat:not(.shared):not(.neg) { opacity: .55; }
   .comp .stat.shared { box-shadow: inset 0 0 0 1px #7ee2a866; }
   .comp.ord { grid-template-columns: 96px 1fr 100px; padding: 10px 8px; }
+  .pub { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
+  .pres { display: block; font-size: 11px; line-height: 1.5; }
+  .pres .st { margin-top: 0; }
+  .pres .seen { display: block; color: var(--muted); }
+  .st.offline { background: #8884; color: var(--muted); }
   .ord { cursor: pointer; border-radius: 8px; transition: background .12s; }
   .ord:hover { background: #ffffff0a; }
   .ord .seller-nm { display: block; margin-top: 6px; font-size: 12px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -283,6 +288,7 @@
   .crumbs button:hover { text-decoration: underline; }
   .crumbs b { color: var(--text); font-weight: 600; }
   #sum-dialog.resizing { transition: height .16s ease-out; overflow: hidden; }
+  .comp-side .comp-sim { margin-top: 8px; }
   .comp-sim b { font-size: 12px; }
   .comp-sim i { display: block; height: 4px; margin-top: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
   .comp-sim u { display: block; height: 100%; background: var(--accent-2); }
@@ -1956,10 +1962,12 @@ document.addEventListener('mousedown', (e) => {
     const delta = (p) => p === a.price ? `<small class="muted"> igual</small>` : p < a.price ? `<small class="below">${a.price - p}p menos</small>` : `<small class="above">+${p - a.price}p</small>`;
     const mineSlugs = new Set(a.stats.filter((x) => x.positive).map((x) => x.slug));
     const rankTxt = (k) => k == null ? "" : k >= 8 ? `<span class="rk max">Rango máx</span>` : `<span class="rk low">Rango ${k}</span>`;
+    const pubTxt = (iso) => iso ? `<span class="pub" title="${esc(fullDate(iso))}">Publicado ${esc(ago(iso))}</span>` : "";
+    const presence = (st, seen, name) => `<span class="pres"><span class="st ${esc(st || "offline")}">${st === "ingame" ? "En juego" : st === "online" ? "Online" : "Offline"}</span>${st === "offline" || !st ? (seen ? `<span class="seen" title="${esc(fullDate(seen))}">Visto ${esc(ago(seen))}</span>` : "") : ""}${name ? `<span class="seller-nm" title="${esc(name)}">${esc(name)}</span>` : ""}</span>`;
     const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<div class="comps">${
-      o.orders.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="Ver el resumen de este riven"><div class="comp-price"><b>${x.price}p</b>${delta(x.price)}<span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}</div>
+      o.orders.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="Ver el resumen de este riven"><div class="comp-price"><b>${x.price}p</b>${delta(x.price)}<span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
         <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
-        <div><span class="st ${esc(x.status)}">${x.status === "ingame" ? "En juego" : "Online"}</span><span class="seller-nm" title="${esc(x.seller)}">${esc(x.seller)}</span></div></div>`).join("")}</div>`;
+        ${presence(x.status, x.last_seen, x.seller)}</div>`).join("")}</div>`;
     const es = r.estimate;
     const mk = r.market;
     const diff = es ? es.price - a.price : 0;
@@ -1974,9 +1982,9 @@ document.addEventListener('mousedown', (e) => {
           <small class="muted" style="display:block;margin-top:4px">${es.n} comparables · confianza ${esc(es.confidence)} · ver</small></div>`
       : `<div class="sum-card"><h4>Precio estimado</h4><small class="muted">Sin comparables suficientes.</small></div>`;
     const comps = es ? `<div class="comp-legend">Ordenadas de más a menos parecidas a tu riven. Los stats <b>resaltados</b> son los que también tiene el tuyo. Un riven con rango bajo muestra valores más chicos de los que tendría al subirlo.</div><div class="comps">${
-      es.comps.map((x) => `<div class="comp"><div class="comp-price"><b>${x.price}p</b><span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}</div>
+      es.comps.map((x) => `<div class="comp"><div class="comp-price"><b>${x.price}p</b><span>${x.rolls ?? "?"} rolls</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
         <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
-        <div class="comp-sim" title="Qué tan parecido es a tu riven"><b>${Math.round(x.sim * 100)}%</b><i><u style="width:${Math.round(x.sim * 100)}%"></u></i></div></div>`).join("")}</div>` : "";
+        <div class="comp-side">${presence(x.status, x.last_seen, x.seller)}<div class="comp-sim" title="Qué tan parecido es a tu riven"><b>${Math.round(x.sim * 100)}%</b><i><u style="width:${Math.round(x.sim * 100)}%"></u></i></div></div></div>`).join("")}</div>` : "";
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
     $("#sum-meta").innerHTML = `<b>${a.rolls} rolls</b><b>MR ${a.mr}</b>`;
     $("#sum-body").innerHTML = `<div class="sum-grid">

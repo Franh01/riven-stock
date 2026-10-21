@@ -54,6 +54,7 @@ def slim(a):
         "id": a["id"], "p": a["buyout_price"], "st": a["owner"].get("status"),
         "s": [[x["url_name"], x["value"], bool(x["positive"])] for x in item["attributes"]],
         "r": item.get("re_rolls") or 0,
+        "c": a.get("created"), "ls": a["owner"].get("last_seen"), "nm": a["owner"].get("ingame_name"),
         "k": item.get("mod_rank"),   # rango del mod (8 = maxeado); None en datos viejos del caché
     }
 
@@ -125,6 +126,7 @@ def estimate(view, market, exclude_id=None, rtype=None):
         "high": round(_wquantile(pairs, 0.75)),
         "n": len(top), "confidence": conf, "avg_sim": round(avg_sim, 2),
         "comps": [{"price": o["p"], "sim": round(s, 2), "status": o["st"], "rolls": o["r"], "rank": o.get("k"),
+                   "created": o.get("c"), "last_seen": o.get("ls"), "seller": o.get("nm"),
                    "stats": [{"slug": x, "value": v, "positive": p} for x, v, p in o["s"]]}
                   for s, o in top],
     }

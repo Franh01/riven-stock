@@ -196,14 +196,15 @@ class Api:
         """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta)."""
         try:
             e = self._cache.get(weapon, self.VIEW_MAX_AGE_S)
-            if not e or "market" not in e:
+            if not e or "market" not in e or (e["market"] and "c" not in e["market"][0]):   # caché viejo sin fechas
                 e = self._cache.load(weapon)
         except (WFMError, requests.RequestException) as ex:
             return {"error": str(ex)}
         for a in e["orders"]:
             self._market[a["id"]] = a   # para poder abrir su resumen al tocarla
         return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],
-                            "reputation": a["owner"].get("reputation")} for a in e["orders"][:7]],
+                            "reputation": a["owner"].get("reputation"),
+                            "created": a.get("created"), "last_seen": a["owner"].get("last_seen")} for a in e["orders"][:7]],
                 "age_s": int(time.time() - e["at"]), "market": e.get("market", [])}
 
     def notifications(self):
