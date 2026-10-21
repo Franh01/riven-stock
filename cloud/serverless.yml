@@ -1,0 +1,38 @@
+service: riven-stock-cloud
+
+frameworkVersion: "3"
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  profile: cuenta_personal
+  memorySize: 256
+  timeout: 10
+  environment:
+    MONGODB_URI: ${env:MONGODB_URI}
+  tags:
+    project: riven-stock
+
+package:
+  patterns:
+    - "!.env"
+
+functions:
+  collector:
+    name: riven-stock-collector
+    handler: src/collector.handler
+    timeout: 900
+    events:
+      - schedule:
+          # 06:00 UTC todos los días (03:00 en Argentina)
+          rate: cron(0 6 * * ? *)
+  api:
+    name: riven-stock-api
+    handler: src/api.handler
+    # Tope de ejecuciones simultáneas: hace de límite de uso de la API pública.
+    reservedConcurrency: 5
+    url:
+      cors: true

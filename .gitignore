@@ -14,3 +14,7 @@ CLAUDE.md
 _backup/
 *.bak
 dist/
+
+# Nube
+cloud/node_modules/
+cloud/.serverless/

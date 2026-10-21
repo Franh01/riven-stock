@@ -1,0 +1,9 @@
+{
+  "name": "riven-stock-cloud",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Tendencias diarias de rivens: colector programado + API de lectura",
+  "dependencies": {
+    "mongodb": "^6.10.0"
+  }
+}

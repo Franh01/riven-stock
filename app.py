@@ -32,6 +32,9 @@ from pricing import estimate
 from ratelimit import QUEUE
 from wfm_client import SEARCH_CAP, WFMClient, WFMError, cheapest_ingame
 
+# API de lectura de tendencias (Lambda en AWS, pública y solo de lectura); ver cloud/
+CLOUD_API_URL = "https://2gxvgmytrqarivabthxybzfsn40iuyyw.lambda-url.us-east-1.on.aws/"
+
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
 ICON = ROOT / "assets" / "icon.ico"
 BASES = ROOT / "data" / "riven_bases.json"  # lo genera tools/derive_riven_bases.py
@@ -226,8 +229,18 @@ class Api:
                 self._stop.wait(60)
 
     def market_trend(self, weapon, days=90):
+        """Tendencia del arma: primero la nube (historial central de todas las armas); la foto local
+        completa los días que falten y es el respaldo si la nube no responde."""
         with store.connect() as conn:
-            return {"points": store.market_trend(conn, weapon, days)}
+            local = store.market_trend(conn, weapon, days)
+        by_day = {p["day"]: p for p in local}
+        try:
+            r = requests.get(CLOUD_API_URL, params={"weapon": weapon, "days": days}, timeout=6)
+            r.raise_for_status()
+            by_day.update({p["day"]: p for p in r.json().get("points", [])})
+        except (requests.RequestException, ValueError):
+            pass
+        return {"points": [by_day[d] for d in sorted(by_day)]}
 
     def weapon_orders(self, weapon):
         """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta)."""
