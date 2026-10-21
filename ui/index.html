@@ -1043,26 +1043,26 @@ document.addEventListener('mousedown', (e) => {
   function renderMine() {
     const visibles = mine.filter((a) => a.visible).length;
     const rows = sortedMine().filter(matchesQuery);
-    $("#mine-title").textContent = `Mis ventas directas · ${visibles} visibles · ${mine.length - visibles} ocultas` +
-      (queryTokens.length ? ` · ${rows.length} coinciden` : "");
-    if (!mine.length && !demoRowOn) { $("#mine").innerHTML = `<div class="state">No tenés ventas directas publicadas.</div>`; return; }
-    if (!rows.length) { $("#mine").innerHTML = `<div class="state">Ningún contrato coincide con “${esc($("#search").value.trim())}”.</div>`; return; }
+    $("#mine-title").textContent = tr("mine.title", { v: visibles, h: mine.length - visibles }) +
+      (queryTokens.length ? ` · ${tr("mine.matches", { n: rows.length })}` : "");
+    if (!mine.length && !demoRowOn) { $("#mine").innerHTML = `<div class="state">${tr("mine.empty")}</div>`; return; }
+    if (!rows.length) { $("#mine").innerHTML = `<div class="state">${tr("mine.noMatch", { q: esc($("#search").value.trim()) })}</div>`; return; }
     $("#mine").innerHTML = `<table>
-      <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>Costo</th>${sortHeader("price", "Precio")}<th title="Horas online efectivas desde la publicación o la última baja">Horas</th>${sortHeader("updated", "Actualizado")}<th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th>MR</th><th>${tr("th.cost")}</th>${sortHeader("price", tr("th.price"))}<th title="${tr("th.hoursTip")}">${tr("th.hours")}</th>${sortHeader("updated", tr("th.updated"))}<th>${tr("th.state")}</th><th></th></tr></thead>
       <tbody>${rows.map((a) => {
         const busy = pending.has(a.id);
         const cost = costs[a.id]?.cost;
         return `<tr data-id="${esc(a.id)}" class="${a.visible ? "" : "hidden-row"} ${busy ? "busy" : ""}">
-        <td><div class="riven-weapon link" data-act="summary" title="Ver resumen y órdenes">${hl(weaponName(a.weapon))}</div><div class="riven-name link" data-act="summary" title="Ver resumen y órdenes">${hl(a.name)}</div></td>
+        <td><div class="riven-weapon link" data-act="summary" title="${tr("row.summaryTip")}">${hl(weaponName(a.weapon))}</div><div class="riven-name link" data-act="summary" title="${tr("row.summaryTip")}">${hl(a.name)}</div></td>
         <td><div class="stats">${a.stats.map(formatStatHl).join("")}</div></td>
         <td>${esc(a.rolls)}</td>
         <td>${esc(a.mr)}</td>
-        <td class="nowrap"><span class="editable ${cost === undefined ? "muted" : ""}" data-act="edit-cost" title="Click para cargar lo que te costó">${cost === undefined ? "—" : fmtP(cost)}</span></td>
-        <td class="price"><span class="editable" ${busy ? "" : `data-act="edit-price"`} title="Click para editar">${a.price}p</span></td>
-        <td class="nowrap muted" title="Horas online efectivas con el riven publicado">${hours[a.id] ? hours[a.id].hours.toFixed(1) + " h" : "—"}</td>
+        <td class="nowrap"><span class="editable ${cost === undefined ? "muted" : ""}" data-act="edit-cost" title="${tr("row.costTip")}">${cost === undefined ? "—" : fmtP(cost)}</span></td>
+        <td class="price"><span class="editable" ${busy ? "" : `data-act="edit-price"`} title="${tr("row.editTip")}">${a.price}p</span></td>
+        <td class="nowrap muted" title="${tr("row.hoursTip")}">${hours[a.id] ? hours[a.id].hours.toFixed(1) + " h" : "—"}</td>
         <td class="nowrap muted" title="${esc(fullDate(a.updated))}">${esc(ago(a.updated))}</td>
-        <td><span class="badge ${a.visible ? "on" : "off"}">${a.visible ? "Visible" : "Oculto"}</span>${busy ? spinner : ""}</td>
-        <td class="actions"><button class="more" data-act="menu" title="Acciones" ${busy ? "disabled" : ""}>${DOTS}</button></td>
+        <td><span class="badge ${a.visible ? "on" : "off"}">${tr(a.visible ? "row.visible" : "row.hidden")}</span>${busy ? spinner : ""}</td>
+        <td class="actions"><button class="more" data-act="menu" title="${tr("row.actions")}" ${busy ? "disabled" : ""}>${DOTS}</button></td>
       </tr>`;
       }).join("")}</tbody></table>`;
   }
@@ -1077,13 +1077,13 @@ document.addEventListener('mousedown', (e) => {
     pending.delete(a.id);
     mine = mine.map((x) => (x.id === a.id ? (res.error ? before : res.auction) : x));
     renderMine(); renderTotals();
-    if (res.error) toast(`No se pudo guardar: ${res.error}`, true);
+    if (res.error) toast(tr("err.save", { e: res.error }), true);
     else if (okMsg) toast(okMsg);
   }
 
   async function saveCost(id, cost) {
     const res = await api().set_cost(id, cost);
-    if (res.error) { toast(`No se pudo guardar el costo: ${res.error}`, true); return false; }
+    if (res.error) { toast(tr("err.saveCost", { e: res.error }), true); return false; }
     applyLocal(res);
     renderTotals(); renderMine(); renderClosed();
     return true;
@@ -1101,13 +1101,13 @@ document.addEventListener('mousedown', (e) => {
       closed = closed.filter((x) => x !== entry);
       mine.splice(index, 0, a);
       renderAll();
-      toast(`No se pudo cerrar: ${res.error}`, true);
+      toast(tr("err.close", { e: res.error }), true);
       return;
     }
     entry.pending = false;
     entry.closed_at = res.closed_at;
     renderClosed(); renderTotals();
-    toast(soldPrice ? `Vendido por ${soldPrice}p` : "Contrato cerrado");
+    toast(soldPrice ? tr("close.soldFor", { p: soldPrice }) : tr("close.closed"));
   }
 
   // Edición en la celda (precio y costo): Enter guarda, Esc o salir del campo cancela.
@@ -1128,13 +1128,11 @@ document.addEventListener('mousedown', (e) => {
   // Vendido además registra el precio de venta.
   function askClose(a, sold) {
     const dlg = $("#close-dialog");
-    $("#cd-title").textContent = sold ? "Marcar como vendido" : "Cerrar contrato";
-    $("#close-text").innerHTML = `${rivenLabel(a)} · ${a.price}p.<br>` + (sold
-      ? `Se cierra el contrato en warframe.market y la venta queda registrada en la app.`
-      : `Se cierra sin registrar venta. Desaparece de warframe.market y no se puede deshacer.`);
+    $("#cd-title").textContent = tr(sold ? "cd.markSold" : "cd.close");
+    $("#close-text").innerHTML = `${rivenLabel(a)} · ${a.price}p.<br>` + tr(sold ? "cd.textSold" : "cd.textClose");
     $("#sold-row").hidden = !sold;
     $("#sold-price").value = a.price;
-    $("#cd-ok").textContent = sold ? "Vendido" : "Cerrar contrato";
+    $("#cd-ok").textContent = tr(sold ? "menu.sold" : "cd.close");
     $("#cd-ok").className = sold ? "solid-sold" : "solid-danger";
     dlg.returnValue = "";
     dlg.showModal();
@@ -1160,11 +1158,11 @@ document.addEventListener('mousedown', (e) => {
     menuFor = a;
     btn.classList.add("open");
     menu.innerHTML = `
-      <button data-menu="edit">Editar</button>
-      <button data-menu="toggle">${a.visible ? "Ocultar" : "Mostrar"}</button>
+      <button data-menu="edit">${tr("menu.edit")}</button>
+      <button data-menu="toggle">${tr(a.visible ? "menu.hide" : "menu.show")}</button>
       <hr>
-      <button data-menu="sold" class="sold">Vendido</button>
-      <button data-menu="close" class="danger">Cerrar sin venta</button>`;
+      <button data-menu="sold" class="sold">${tr("menu.sold")}</button>
+      <button data-menu="close" class="danger">${tr("menu.closeNoSale")}</button>`;
     menu.hidden = false;
     const r = btn.getBoundingClientRect(), m = menu.getBoundingClientRect();
     const top = r.bottom + 4 + m.height > innerHeight ? r.top - m.height - 4 : r.bottom + 4;
@@ -1182,7 +1180,7 @@ document.addEventListener('mousedown', (e) => {
     closeMenu();
     if (pending.has(a.id)) return;
     if (act === "edit") openRiven({ existing: a });
-    if (act === "toggle") runUpdate(a, { visible: !a.visible }, a.visible ? "Contrato oculto" : "Contrato visible");
+    if (act === "toggle") runUpdate(a, { visible: !a.visible }, tr(a.visible ? "menu.nowHidden" : "menu.nowVisible"));
     if (act === "sold") askClose(a, true);
     if (act === "close") askClose(a, false);
   });
@@ -1210,10 +1208,10 @@ document.addEventListener('mousedown', (e) => {
     if (act === "edit-price") inlineEdit(el, a.price, (v) => {
       const price = parseInt(v, 10);
       if (!price || price === a.price) return renderMine();
-      runUpdate(a, { price }, `Precio actualizado: ${a.price}p → ${price}p`);
+      runUpdate(a, { price }, tr("price.updated", { a: a.price, b: price }));
     });
     if (act === "edit-cost") inlineEdit(el, costs[a.id]?.cost, async (v) => {
-      if (await saveCost(a.id, v === "" ? null : v)) toast(v === "" ? "Costo borrado" : `Costo guardado: ${fmtP(v)}`);
+      if (await saveCost(a.id, v === "" ? null : v)) toast(v === "" ? tr("cost.cleared") : tr("cost.saved", { p: fmtP(v) }));
     });
   });
   $("#reload").addEventListener("click", () => { loadMine(); loadStatus(); });
@@ -1226,7 +1224,7 @@ document.addEventListener('mousedown', (e) => {
 
   function renderLots() {
     const left = lots.reduce((s, l) => s + l.remaining, 0);
-    $("#stock-title").textContent = `Stock unveiled · ${left} sin abrir`;
+    $("#stock-title").textContent = tr("stock.titleN", { n: left });
     if (!lots.length) {
       $("#lots").innerHTML = `<div class="hint">Cargá un lote de rivens sin abrir (ej. 6 melee por 50p). Después, "Abrir" te lleva a cargar el riven con su costo ya puesto.</div>`;
       return;
