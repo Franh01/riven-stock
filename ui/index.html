@@ -1520,9 +1520,9 @@ document.addEventListener('mousedown', (e) => {
   }
 
   function refreshOrigins(selected = "") {
-    $("#f-origin").innerHTML = `<option value="">Comprado suelto / ya lo tenía</option>` +
+    $("#f-origin").innerHTML = `<option value="">${tr("rd.originNone")}</option>` +
       lots.filter((l) => l.remaining > 0).map((l) =>
-        `<option value="${l.id}">Stock: ${cap(l.riven_type)} · ${l.remaining} sin abrir · ${fmtP(l.unit_cost)} c/u${l.note ? ` · ${esc(l.note)}` : ""}</option>`).join("");
+        `<option value="${l.id}">${tr("rd.originLot", { t: cap(l.riven_type), n: l.remaining, c: fmtP(l.unit_cost) })}${l.note ? ` · ${esc(l.note)}` : ""}</option>`).join("");
     $("#f-origin").value = String(selected);
   }
   $("#f-origin").addEventListener("change", () => {
@@ -1580,7 +1580,7 @@ document.addEventListener('mousedown', (e) => {
       })
       .filter((p) => p.slug);
     if (positives.length < 2) {
-      box.innerHTML = `<span class="hint">Elegí 2 o 3 stats positivos y aparecen los nombres posibles.</span>`;
+      box.innerHTML = `<span class="hint">${tr("rd.pickStats")}</span>`;
       if (nameAuto) $("#f-name").value = "";
       return;
     }
@@ -1710,49 +1710,49 @@ document.addEventListener('mousedown', (e) => {
       .map(([price, name, rolls, mr], i) => ({ id: "demo" + i, price, name, rolls, mr, seller: ["Dan_pk10", "caiwan7", "syalsim", "Ch33chThePlug", "Kibbleray", "Souza", "Biker27893"][i], reputation: i * 3,
         stats: demoRiven().stats.slice(0, 3).map((s, j) => ({ ...s, value: Math.round(s.value * (0.6 + 0.1 * ((i + j) % 5)) * 10) / 10 })) }));
     renderReference(w, { results: fake });
-    $("#ref-note").textContent = "Datos de ejemplo del tutorial.";
+    $("#ref-note").textContent = tr("rd.demoNote");
   }
 
   async function runReference() {
     const weapon = currentWeapon();
-    if (!weapon) { toast("Elegí un arma de la lista", true); $("#f-weapon").focus(); return; }
-    $("#ref-go").disabled = true; $("#ref-go").textContent = "Buscando…";
+    if (!weapon) { toast(tr("common.pickWeapon"), true); $("#f-weapon").focus(); return; }
+    $("#ref-go").disabled = true; $("#ref-go").textContent = tr("common.searching");
     $("#results").innerHTML = skelRows(5);
     try {
       renderReference(weapon, await api().search(weapon.slug));
     } finally {
       if ($("#results").querySelector("[aria-busy]")) $("#results").innerHTML = "";
-      $("#ref-go").disabled = false; $("#ref-go").textContent = "Ver precio de referencia";
+      $("#ref-go").disabled = false; $("#ref-go").textContent = tr("rd.refGo");
     }
   }
 
   function renderReference(weapon, data) {
     $("#ref-section").hidden = false;
     $("#publish-step").textContent = "3";
-    $("#ref-title").textContent = `Referencia · ${weapon.name} · las 7 más baratas de vendedores en juego`;
+    $("#ref-title").textContent = tr("rd.refTitle", { w: weapon.name });
     $("#ref-note").textContent = data.maybe_incomplete
-      ? "Puede faltar alguna: la búsqueda llegó al límite de resultados de warframe.market."
+      ? tr("rd.maybeIncomplete")
       : "";
     if (data.error) { $("#summary").innerHTML = ""; $("#results").innerHTML = `<div class="state error">${esc(data.error)}</div>`; return; }
     const rows = data.results;
     if (!rows.length) {
       $("#summary").innerHTML = "";
-      $("#results").innerHTML = `<div class="state">No hay ventas directas de este arma de vendedores en juego ahora.</div>`;
+      $("#results").innerHTML = `<div class="state">${tr("rd.noSales")}</div>`;
       return;
     }
     const prices = rows.map((r) => r.price).sort((a, b) => a - b);
     const median = prices[Math.floor(prices.length / 2)];
     const avg = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
-    $("#summary").innerHTML = [["Mínimo", prices[0]], ["Mediana", median], ["Promedio", avg]]
-      .map(([k, v]) => `<button class="chip" data-price="${v}" title="Usar como precio"><b>${v}p</b><span>${k} · usar</span></button>`).join("") +
-      `<div class="chip"><b>${rows.length}</b><span>Comparables</span></div>`;
-    $("#results").innerHTML = `<details class="orders"><summary>Ver las ${rows.length} órdenes</summary><table class="ref-table">
+    $("#summary").innerHTML = [[tr("rd.min"), prices[0]], [tr("rd.median"), median], [tr("rd.avg"), avg]]
+      .map(([k, v]) => `<button class="chip" data-price="${v}" title="${tr("rd.useTip")}"><b>${v}p</b><span>${k} · ${tr("rd.use")}</span></button>`).join("") +
+      `<div class="chip"><b>${rows.length}</b><span>${tr("rd.comps")}</span></div>`;
+    $("#results").innerHTML = `<details class="orders"><summary>${tr("rd.seeOrders", { n: rows.length })}</summary><table class="ref-table">
       <tbody>${rows.map((r) => `<tr>
         <td class="price">${r.price}p</td>
         <td><a class="riven-name" style="font-size:13px" href="https://warframe.market/auction/${esc(r.id)}" target="_blank">${esc(r.name)}</a></td>
         <td><div class="stats">${r.stats.map(formatStat).join("")}</div></td>
-        <td class="muted">${esc(r.rolls)} rolls · MR${esc(r.mr)}</td>
-        <td>${esc(r.seller)} <span class="muted">· rep ${esc(r.reputation)}</span></td>
+        <td class="muted">${esc(r.rolls)} ${tr("rd.rolls").toLowerCase()} · MR${esc(r.mr)}</td>
+        <td>${esc(r.seller)} <span class="muted">· ${tr("rd.rep")} ${esc(r.reputation)}</span></td>
       </tr>`).join("")}</tbody></table></details>`;
   }
 
@@ -1775,26 +1775,26 @@ document.addEventListener('mousedown', (e) => {
   async function runEstimate() {
     if (!editing) return;
     if (editing.id === "demo") return demoEstimate();
-    const btn = $("#est-go"); btn.disabled = true; btn.textContent = "Calculando… puede tardar";
+    const btn = $("#est-go"); btn.disabled = true; btn.textContent = tr("rd.estRunning");
     $("#est-section").hidden = false; $("#est-summary").innerHTML = ""; $("#est-results").innerHTML = skelRows(4);
     try {
       const r = await api().riven_summary(editing.id), es = r.estimate;
       if (r.error) { $("#est-results").innerHTML = `<div class="state error">${esc(r.error)}</div>`; return; }
-      if (!es) { $("#est-results").innerHTML = `<div class="state">Sin comparables suficientes.</div>`; return; }
+      if (!es) { $("#est-results").innerHTML = `<div class="state">${tr("rd.estNone")}</div>`; return; }
       renderEstimate(es);
     } finally {
-      btn.disabled = false; btn.textContent = "Calcular estimado con comparables";
+      btn.disabled = false; btn.textContent = tr("rd.estGo");
     }
   }
   function renderEstimate(es) {
     {
-      $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="Usar como precio"><b>${es.price}p</b><span>Estimado · usar</span></button>` +
-        `<div class="chip"><b>${es.low}–${es.high}p</b><span>Rango</span></div><div class="chip"><b>${es.n}</b><span>Comparables · ${esc(es.confidence)}</span></div>` +
-        (es.partial ? `<div class="state error">Incompleto: warframe.market limitó los pedidos. Probá de nuevo en un minuto.</div>` : "");
-      $("#est-results").innerHTML = `<details class="orders"><summary>Ver los ${es.comps.length} comparables</summary><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
+      $("#est-summary").innerHTML = `<button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
+        `<div class="chip"><b>${es.low}–${es.high}p</b><span>${tr("rd.range")}</span></div><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${esc(es.confidence)}</span></div>` +
+        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "");
+      $("#est-results").innerHTML = `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
         <td class="price">${x.price}p</td>
         <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
-        <td class="muted">${esc(x.rolls ?? "?")} rolls · ${Math.round(x.sim * 100)}% parecido</td>
+        <td class="muted">${esc(x.rolls ?? "?")} ${tr("rd.rolls").toLowerCase()} · ${tr("rd.similar", { p: Math.round(x.sim * 100) })}</td>
         <td>${esc(x.seller)}</td></tr>`).join("")}</tbody></table></details>`;
     }
   }
@@ -1820,13 +1820,13 @@ document.addEventListener('mousedown', (e) => {
     const sig = (st) => st.map((x) => `${x.slug ?? x.url_name}:${x.positive ? 1 : 0}:${Number(x.value)}`).sort().join("|");
     const fields = [];
     if (item) {
-      if (item.polarity !== editing.polarity) fields.push(["Polaridad", cap(editing.polarity), cap(item.polarity)]);
-      if (item.weapon_url_name !== editing.weapon) fields.push(["Arma", weaponName(editing.weapon), weaponName(item.weapon_url_name)]);
-      if (item.name !== editing.name) fields.push(["Nombre", cap(editing.name), cap(item.name)]);
-      if (Number(item.mastery_level) !== editing.mr) fields.push(["MR", editing.mr, item.mastery_level]);
-      if (Number(item.mod_rank) !== editing.rank) fields.push(["Rango", editing.rank, item.mod_rank]);
-      if (Number(item.re_rolls) !== editing.rolls) fields.push(["Rolls", editing.rolls, item.re_rolls]);
-      if (sig(item.attributes) !== sig(editing.stats)) fields.push(["Stats", "los actuales", "los nuevos"]);
+      if (item.polarity !== editing.polarity) fields.push([tr("rd.polarity"), cap(editing.polarity), cap(item.polarity)]);
+      if (item.weapon_url_name !== editing.weapon) fields.push([tr("common.weapon"), weaponName(editing.weapon), weaponName(item.weapon_url_name)]);
+      if (item.name !== editing.name) fields.push([tr("rd.name"), cap(editing.name), cap(item.name)]);
+      if (Number(item.mastery_level) !== editing.mr) fields.push([tr("rd.mr"), editing.mr, item.mastery_level]);
+      if (Number(item.mod_rank) !== editing.rank) fields.push([tr("rd.rank"), editing.rank, item.mod_rank]);
+      if (Number(item.re_rolls) !== editing.rolls) fields.push([tr("rd.rolls"), editing.rolls, item.re_rolls]);
+      if (sig(item.attributes) !== sig(editing.stats)) fields.push(["Stats", tr("pub.curStats"), tr("pub.newStats")]);
     }
     if (fields.length) { changes.item = item; changes.fields = fields; }
     if (price !== editing.price) changes.price = price;
@@ -1841,13 +1841,13 @@ document.addEventListener('mousedown', (e) => {
   // Publicar / guardar: primer click muestra el resumen, el segundo confirma.
   $("#publish-go").addEventListener("click", async () => {
     const price = parseInt($("#f-price").value, 10);
-    if (!price || price < 1) { toast("Poné un precio", true); $("#f-price").focus(); return; }
+    if (!price || price < 1) { toast(tr("pub.needPrice"), true); $("#f-price").focus(); return; }
     if (editing) {
       const { changes, costChanged, costRaw } = editChanges();
       if (!Object.keys(changes).length) {
         // Solo cambió el costo (o nada): es local, no hace falta confirmar.
-        if (costChanged && await saveCost(editing.id, costRaw === "" ? null : costRaw)) toast("Costo guardado");
-        else if (!costChanged) toast("No hay cambios");
+        if (costChanged && await saveCost(editing.id, costRaw === "" ? null : costRaw)) toast(tr("cost.savedPlain"));
+        else if (!costChanged) toast(tr("pub.noChanges"));
         $("#riven-dialog").close();
         return;
       }
@@ -1858,26 +1858,26 @@ document.addEventListener('mousedown', (e) => {
         const { attributes } = readForm();
         const npos = attributes.filter((x) => x.positive).length;
         if (npos < 2 || attributes.length - npos > 1 || attributes.some((x) => Number.isNaN(x.value)) || !changes.item.name) {
-          toast("Completá el arma, el nombre y los stats (2 o 3 positivos, máximo 1 negativo, con valores)", true); return;
+          toast(tr("pub.fillAll"), true); return;
         }
         for (const [k, o, n] of changes.fields) rows.push(row(k, chg(esc(String(o)), esc(String(n)))));
-        rows.push(row("Aviso", `<span class="muted">Cambiar los datos republica el contrato: se publica uno nuevo y se cierra el actual</span>`));
+        rows.push(row(tr("pub.notice"), `<span class="muted">${tr("pub.republishNote")}</span>`));
       }
-      if ("price" in changes) { const d = changes.price - editing.price; rows.push(row("Precio", chg(`${editing.price}p`, `${changes.price}p`) + `<span class="diff ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${Math.abs(d)}p</span>`)); }
-      if ("visible" in changes) rows.push(row("Visibilidad", changes.visible ? `<span class="on">Se muestra</span>` : `<span class="off">Se oculta</span>`));
-      if ("note" in changes) rows.push(row("Nota", chg(esc(editing.note || "—"), esc(changes.note || "—"))));
-      if (costChanged) rows.push(row("Costo", `<span class="new">${costRaw === "" ? "se borra" : esc(costRaw) + "p"}</span><span class="arrow">solo en la app</span>`));
-      $("#confirm-text").innerHTML = `<div class="cf-title">${rivenLabel(editing)}<small>Vas a guardar estos cambios en warframe.market</small></div><div class="cf-rows">${rows.join("")}</div>`;
+      if ("price" in changes) { const d = changes.price - editing.price; rows.push(row(tr("rd.price"), chg(`${editing.price}p`, `${changes.price}p`) + `<span class="diff ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${Math.abs(d)}p</span>`)); }
+      if ("visible" in changes) rows.push(row(tr("pub.visibility"), changes.visible ? `<span class="on">${tr("pub.shown")}</span>` : `<span class="off">${tr("pub.hidden")}</span>`));
+      if ("note" in changes) rows.push(row(tr("pub.note"), chg(esc(editing.note || "—"), esc(changes.note || "—"))));
+      if (costChanged) rows.push(row(tr("th.cost"), `<span class="new">${costRaw === "" ? tr("pub.cleared") : esc(costRaw) + "p"}</span><span class="arrow">${tr("pub.onlyApp")}</span>`));
+      $("#confirm-text").innerHTML = `<div class="cf-title">${rivenLabel(editing)}<small>${tr("pub.saveSub")}</small></div><div class="cf-rows">${rows.join("")}</div>`;
     } else {
       const { weapon, item, attributes } = readForm();
       const pos = attributes.filter((a) => a.positive).length, neg = attributes.length - pos;
-      if (!weapon) { toast("Elegí un arma de la lista", true); return; }
-      if (pos < 2 || neg > 1) { toast("Un riven tiene 2 o 3 positivos y como mucho 1 negativo", true); return; }
-      if (attributes.some((a) => Number.isNaN(a.value))) { toast("Falta el valor de algún stat", true); return; }
-      if (!item.name) { toast("Falta el nombre del riven", true); return; }
+      if (!weapon) { toast(tr("common.pickWeapon"), true); return; }
+      if (pos < 2 || neg > 1) { toast(tr("pub.posNeg"), true); return; }
+      if (attributes.some((a) => Number.isNaN(a.value))) { toast(tr("pub.needValue"), true); return; }
+      if (!item.name) { toast(tr("pub.needName"), true); return; }
       const lot = currentLot();
       const row = (k, v) => `<div class="cf-row"><span>${k}</span><span class="cf-val">${v}</span></div>`;
-      $("#confirm-text").innerHTML = `<div class="cf-title"><span style="text-transform:capitalize">${esc(weapon.name)} ${esc(item.name)}</span><small>Se publica en tu cuenta de warframe.market</small></div><div class="cf-rows">${row("Precio", `<span class="new">${price}p</span>`)}${row("Visibilidad", $("#f-visible").checked ? `<span class="on">Visible</span>` : `<span class="off">Oculto</span>`)}${lot ? row("Stock", `<span>sale de ${esc(lot.riven_type)}</span>`) : ""}</div>`;
+      $("#confirm-text").innerHTML = `<div class="cf-title"><span style="text-transform:capitalize">${esc(weapon.name)} ${esc(item.name)}</span><small>${tr("pub.publishSub")}</small></div><div class="cf-rows">${row(tr("rd.price"), `<span class="new">${price}p</span>`)}${row(tr("pub.visibility"), $("#f-visible").checked ? `<span class="on">${tr("row.visible")}</span>` : `<span class="off">${tr("row.hidden")}</span>`)}${lot ? row("Stock", `<span>${tr("pub.fromLot", { t: esc(lot.riven_type) })}</span>`) : ""}</div>`;
     }
     $("#confirm").hidden = false;
     $("#confirm-ok").focus();
@@ -1896,41 +1896,41 @@ document.addEventListener('mousedown', (e) => {
         const { changes, costChanged, costRaw } = editChanges();
         if (changes.item) {
           // Cambiar los datos republica el contrato: no puede ser optimista (el id nuevo lo da la API).
-          $("#confirm-ok").innerHTML = `Guardando…${spinner}`;
+          $("#confirm-ok").innerHTML = `${tr("pub.saving")}${spinner}`;
           $("#confirm-back").disabled = true;
           if (costChanged) await saveCost(a.id, costRaw === "" ? null : costRaw);
           const res = await api().republish(a.id, changes.item, changes.price ?? null,
             changes.visible ?? null, changes.note ?? null);
-          if (res.error) { toast(`No se pudo cambiar los datos: ${res.error}`, true); return; }
+          if (res.error) { toast(tr("pub.changeFail", { e: res.error }), true); return; }
           mine = mine.map((x) => (x.id === a.id ? res.auction : x));
           if (res.warning) mine = [a, ...mine];
           applyLocal(res);
           renderAll();
-          toast(res.warning || "Contrato actualizado");
+          toast(res.warning || tr("pub.updated"));
           $("#riven-dialog").close();
           return;
         }
         $("#riven-dialog").close();
         if (costChanged) saveCost(a.id, costRaw === "" ? null : costRaw);
-        runUpdate(a, changes, "Contrato actualizado");
+        runUpdate(a, changes, tr("pub.updated"));
       } else {
         // Publicar no puede ser optimista (el id lo da la API): el botón muestra que está en curso.
         const { item } = readForm();
-        $("#confirm-ok").innerHTML = `Publicando…${spinner}`;
+        $("#confirm-ok").innerHTML = `${tr("pub.publishing")}${spinner}`;
         $("#confirm-back").disabled = true;
         const cost = $("#f-cost").value.trim();
         const res = await api().create(item, price, $("#f-visible").checked, $("#f-note").value,
           cost === "" ? null : cost, currentLot()?.id ?? null);
-        if (res.error) { toast(`No se pudo publicar: ${res.error}`, true); return; }
+        if (res.error) { toast(tr("pub.fail", { e: res.error }), true); return; }
         mine = [res.auction, ...mine];
         applyLocal(res);
         renderAll();
-        toast(`Publicado: ${weaponName(res.auction.weapon)} ${res.auction.name} · ${price}p`);
+        toast(tr("pub.done", { n: weaponName(res.auction.weapon) + " " + res.auction.name, p: price }));
         $("#riven-dialog").close();
       }
     } finally {
       $("#confirm-ok").disabled = false;
-      $("#confirm-ok").textContent = "Confirmar";
+      $("#confirm-ok").textContent = tr("common.confirm");
       $("#confirm-back").disabled = false;
       $("#confirm").hidden = true;
     }
@@ -2071,7 +2071,7 @@ document.addEventListener('mousedown', (e) => {
   }
   const STATUS_TXT = { ingame: "En juego", online: "Online" };
   async function runMarket() {
-    if (!mkWeapon.value) { toast("Elegí un arma de la lista", true); $("#mk-weapon").focus(); return; }
+    if (!mkWeapon.value) { toast(tr("common.pickWeapon"), true); $("#mk-weapon").focus(); return; }
     $("#mk-go").disabled = true; $("#mk-go").textContent = "Buscando…";
     $("#mk-results").innerHTML = `<div style="padding:6px 0"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div>`;
     try {
