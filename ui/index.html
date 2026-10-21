@@ -1887,6 +1887,15 @@ document.addEventListener('mousedown', (e) => {
       el.classList.remove("need"); el.classList.add("need-ok"); setTimeout(() => el.classList.remove("need-ok"), 1500);
     }
   })));
+  // Numeración de las secciones del diálogo según cuáles estén visibles (estimado, referencia, publicar).
+  const renumberSteps = () => {
+    let n = 2;
+    for (const [sec, step] of [["#est-section", "#est-section .step"], ["#ref-section", "#ref-section .step"]]) {
+      if (!$(sec).hidden) $(step).textContent = n++;
+    }
+    $("#publish-step").textContent = n;
+  };
+  ["#est-section", "#ref-section"].forEach((s) => new MutationObserver(renumberSteps).observe($(s), { attributes: true, attributeFilter: ["hidden"] }));
   const statCombos = slotEls.map((el) => new Combo(el.querySelector(".slot-stat"), () => refreshSlots()));
 
   const currentWeapon = () => weaponBySlug[weaponCombo.value];
@@ -2077,7 +2086,6 @@ document.addEventListener('mousedown', (e) => {
       .forEach((el) => (el.disabled = false));
     $("#confirm").hidden = true;
     $("#ref-section").hidden = true;
-    $("#publish-step").textContent = "2";
     resetForm();
     refreshOrigins(lotId);
     refreshWeapons();
@@ -2144,7 +2152,6 @@ document.addEventListener('mousedown', (e) => {
 
   function renderReference(weapon, data) {
     $("#ref-section").hidden = false;
-    $("#publish-step").textContent = "3";
     $("#ref-title").textContent = tr("rd.refTitle", { w: weapon.name });
     $("#ref-note").textContent = data.maybe_incomplete
       ? tr("rd.maybeIncomplete")
