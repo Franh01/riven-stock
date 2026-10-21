@@ -1940,8 +1940,8 @@ document.addEventListener('mousedown', (e) => {
           ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">Estimado incompleto: warframe.market limitó los pedidos y faltaron comparables. Cerrá y reabrí en un minuto.</div>` : ""}
           <small class="muted" style="display:block;margin-top:4px">${es.n} comparables · confianza ${esc(es.confidence)} · ver</small></div>`
       : `<div class="sum-card"><h4>Precio estimado</h4><small class="muted">Sin comparables suficientes.</small></div>`;
-    const comps = es ? `<table class="sum-orders"><thead><tr><th>Parecido</th><th>Precio</th><th>Stats</th></tr></thead><tbody>${
-      es.comps.map((x) => `<tr><td>${Math.round(x.sim * 100)}%</td><td class="ord-price">${x.price}p</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td></tr>`).join("")}</tbody></table>` : "";
+    const comps = es ? `<table class="sum-orders"><thead><tr><th>Parecido</th><th>Precio</th><th>Stats</th><th>Rolls</th><th>Rango</th></tr></thead><tbody>${
+      es.comps.map((x) => `<tr><td>${Math.round(x.sim * 100)}%</td><td class="ord-price">${x.price}p</td><td><div class="stats">${x.stats.map(formatStat).join("")}</div></td><td>${x.rolls ?? "—"}</td><td>${x.rank == null ? "?" : x.rank >= 8 ? "Máx" : x.rank}</td></tr>`).join("")}</tbody></table>` : "";
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
     $("#sum-meta").innerHTML = `<b>${a.rolls} rolls</b><b>MR ${a.mr}</b>`;
     $("#sum-body").innerHTML = `<div class="sum-grid">

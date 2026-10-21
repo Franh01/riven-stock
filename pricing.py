@@ -54,11 +54,20 @@ def slim(a):
         "id": a["id"], "p": a["buyout_price"], "st": a["owner"].get("status"),
         "s": [[x["url_name"], x["value"], bool(x["positive"])] for x in item["attributes"]],
         "r": item.get("re_rolls") or 0,
+        "k": item.get("mod_rank"),   # rango del mod (8 = maxeado); None en datos viejos del caché
     }
 
 
-def similarity(pos, neg, rolls, other, rtype=None):
-    opos = {s: v for s, v, p in other["s"] if p}
+def _max_rank_factor(rank):
+    """Los valores que muestra la API dependen del rango: pasarlos a su equivalente maxeado."""
+    return 9 / (rank + 1) if rank is not None and 0 <= rank <= 8 else 1.0
+
+
+def similarity(pos, neg, rolls, other, rtype=None, rank=None):
+    f_mine = _max_rank_factor(rank)
+    f_other = _max_rank_factor(other.get("k")) if rank is not None else 1.0
+    pos = {s: v * f_mine for s, v in pos.items()}
+    opos = {s: v * f_other for s, v, p in other["s"] if p}
     oneg = next((s for s, v, p in other["s"] if not p), None)
     union = set(pos) | set(opos)
     if not union:
@@ -68,7 +77,7 @@ def similarity(pos, neg, rolls, other, rtype=None):
     for s in shared:
         a, b = abs(pos[s]), abs(opos[s])
         close = min(a, b) / max(a, b) if max(a, b) else 1.0
-        got += _w(s, rtype) * (0.6 + 0.4 * close)
+        got += _w(s, rtype) * (0.3 + 0.7 * close ** 1.5)   # los valores pesan: un roll flojo no vale lo mismo
     # cubrir MIS stats pesa mas que que el otro tenga extras
     mine = sum(_w(s, rtype) for s in pos)
     sim = (got / sum(_w(s, rtype) for s in union)) ** 0.4 * (got / mine) ** 0.6
@@ -100,7 +109,7 @@ def estimate(view, market, exclude_id=None, rtype=None):
     for o in market:
         if o["id"] == exclude_id or not o["p"]:
             continue
-        sim = similarity(pos, neg, view.get("rolls") or 0, o, rtype)
+        sim = similarity(pos, neg, view.get("rolls") or 0, o, rtype, view.get("rank"))
         if sim >= MIN_SIM:
             scored.append((sim, o))
     if not scored:
@@ -115,7 +124,7 @@ def estimate(view, market, exclude_id=None, rtype=None):
         "low": round(_wquantile(pairs, 0.25)),
         "high": round(_wquantile(pairs, 0.75)),
         "n": len(top), "confidence": conf, "avg_sim": round(avg_sim, 2),
-        "comps": [{"price": o["p"], "sim": round(s, 2), "status": o["st"], "rolls": o["r"],
+        "comps": [{"price": o["p"], "sim": round(s, 2), "status": o["st"], "rolls": o["r"], "rank": o.get("k"),
                    "stats": [{"slug": x, "value": v, "positive": p} for x, v, p in o["s"]]}
                   for s, o in top],
     }
