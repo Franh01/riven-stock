@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.1.7] - 2026-10-20
+
 - Precio estimado: ahora consulta al mercado por la combinación exacta de stats positivos (y por pares), no solo las más baratas del arma.
 - Precio estimado: la similitud prioriza cubrir tus stats positivos y pondera más fuerte a los más parecidos.
 
