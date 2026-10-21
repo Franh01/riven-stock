@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.4.0] - 2026-10-21
+
 - Tendencias en la nube: el historial de cada arma se lee de una base en la nube (foto diaria de todas las armas, armada por un colector programado en AWS). Sin conexión con la nube se usa la foto local de antes.
 
 - Selectores: todos los desplegables tienen un estilo propio unificado (lista oscura con acento violeta, teclado y apertura hacia arriba si no hay lugar).
