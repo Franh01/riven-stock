@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.2.2] - 2026-10-20
+
 - Log de arranque en riven-stock.log (junto a app.py): registra errores de importación y de ejecución, que antes se perdían con pythonw, y muestra un aviso si la app no puede arrancar.
 ## [0.2.1] - 2026-10-20
 
