@@ -2586,10 +2586,10 @@ document.addEventListener('mousedown', (e) => {
       if (id === "cl-on") { const r = await api().cloud_enable(); if (r.error) toast(r.error); else loadCloud(true); }
       else if (id === "cl-now") { const r = await api().cloud_upload(); toast(r.error ? r.error : tr("cl.done")); loadCloud(); }
       else if (id === "cl-copy") { try { await navigator.clipboard.writeText($("#cl-shown").value); } catch { $("#cl-shown").select(); document.execCommand("copy"); } toast(tr("cl.copied")); }
-      else if (id === "cl-off") { if (!confirm(tr("cl.offConfirm"))) return; const r = await api().cloud_disable(); toast(r.error ? r.error : tr("cl.disabled")); loadCloud(); }
+      else if (id === "cl-off") { if (!await askConfirm(tr("cl.title"), tr("cl.offConfirm"))) return; const r = await api().cloud_disable(); toast(r.error ? r.error : tr("cl.disabled")); loadCloud(); }
       else if (id === "cl-restore") {
         const c = $("#cl-code").value.trim(); if (!c) return;
-        if (!confirm(tr("bk.confirm"))) return;
+        if (!await askConfirm(tr("bk.title"), tr("bk.confirm"))) return;
         const r = await api().cloud_restore(c);
         if (r.error) toast(r.error); else { toast(tr("bk.restored")); setTimeout(() => location.reload(), 900); }
       }
@@ -2600,7 +2600,7 @@ document.addEventListener('mousedown', (e) => {
     else if (id === "bk-folder") api().open_data_folder();
     else if (id === "bk-export") { const r = await api().export_backup(); if (r.error) toast(r.error); else if (r.ok) toast(tr("bk.exported")); }
     else if (id === "bk-import") {
-      if (!confirm(tr("bk.confirm"))) return;
+      if (!await askConfirm(tr("bk.title"), tr("bk.confirm"))) return;
       const r = await api().import_backup();
       if (r.error) toast(r.error); else if (r.ok) { toast(tr("bk.restored")); setTimeout(() => location.reload(), 900); }
     }
