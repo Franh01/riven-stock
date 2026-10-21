@@ -130,6 +130,16 @@
     </div>
   </section>
 
+  <section id="smartscreen">
+    <h2 data-i18n="ss.h"></h2>
+    <p data-i18n="ss.p"></p>
+    <ol class="steps">
+      <li><span data-i18n-html="ss.s1"></span><div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-1.png" alt="" loading="lazy" width="534" height="500"></div></li>
+      <li><span data-i18n-html="ss.s2"></span><div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/smartscreen-2.png" alt="" loading="lazy" width="534" height="500"></div></li>
+    </ol>
+    <p data-i18n="ss.n"></p>
+  </section>
+
   <section id="instalacion">
     <div class="eyebrow" data-i18n="inst.eye"></div>
     <h2 data-i18n="inst.h"></h2>
@@ -171,7 +181,8 @@ const T = {
     "inst.ol":"<li>Descargá el instalador (<code>RivenStock-...-Setup.exe</code>).</li><li>Abrilo y seguí los pasos. No pide permisos de administrador.</li><li>Al terminar se abre Riven Stock. La próxima vez la encontrás en el menú Inicio.</li><li>Las actualizaciones las ofrece la app sola, y tus datos no se tocan.</li>",
     "ss.h":"Si Windows muestra \"Windows protegió su PC\"",
     "ss.p":"La app todavía no está firmada digitalmente (la firma cuesta cientos de dólares al año), así que Windows SmartScreen avisa con cualquier programa nuevo. No significa que haya un virus. Para seguir:",
-    "ss.ol":"<li>En el cartel azul tocá <b>Más información</b>.</li><li>Después tocá <b>Ejecutar de todas formas</b>.</li>",
+    "ss.s1":"En el cartel azul tocá <b>Más información</b> (en inglés, <b>More info</b>).",
+    "ss.s2":"Después tocá <b>Ejecutar de todas formas</b> (<b>Run anyway</b>).",
     "ss.n":"Si tu antivirus bloquea el archivo, es un falso positivo común en programas sin firmar. El código es público en GitHub y podés comprobar el sha256 del instalador, que figura junto a la descarga.",
     "tk.eye":"Primer uso","tk.h":"Cómo obtener tu token (JWT) de warframe.market",
     "tk.p":"La primera vez, Riven Stock te pide un token para conectarse a tu cuenta. Se saca desde el navegador en menos de un minuto:",
@@ -204,7 +215,8 @@ const T = {
     "inst.ol":"<li>Download the installer (<code>RivenStock-...-Setup.exe</code>).</li><li>Open it and follow the steps. It doesn't ask for administrator rights.</li><li>When it finishes, Riven Stock opens. Next time, find it in the Start menu.</li><li>The app offers updates by itself, and your data is never touched.</li>",
     "ss.h":"If Windows shows \"Windows protected your PC\"",
     "ss.p":"The app isn't digitally signed yet (signing costs hundreds of dollars a year), so Windows SmartScreen warns about any new program. It doesn't mean there is a virus. To continue:",
-    "ss.ol":"<li>On the blue screen click <b>More info</b>.</li><li>Then click <b>Run anyway</b>.</li>",
+    "ss.s1":"On the blue screen click <b>More info</b>.",
+    "ss.s2":"Then click <b>Run anyway</b>.",
     "ss.n":"If your antivirus blocks the file, it is a common false positive for unsigned programs. The code is public on GitHub and you can check the installer's sha256, listed next to the download.",
     "tk.eye":"First run","tk.h":"How to get your warframe.market token (JWT)",
     "tk.p":"The first time, Riven Stock asks for a token to connect to your account. You can get it from your browser in under a minute:",
