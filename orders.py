@@ -57,6 +57,7 @@ class OrderCache:
         try:
             with self._lock:
                 blob = json.dumps(self._data)
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
             tmp = self.path + ".tmp"
             with open(tmp, "w", encoding="utf-8") as f:
                 f.write(blob)

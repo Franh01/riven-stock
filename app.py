@@ -548,8 +548,27 @@ class Api:
                         n_new += 1
         return n_new
 
+    def _fill_for_position(self):
+        """Carga el caché de las armas de mi stock que falten (la tabla lo pidió; no espera a que la app esté ociosa)."""
+        try:
+            for w in self._wanted_weapons():
+                if not self._cache.get(w, self._cache.TTL_S):
+                    self._cache.load(w)
+                    time.sleep(self._cache.PAUSE_S)
+        except Exception:
+            pass
+        finally:
+            self._filling = False
+
+    def stock_position_pending(self):
+        return bool(getattr(self, "_filling", False))
+
     def stock_position(self):
-        """Dónde está cada riven publicado respecto del estimado. Solo usa el caché: sin pedidos nuevos."""
+        """Dónde está cada riven publicado respecto del estimado. Usa el caché; si faltan armas lo completa en segundo plano."""
+        if not getattr(self, "_filling", False) and any(
+                not self._cache.get(w, self._cache.TTL_S) for w in self._wanted_weapons()):
+            self._filling = True
+            threading.Thread(target=self._fill_for_position, daemon=True).start()
         with store.connect() as conn:
             cfg, hours = store.settings(conn), store.riven_hours(conn)
         base = cfg.get("autodrop_hours", 10)

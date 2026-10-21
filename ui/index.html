@@ -1275,6 +1275,7 @@ document.addEventListener('mousedown', (e) => {
   async function loadPosition() {
     try { position = (await api().stock_position()) || {}; } catch { position = {}; }
     renderMine();
+    try { if (await api().stock_position_pending()) setTimeout(loadPosition, 20000); } catch {}
   }
 
   function renderMine() {
