@@ -38,6 +38,7 @@
 
   .shot { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 30px 80px -20px rgba(0,0,0,.8); overflow:hidden; }
   .shot img { display:block; width:100%; height:auto; }
+  .steps .shot.small { margin:14px 0 2px; }
   .shot.small { max-width:760px; margin:26px 0 12px; }
   .hero .shot { transform:perspective(1200px) rotateY(-6deg) rotateX(2deg); }
   .mock { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 30px 80px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.03); overflow:hidden; transform:perspective(1200px) rotateY(-6deg) rotateX(2deg); }
@@ -62,7 +63,7 @@
 
   .steps { counter-reset:s; display:grid; gap:12px; padding:0; margin:0; list-style:none; }
   .steps li { counter-increment:s; position:relative; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px 16px 62px; color:#cfd5e2; }
-  .steps li::before { content:counter(s); position:absolute; left:16px; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:14px; background:linear-gradient(135deg,#8b6bff,#6a4df0); color:#fff; }
+  .steps li::before { content:counter(s); position:absolute; left:16px; top:14px; width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:14px; background:linear-gradient(135deg,#8b6bff,#6a4df0); color:#fff; }
   code, kbd { background:#0a0c12; border:1px solid var(--line); border-radius:6px; padding:1px 7px; font:13.5px ui-monospace,Consolas,monospace; color:var(--accent2); }
   a { color:var(--accent2); }
   .note { color:var(--muted); font-size:14px; margin-top:16px; }
@@ -132,25 +133,14 @@
   <section id="como">
     <div class="eyebrow" data-i18n="inst.eye"></div>
     <h2 data-i18n="inst.h"></h2>
-    <ol class="steps" data-i18n-html="inst.ol"></ol>
-
-    <h2 style="margin-top:44px;font-size:24px" data-i18n="ss.h"></h2>
-    <p class="sub" data-i18n="ss.p"></p>
-    <ol class="steps" data-i18n-html="ss.ol"></ol>
-    <p class="note" data-i18n="ss.n"></p>
-  </section>
-
-  <section id="token">
-    <div class="eyebrow" data-i18n="tk.eye"></div>
-    <h2 data-i18n="tk.h"></h2>
-    <p class="sub" data-i18n="tk.p"></p>
-    <ol class="steps" data-i18n-html="tk.ol"></ol>
-    <div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/dt-network.jpg" alt="DevTools" loading="lazy" width="637" height="376"></div>
-    <p class="note" data-i18n="tk.cap1"></p>
-    <div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/dt-application.jpg" alt="Application > Cookies" loading="lazy" width="637" height="881"></div>
-    <p class="note" data-i18n="tk.cap2"></p>
-    <div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/app-token.jpg" alt="Token" loading="lazy" width="1164" height="741"></div>
-    <p class="note" data-i18n="tk.cap"></p>
+    <ol class="steps">
+      <li><span data-i18n-html="tk.s1"></span></li>
+      <li><span data-i18n-html="tk.s2"></span><div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/dt-step2.jpg" alt="" loading="lazy" width="637" height="376"></div></li>
+      <li><span data-i18n-html="tk.s3"></span><div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/dt-step3.jpg" alt="" loading="lazy" width="637" height="150"></div></li>
+      <li><span data-i18n-html="tk.s4"></span><div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/dt-step4.jpg" alt="" loading="lazy" width="637" height="350"></div></li>
+      <li><span data-i18n-html="tk.s5"></span><div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/dt-step5.jpg" alt="" loading="lazy" width="637" height="150"></div></li>
+      <li><span data-i18n-html="tk.s6"></span><div class="shot small"><div class="mock-bar"><b></b><b></b><b></b></div><img src="img/app-token.jpg" alt="" loading="lazy" width="1164" height="741"></div></li>
+    </ol>
     <div class="warn" data-i18n="tk.w"></div>
   </section>
 
@@ -185,10 +175,12 @@ const T = {
     "ss.n":"Si tu antivirus bloquea el archivo, es un falso positivo común en programas sin firmar. El código es público en GitHub y podés comprobar el sha256 del instalador, que figura junto a la descarga.",
     "tk.eye":"Primer uso","tk.h":"Cómo obtener tu token (JWT) de warframe.market",
     "tk.p":"La primera vez, Riven Stock te pide un token para conectarse a tu cuenta. Se saca desde el navegador en menos de un minuto:",
-    "tk.ol":"<li>Entrá a <a href=\"https://warframe.market\" target=\"_blank\" rel=\"noopener\">warframe.market</a> e iniciá sesión con tu cuenta.</li><li>Apretá <kbd>F12</kbd> para abrir las herramientas de desarrollador (Chrome, Edge o Brave).</li><li>Arriba elegí la pestaña <b>Application</b> (o <b>Aplicación</b>). Si no la ves, tocá <kbd>&gt;&gt;</kbd> para ver más pestañas. En Firefox se llama <b>Almacenamiento</b>.</li><li>A la izquierda abrí <b>Cookies</b> y elegí <code>https://warframe.market</code>.</li><li>Buscá la fila llamada <code>JWT</code>, hacé clic y copiá el contenido completo de <b>Value</b> (un texto largo que empieza con <code>eyJ</code>).</li><li>En Riven Stock tocá el botón de la llave (arriba), pegá el token y guardalo.</li>",
-    "tk.cap1":"Al apretar F12 se abre este panel. Buscá la pestaña Application (si no se ve, está en el menú >>).",
-    "tk.cap2":"En Cookies > warframe.market, la fila JWT es tu token: copiá su Value. Acá está tapado a propósito; el tuyo es una línea larga de letras y números.",
-    "tk.cap":"Así se ve el cuadro donde pegás el token en Riven Stock.",
+    "tk.s1":"Entrá a <a href=\"https://warframe.market\" target=\"_blank\" rel=\"noopener\">warframe.market</a> e iniciá sesión con tu cuenta.",
+    "tk.s2":"Apretá <kbd>F12</kbd> para abrir las herramientas de desarrollador (Chrome, Edge o Brave).",
+    "tk.s3":"Arriba elegí la pestaña <b>Application</b> (o <b>Aplicación</b>). Si no la ves, tocá <kbd>&gt;&gt;</kbd> para ver más pestañas. En Firefox se llama <b>Almacenamiento</b>.",
+    "tk.s4":"A la izquierda abrí <b>Cookies</b> y elegí <code>https://warframe.market</code>.",
+    "tk.s5":"Buscá la fila llamada <code>JWT</code>, hacé clic y copiá el contenido completo de <b>Value</b> (un texto largo que empieza con <code>eyJ</code>).",
+    "tk.s6":"En Riven Stock tocá el botón de la llave (arriba), pegá el token y guardalo.",
     "tk.w":"Tratá el token como una contraseña: no lo compartas ni lo publiques. Se guarda solo en tu PC y la app únicamente lo manda a warframe.market. Si algún día deja de funcionar, venció: repetí estos pasos y pegá uno nuevo.",
     ft:"Proyecto personal, sin relación oficial con Digital Extremes ni warframe.market.",
     info:"Versión {v} · Windows 10 / 11", info0:"Windows 10 / 11"
@@ -216,10 +208,12 @@ const T = {
     "ss.n":"If your antivirus blocks the file, it is a common false positive for unsigned programs. The code is public on GitHub and you can check the installer's sha256, listed next to the download.",
     "tk.eye":"First run","tk.h":"How to get your warframe.market token (JWT)",
     "tk.p":"The first time, Riven Stock asks for a token to connect to your account. You can get it from your browser in under a minute:",
-    "tk.ol":"<li>Go to <a href=\"https://warframe.market\" target=\"_blank\" rel=\"noopener\">warframe.market</a> and log in.</li><li>Press <kbd>F12</kbd> to open the developer tools (Chrome, Edge or Brave).</li><li>At the top choose the <b>Application</b> tab. If you don't see it, click <kbd>&gt;&gt;</kbd> for more tabs. In Firefox it is called <b>Storage</b>.</li><li>On the left open <b>Cookies</b> and pick <code>https://warframe.market</code>.</li><li>Find the row named <code>JWT</code>, click it and copy the full <b>Value</b> (a long text starting with <code>eyJ</code>).</li><li>In Riven Stock press the key button (top bar), paste the token and save it.</li>",
-    "tk.cap1":"Pressing F12 opens this panel. Find the Application tab (if hidden, it is in the >> menu).",
-    "tk.cap2":"Under Cookies > warframe.market, the JWT row is your token: copy its Value. It is hidden on purpose here; yours is one long line of letters and numbers.",
-    "tk.cap":"This is the box where you paste the token in Riven Stock.",
+    "tk.s1":"Go to <a href=\"https://warframe.market\" target=\"_blank\" rel=\"noopener\">warframe.market</a> and log in.",
+    "tk.s2":"Press <kbd>F12</kbd> to open the developer tools (Chrome, Edge or Brave).",
+    "tk.s3":"At the top choose the <b>Application</b> tab. If you don't see it, click <kbd>&gt;&gt;</kbd> for more tabs. In Firefox it is called <b>Storage</b>.",
+    "tk.s4":"On the left open <b>Cookies</b> and pick <code>https://warframe.market</code>.",
+    "tk.s5":"Find the row named <code>JWT</code>, click it and copy the full <b>Value</b> (a long text starting with <code>eyJ</code>).",
+    "tk.s6":"In Riven Stock press the key button (top bar), paste the token and save it.",
     "tk.w":"Treat the token like a password: don't share or publish it. It is stored only on your PC and the app sends it only to warframe.market. If it ever stops working it has expired: repeat these steps and paste a new one.",
     ft:"Personal project, not officially related to Digital Extremes or warframe.market.",
     info:"Version {v} · Windows 10 / 11", info0:"Windows 10 / 11"
