@@ -510,13 +510,13 @@
     </button>
     <div class="status-menu" id="status-menu" hidden></div>
   </div>
-  <button class="bell" id="bell" title="Alertas de bajas automáticas">
+  <button class="bell" id="bell" title="Alertas del ajuste automático de precio">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11c0-3.1-1.6-5.6-4.5-6.3V4a1.5 1.5 0 0 0-3 0v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
     <span class="count" id="bell-count" hidden></span>
   </button>
   <button class="bell ver" id="ver" title="Novedades y actualizaciones"><span id="ver-txt">v</span><span class="count" id="ver-dot" hidden>!</span></button>
   <button class="bell" id="help-btn" title="Ayuda: qué hace la app y cómo usarla"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.5h-2V15.4h2v2.1zm1.9-6.2-.9.9c-.7.7-1 1.2-1 2.3h-2v-.5c0-1 .3-1.8 1-2.5l1.2-1.2c.4-.3.6-.8.6-1.300 0-1.100-.9-2-2-2s-2 .9-2 2H8c0-2.200 1.800-4 4-4s4 1.800 4 4c0 .9-.4 1.700-1.100 2.300z"/></svg></button>
-  <button class="bell" id="gear" title="Configuración de la baja automática">
+  <button class="bell" id="gear" title="Configuración del ajuste automático de precio">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>
   </button>
   <div class="totals" id="totals"></div>
@@ -596,7 +596,7 @@
 <dialog id="riven-dialog">
   <div class="dlg-head">
     <h3 id="rd-title">Nuevo riven</h3>
-    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender"><span>Baja automática</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label>Horas<input type="number" id="rd-ov-h" min="1" step="1"></label><label>Baja (p)<input type="number" id="rd-ov-a" min="1" step="1"></label><label>Piso (p)<input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar">×</button></span>
+    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender"><span>Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label>Horas<input type="number" id="rd-ov-h" min="1" step="1"></label><label>Baja (p)<input type="number" id="rd-ov-a" min="1" step="1"></label><label>Piso (p)<input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar">×</button></span>
   </div>
   <div class="dlg-body">
     <section>
@@ -668,7 +668,7 @@
   <div class="dlg-body"><div id="help-body" class="help"></div></div>
 </dialog>
 <dialog id="news-dialog">
-  <div class="dlg-head"><h3>Novedades</h3><button class="icon" id="news-x" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3>Novedades <button class="ghost" id="news-check" style="font-size:12px;padding:3px 10px;margin-left:10px;font-weight:500" title="Buscar si hay una versión nueva">Buscar actualizaciones</button></h3><button class="icon" id="news-x" title="Cerrar">×</button></div>
   <div class="dlg-body">
     <div id="news-body" class="news"></div>
   </div>
@@ -682,7 +682,7 @@
   </div>
 </dialog>
 <dialog id="cfg-dialog">
-  <div class="dlg-head"><h3>Baja automática</h3><button class="icon" id="cfg-x" title="Cerrar">×</button></div>
+  <div class="dlg-head"><h3>Ajuste automático de precio</h3><button class="icon" id="cfg-x" title="Cerrar">×</button></div>
   <div class="dlg-body" id="cfg-body"></div>
 </dialog>
 <style>
@@ -1922,7 +1922,7 @@ document.addEventListener('mousedown', (e) => {
 
   // ---- Arranque ---------------------------------------------------------
 
-  // ---- Alertas de bajas automáticas y resumen de un riven ----
+  // ---- Alertas del ajuste automático de precio y resumen de un riven ----
   const when = (iso) => new Date(iso).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
   let alerts = { items: [], unread: 0 };
   function renderBell() {
@@ -2019,12 +2019,12 @@ document.addEventListener('mousedown', (e) => {
     if (!fresh.length) return;
     blip();
     if (fresh.length > 3) {
-      pop(`<div class="p-top">Baja automática</div><div class="p-name">${fresh.length} rivens bajaron de precio</div><div class="when">Tocá para ver el detalle</div>`);
+      pop(`<div class="p-top">Ajuste automático de precio</div><div class="p-name">${fresh.length} rivens bajaron de precio</div><div class="when">Tocá para ver el detalle</div>`);
       return;
     }
     for (const n of fresh) {
       const d = dropInfo(n);
-      pop(`<div class="p-top">Baja automática</div><div class="p-name">${d ? `${esc(d.weapon)} <span style="font-weight:500;color:var(--muted)">${esc(d.name)}</span>` : esc(n.text)}</div>${n.old_price != null ? priceLine(n) : ""}`);
+      pop(`<div class="p-top">Ajuste automático de precio</div><div class="p-name">${d ? `${esc(d.weapon)} <span style="font-weight:500;color:var(--muted)">${esc(d.name)}</span>` : esc(n.text)}</div>${n.old_price != null ? priceLine(n) : ""}`);
     }
   }
   async function loadAlerts() {
@@ -2157,7 +2157,7 @@ document.addEventListener('mousedown', (e) => {
         <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
         <div class="comp-side">${presence(x.status, x.last_seen, x.seller)}<div class="comp-sim" title="Qué tan parecido es a tu riven"><b>${Math.round(x.sim * 100)}%</b><i><u style="width:${Math.round(x.sim * 100)}%"></u></i></div></div></div>`).join("")}</div>` : "";
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
-    $("#sum-meta").innerHTML = `<b>${a.rolls} rolls</b><b>MR ${a.mr}</b>${own ? `<button class="icon" id="sum-edit" title="Editar este contrato y su baja automática"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.7 7.7 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>` : ""}<button class="icon copy-url" id="sum-copy" title="Copiar el link de la publicación en warframe.market"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"/></svg></button>`;
+    $("#sum-meta").innerHTML = `<b>${a.rolls} rolls</b><b>MR ${a.mr}</b>${own ? `<button class="icon" id="sum-edit" title="Editar este contrato y su ajuste automático de precio"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.7 7.7 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>` : ""}<button class="icon copy-url" id="sum-copy" title="Copiar el link de la publicación en warframe.market"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"/></svg></button>`;
     $("#sum-edit")?.addEventListener("click", () => { $("#sum-dialog").close(); editFromSum = own.id; openRiven({ existing: own }); });
     $("#sum-copy").addEventListener("click", async () => {
       const url = `https://warframe.market/auction/${aid}`;
@@ -2173,7 +2173,7 @@ document.addEventListener('mousedown', (e) => {
         </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div></div>
         ${estCard}
         <div class="sum-card" id="trend-card"><h4>Tendencia del arma</h4><small class="muted">Cargando…</small></div>
-        ${mk ? "" : `<div class="sum-card" id="sum-auto-card"><label class="switch-row"><span>Baja automática<small>Baja el precio cuando pasan las horas sin vender</small></span>
+        ${mk ? "" : `<div class="sum-card" id="sum-auto-card"><label class="switch-row"><span>Ajuste automático de precio<small>Baja el precio cuando pasan las horas sin vender</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
         <div class="sum-card" id="sum-ovr-card"><h4>Ajustes de este riven</h4><div class="ovr">
           <label>Horas<input type="number" id="ov-h" min="1" step="1" placeholder="${cfgVal("autodrop_hours")}" value="${h && h.hours_override ? h.hours_override : ""}"></label>
@@ -2228,7 +2228,7 @@ document.addEventListener('mousedown', (e) => {
   $("#bell").addEventListener("click", async () => { await loadAlerts(); renderAlerts(); $("#alerts-dialog").showModal(); });
   $("#al-x").addEventListener("click", () => $("#alerts-dialog").close());
   for (const id of ["#sum-dialog", "#alerts-dialog"]) $(id).addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
-  // ---- Configuración de la baja automática ----
+  // ---- Configuración del ajuste automático de precio ----
   const CFG_DEF = { autodrop_enabled: false, autodrop_hours: 10, autodrop_amount: 5, autodrop_floor: 10, invisible_on_close: true };
   const cfgVal = (k) => (settings[k] === undefined || settings[k] === null ? CFG_DEF[k] : settings[k]);
   const sw = (id, on) => `<span class="switch"><input type="checkbox" id="${id}" ${on ? "checked" : ""}><i></i></span>`;
@@ -2239,7 +2239,7 @@ document.addEventListener('mousedown', (e) => {
     const total = oh && oh.hours != null ? oh.hours : 0;
     const on = cfgVal("autodrop_enabled");
     $("#cfg-body").innerHTML = `<div class="cfg-grid">
-      <div class="sum-card"><label class="switch-row"><span><b>Baja automática</b><small>Interruptor general. Cada riven además tiene el suyo en su resumen.</small></span>${sw("cfg-enabled", on)}</label></div>
+      <div class="sum-card"><label class="switch-row"><span><b>Ajuste automático de precio</b><small>Interruptor general. Cada riven además tiene el suyo en su resumen.</small></span>${sw("cfg-enabled", on)}</label></div>
       <div class="sum-card ${on ? "" : "cfg-off"}" id="cfg-params"><div class="cfg-grid">
         <div class="cfg-row"><span>Horas online antes de bajar<small>Se cuentan solo las horas con tu estado Online o En juego.</small></span><span class="val" id="v-hours">${cfgVal("autodrop_hours")} h</span>
           <input type="range" id="cfg-hours" min="1" max="72" value="${cfgVal("autodrop_hours")}"></div>
@@ -2263,7 +2263,7 @@ document.addEventListener('mousedown', (e) => {
   });
   $("#cfg-body").addEventListener("change", (e) => {
     const t = e.target;
-    if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(t.checked ? "Baja automática activada" : "Baja automática desactivada"); }
+    if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(t.checked ? "Ajuste automático activado" : "Ajuste automático desactivado"); }
     else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
     else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
@@ -2276,10 +2276,10 @@ document.addEventListener('mousedown', (e) => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.act === "open") { $("#alerts-dialog").close(); openSummary(b.dataset.aid); }
     if (b.dataset.act === "revert") {
-      if (!await askConfirm("Revertir baja", "Vuelve al precio anterior en warframe.market y se apaga la baja automática de este riven.", "Revertir")) return;
+      if (!await askConfirm("Revertir ajuste", "Vuelve al precio anterior en warframe.market y se apaga el ajuste automático de precio de este riven.", "Revertir")) return;
       const r = await api().revert_drop(Number(b.dataset.drop));
       if (r.error) { toast(r.error, true); return; }
-      alerts = r; renderBell(); renderAlerts(); toast("Baja revertida; baja automática apagada para ese riven.");
+      alerts = r; renderBell(); renderAlerts(); toast("Ajuste revertido; ajuste automático apagado para ese riven.");
       loadMine();
     }
   });
@@ -2359,6 +2359,7 @@ document.addEventListener('mousedown', (e) => {
     $("#news-body").innerHTML = renderChangelog(await api().get_changelog());
     $("#news-dialog").showModal();
   });
+  $("#news-check").addEventListener("click", async () => { const b = $("#news-check"); b.disabled = true; b.textContent = "Buscando…"; await checkUpdate(true); b.disabled = false; b.textContent = "Buscar actualizaciones"; });
   $("#news-x").addEventListener("click", () => $("#news-dialog").close());
 
   setInterval(loadAlerts, 15000);
@@ -2389,8 +2390,8 @@ document.addEventListener('mousedown', (e) => {
   const TOURS = {
     inicio: { title: "Recorrido inicial", steps: [
       { el: "#status-pill", t: "Tu estado", x: "Acá ves y cambiás tu [[Estado en warframe.market]]. Mientras estés online se cuentan las horas de cada riven." },
-      { el: "#bell", t: "Alertas", x: "Te avisa cuando la [[Baja automática]] le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
-      { el: "#gear", t: "Configuración", x: "Los valores globales de la [[Baja automática]]: horas sin vender, cuánto baja y el piso mínimo." },
+      { el: "#bell", t: "Alertas", x: "Te avisa cuando el [[Ajuste automático de precio]] le bajó el precio a un riven. Desde ahí podés revertir cada baja." },
+      { el: "#gear", t: "Configuración", x: "Los valores globales del [[Ajuste automático de precio]]: horas sin vender, cuánto baja y el piso mínimo." },
       { el: "#views", t: "Mis ventas y Mercado", x: "Mis ventas es tu stock; Mercado sirve para mirar lo que se vende de cada arma." },
       { el: "#mine", t: "Tus rivens", x: "Acá van tus rivens. Tocá el nombre de uno para ver su resumen: precio estimado, comparables, [[Mercado y tendencias|tendencia del arma]] e historial. Si todavía no tenés ninguno, seguí: vamos a crear uno de ejemplo." },
       { el: "#fab", click: true, t: "Nuevo riven", x: "Con este botón creás uno. Tocalo: te abro el formulario con datos de ejemplo y no se publica nada." },
@@ -2402,7 +2403,7 @@ document.addEventListener('mousedown', (e) => {
       { el: '#mine tr[data-id="demo"] button.more', demo: "list", click: true, t: "Menú de acciones", x: "Así aparece en tu lista el riven que acabamos de crear (de ejemplo). Cada fila tiene un menú de tres puntos a la derecha: tocalo." },
       { el: '#row-menu [data-menu="edit"]', demo: "menu", click: true, t: "Editar", x: "Desde acá editás, ocultás o mostrás, y marcás como vendido o cerrado. Tocá Editar para ver el editor." },
       { el: ".grid-riven", demo: "edit", t: "Editar uno publicado", x: "Así queda el mismo riven ya publicado. Arma, stats, MR, rango y rolls quedan fijos; solo podés cambiar la polaridad." },
-      { el: "#rd-auto", demo: "edit", t: "Baja automática", x: "El switch activa la [[Baja automática]] solo para este riven; los campos de al lado pisan los valores globales." },
+      { el: "#rd-auto", demo: "edit", t: "Ajuste automático de precio", x: "El switch activa la [[Ajuste automático de precio]] solo para este riven; los campos de al lado pisan los valores globales." },
       { el: "#est-go", demo: "edit", click: true, t: "Estimado con comparables", x: "Busca rivens parecidos al tuyo (mismos stats) y calcula un precio. Tarda porque hace varias búsquedas. Tocalo: te muestro un ejemplo." },
       { el: "#est-section", demo: "edit", pre: demoEstimate, t: "Estimado", x: "Te da un precio y un rango. Tocá el estimado para usarlo como precio, o abrí la lista para ver los comparables." },
       { el: "#publish-section", demo: "edit", t: "Precio y datos", x: "Acá cambiás el precio, el costo (solo se guarda en la app), si está visible y la nota. Guardar cambios te pide confirmación antes de publicar." },
@@ -2410,7 +2411,7 @@ document.addEventListener('mousedown', (e) => {
       { el: "#sum-dialog .sum-side .sum-card", demo: "summary", t: "Resumen", x: "Tu precio, las horas que lleva online y cuántas publicaciones del arma están más baratas que la tuya. Abajo, los stats." },
       { el: "#est-card", demo: "summary", t: "Precio estimado", x: "Compara con rivens parecidos y dice si estás barato o caro. Tocalo para ver los comparables que usó." },
       { el: "#trend-card", demo: "summary", t: "Tendencia del arma", x: "Mediana y mínimo de los últimos días. La estrella sigue el arma aunque no la tengas; las de tu stock se siguen solas." },
-      { el: "#sum-auto-card", demo: "summary", t: "Baja automática", x: "Activa o desactiva la [[Baja automática]] de este riven: baja el precio cuando pasan las horas sin vender." },
+      { el: "#sum-auto-card", demo: "summary", t: "Ajuste automático de precio", x: "Activa o desactiva la [[Ajuste automático de precio]] de este riven: baja el precio cuando pasan las horas sin vender." },
       { el: "#sum-ovr-card", demo: "summary", t: "Ajustes de este riven", x: "Horas, baja y piso propios de este riven. Si lo dejás vacío usa los valores globales." },
       { el: "#sum-hist-card", demo: "summary", t: "Historial de precios", x: "Cada cambio de precio, si fue manual o automático." },
       { el: "#sum-dialog .sum-tabs", demo: "summary", t: "Órdenes y comparables", x: "Alterná entre las publicaciones más baratas del arma y los comparables del estimado. Tocá cualquiera para abrir su propio resumen." },
@@ -2647,12 +2648,12 @@ document.addEventListener('mousedown', (e) => {
   setTimeout(hideSplash, 8000);   // por si la carga falla: nunca dejar la pantalla tapada
   const HELP = [
     ["Mis ventas", "Tu stock de rivens publicados en warframe.market. Tocá el nombre de uno para ver su resumen: precio estimado, comparables, órdenes más baratas, tendencia del arma e historial de precios. Desde el engranaje del resumen lo editás."],
-    ["Publicar", "El botón + abre el formulario para publicar un riven nuevo: arma, stats, rolls y precio. Antes de guardar te muestra una confirmación con lo que cambia."],
-    ["Baja automática", "Si un riven pasa las horas que definas online sin venderse, la app le baja el precio sola, sin pasar el piso que pongas. Se activa con el switch del riven al editarlo, y los valores globales están en el engranaje de arriba. Cada baja se puede revertir desde las alertas (la campana)."],
-    ["Estado en warframe.market", "La píldora de arriba muestra tu estado (En juego, Online, Invisible). Mientras estés online se cuentan las horas de cada riven."],
+    ["Publicar", "El botón flotante «+ Nuevo riven» (abajo a la derecha) abre el formulario para publicar un riven nuevo: arma, stats, rolls y precio. Antes de guardar te muestra una confirmación con lo que cambia."],
+    ["Ajuste automático de precio", "Si un riven pasa las horas que definas online sin venderse, la app le baja el precio sola, sin pasar el piso que pongas. Se activa con el switch del riven al editarlo, y los valores globales están en el engranaje de arriba. Cada ajuste se puede revertir desde las alertas (la campana)."],
+    ["Estado en warframe.market", "La píldora de arriba muestra tu estado (En juego, Online, Invisible), el mismo que ves en tu perfil de la página de warframe.market. Mientras estés online se cuentan las horas de cada riven."],
     ["Mercado y tendencias", "En el resumen de un riven, la tarjeta de tendencia muestra la mediana y el mínimo del arma en los últimos 90 días. La estrella sigue un arma aunque no la tengas; las de tu stock se siguen solas. La app toma una foto del mercado por día cuando no la estás usando."],
-    ["Alertas y novedades", "La campana avisa de las bajas automáticas. El botón con la versión muestra las novedades y te deja actualizar la app."],
-    ["Límite de pedidos", "warframe.market permite pocos pedidos por segundo. La app los pone en fila y te avisa cuánto falta; si ves el aviso de espera, solo hay que esperar un momento."],
+    ["Alertas y novedades", "La campana avisa de los ajustes automáticos de precio. El botón con la versión muestra las novedades, y ahí mismo «Buscar actualizaciones» te dice si hay una nueva."],
+    ["Límite de pedidos", "warframe.market permite pocos pedidos por segundo. La app los pone en fila para no pasarse, por eso a veces la información tarda en cargar (sobre todo al abrir o al editar). Cuando espera te muestra un aviso con el motivo; solo hay que esperar un momento."],
   ];
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("help-body").innerHTML = `<h4>Recorridos guiados</h4><p>Te muestran la app paso a paso.</p><button class="ghost tour-btn" data-tour="inicio">Ver el recorrido inicial</button>`
