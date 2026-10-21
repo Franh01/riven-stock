@@ -570,6 +570,7 @@
     <span class="count" id="bell-count" hidden></span>
   </button>
   <button class="bell ver" id="ver" title="Novedades y actualizaciones" data-i18n-title="hdr.verTip"><span id="ver-txt">v</span><span class="count" id="ver-dot" hidden>!</span></button>
+  <span class="bell ver" id="au" hidden style="cursor:default"></span>
   <button class="bell" id="tok-btn" title="Token de warframe.market" data-i18n-title="tok.tip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 14a4 4 0 1 1 3.9-5H21v3h-2v2h-3v-2h-5.100A4 4 0 0 1 7 14zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
   <button class="bell" id="help-btn" title="Ayuda: qué hace la app y cómo usarla" data-i18n-title="hdr.helpTip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.5h-2V15.4h2v2.1zm1.9-6.2-.9.9c-.7.7-1 1.2-1 2.3h-2v-.5c0-1 .3-1.8 1-2.5l1.2-1.2c.4-.3.6-.8.6-1.300 0-1.100-.9-2-2-2s-2 .9-2 2H8c0-2.200 1.800-4 4-4s4 1.800 4 4c0 .9-.4 1.700-1.100 2.300z"/></svg></button>
   <button class="bell" id="gear" title="Configuración del ajuste automático de precio" data-i18n-title="hdr.gearTip">
@@ -2685,7 +2686,7 @@ document.addEventListener('mousedown', (e) => {
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
     else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
     else if (t.id === "cfg-invis") saveCfg("invisible_on_close", t.checked);
-    else if (t.id === "cfg-lang") { saveCfg("lang", t.value); I18N.setLang(t.value); openConfig(); }
+    else if (t.id === "cfg-lang") { saveCfg("lang", t.value); I18N.setLang(t.value); loadActiveUsers(); openConfig(); }
   });
 
   $("#sum-x").addEventListener("click", () => $("#sum-dialog").close());
@@ -3025,6 +3026,8 @@ document.addEventListener('mousedown', (e) => {
   window.addEventListener("keydown", (e) => { if (tour && e.key === "Escape") { e.preventDefault(); endTour(false); } });
   window.addEventListener("pywebviewready", async () => {
     api().get_version().then(v => { $("#ver-txt").textContent = "v" + v; const sv = $("#sp-ver"); if (sv) sv.textContent = "v" + v; });
+    window.loadActiveUsers = async () => { try { const st = await api().cloud_stats(); const el = $("#au"); if (st && st.active != null) { el.textContent = tr("hdr.users", { n: st.active }); el.title = tr("hdr.usersTip"); el.hidden = false; } } catch (e) {} };
+    loadActiveUsers();
     try {
       catalog = await api().catalog();
     } catch (e) {

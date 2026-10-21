@@ -8,6 +8,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 - Reporte: mapa de calor de cuándo vendés (día de la semana y hora) con sugerencia de en qué franja conviene estar online, y tiempo hasta vender (mediana de horas online) por rango de precio y por arma, con sugerencia de tiempo para la baja automática. Las horas se registran desde esta versión.
 - Corregido: en ventanas angostas el encabezado y los totales se salían de la pantalla; ahora se acomodan en una segunda línea.
+- El número de usuarios activos (últimos 30 días, conteo anónimo) ahora se ve en el encabezado, sin abrir la configuración.
 
 ## [0.6.0] - 2026-10-21
 
