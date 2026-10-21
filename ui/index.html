@@ -576,6 +576,7 @@
   </button>
   <button class="bell ver" id="ver" title="Novedades y actualizaciones" data-i18n-title="hdr.verTip"><span id="ver-txt">v</span><span class="count" id="ver-dot" hidden>!</span></button>
   <button class="bell" id="tok-btn" title="Token de warframe.market" data-i18n-title="tok.tip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 14a4 4 0 1 1 3.9-5H21v3h-2v2h-3v-2h-5.100A4 4 0 0 1 7 14zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
+  <button class="bell" id="fb-btn" title="Sugerencias y reporte de bugs" data-i18n-title="fb.tip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-7 11h-2v-2h2v2zm0-4h-2V6h2v3z"/></svg></button>
   <button class="bell" id="help-btn" title="Ayuda: qué hace la app y cómo usarla" data-i18n-title="hdr.helpTip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.5h-2V15.4h2v2.1zm1.9-6.2-.9.9c-.7.7-1 1.2-1 2.3h-2v-.5c0-1 .3-1.8 1-2.5l1.2-1.2c.4-.3.6-.8.6-1.300 0-1.100-.9-2-2-2s-2 .9-2 2H8c0-2.200 1.800-4 4-4s4 1.800 4 4c0 .9-.4 1.700-1.100 2.300z"/></svg></button>
   <button class="bell" id="gear" title="Configuración del ajuste automático de precio" data-i18n-title="hdr.gearTip">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>
@@ -743,6 +744,19 @@
     <textarea id="tok-input" rows="4" style="width:100%" spellcheck="false" placeholder="eyJ..." data-i18n-placeholder="tok.ph"></textarea>
     <div class="muted" id="tok-msg" style="min-height:1.4em"></div>
     <div class="upd-actions"><button class="ghost" id="tok-later" data-i18n="upd.later">Más tarde</button><button id="tok-save" data-i18n="tok.save">Guardar y comprobar</button></div>
+  </div>
+</dialog>
+<dialog id="fb-dialog">
+  <div class="dlg-head"><h3 data-i18n="fb.title">Sugerencias y bugs</h3><button class="icon" id="fb-x" title="Cerrar" data-i18n-title="common.close">×</button></div>
+  <div class="dlg-body">
+    <p><label><input type="radio" name="fb-kind" value="suggestion" checked> <span data-i18n="fb.sug">Sugerencia</span></label> &nbsp; <label><input type="radio" name="fb-kind" value="bug"> <span data-i18n="fb.bug">Reportar un bug</span></label></p>
+    <textarea id="fb-text" rows="5" maxlength="4000" style="width:100%" data-i18n-placeholder="fb.ph" placeholder="Contanos qué pasó o qué mejorarías"></textarea>
+    <input id="fb-contact" maxlength="120" style="width:100%;margin-top:6px" data-i18n-placeholder="fb.contact" placeholder="Contacto (opcional)">
+    <p style="margin:8px 0 2px"><button class="ghost" id="fb-add" data-i18n="fb.add">Adjuntar captura</button> <input type="file" id="fb-file" accept="image/*" multiple hidden> <span class="muted" id="fb-shots"></span></p>
+    <p style="margin:4px 0"><label><input type="checkbox" id="fb-logs"> <span data-i18n="fb.logs">Incluir el registro (log) de la app</span></label> <a href="#" id="fb-logview" data-i18n="fb.view">ver qué se envía</a></p>
+    <pre id="fb-logbox" class="muted" hidden style="max-height:140px;overflow:auto;white-space:pre-wrap;font-size:11px"></pre>
+    <div class="muted" id="fb-msg" style="min-height:1.4em"></div>
+    <div class="upd-actions"><button class="ghost" id="fb-cancel" data-i18n="common.cancel">Cancelar</button><button id="fb-send" data-i18n="fb.send">Enviar</button></div>
   </div>
 </dialog>
 <dialog id="news-dialog">
@@ -3112,11 +3126,56 @@ document.addEventListener('mousedown', (e) => {
     $("#token-dialog").close(); toast(tr("tok.ok", { a: r.name }));
     loadMine(); loadStatus();
   });
+  // ---- Sugerencias y bugs ----
+  let fbShots = [];
+  function fbRenderShots() { $("#fb-shots").textContent = fbShots.length ? tr("fb.shots", { n: fbShots.length }) : ""; }
+  function fbShrink(file) {
+    return new Promise((res) => {
+      const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => {
+        let q = 0.85, scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+        for (let i = 0; i < 6; i++) {
+          const c = document.createElement("canvas"); c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          const d = c.toDataURL("image/jpeg", q).split(",")[1];
+          if (d.length * 0.75 <= 1.4 * 1024 * 1024 || i === 5) { URL.revokeObjectURL(url); return res({ name: "captura.jpg", data: d }); }
+          q -= 0.1; scale *= 0.8;
+        }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); res(null); };
+      img.src = url;
+    });
+  }
+  $("#fb-btn").addEventListener("click", () => {
+    fbShots = []; fbRenderShots(); $("#fb-msg").textContent = ""; $("#fb-logbox").hidden = true; $("#fb-send").disabled = false;
+    $("#fb-text").value = ""; $("#fb-logs").checked = false; $("#fb-dialog").showModal();
+  });
+  $("#fb-x").addEventListener("click", () => $("#fb-dialog").close());
+  $("#fb-cancel").addEventListener("click", () => $("#fb-dialog").close());
+  $("#fb-add").addEventListener("click", () => $("#fb-file").click());
+  $("#fb-file").addEventListener("change", async (e) => {
+    for (const f of e.target.files) { if (fbShots.length >= 3) break; const s = await fbShrink(f); if (s) fbShots.push(s); }
+    e.target.value = ""; fbRenderShots();
+  });
+  $("#fb-logview").addEventListener("click", async (e) => {
+    e.preventDefault(); const b = $("#fb-logbox");
+    if (b.hidden) { b.textContent = await api().feedback_logs() || tr("fb.nolog"); b.hidden = false; } else b.hidden = true;
+  });
+  $("#fb-send").addEventListener("click", async () => {
+    const msg = $("#fb-msg"), btn = $("#fb-send");
+    if ($("#fb-text").value.trim().length < 5) { msg.textContent = tr("fb.too_short"); return; }
+    btn.disabled = true; msg.textContent = tr("fb.sending");
+    const kind = document.querySelector("input[name=fb-kind]:checked").value;
+    const r = await api().feedback_send(kind, $("#fb-text").value, $("#fb-contact").value, $("#fb-logs").checked, fbShots);
+    if (r.ok) { $("#fb-dialog").close(); toast(tr("fb.ok")); return; }
+    btn.disabled = false;
+    msg.textContent = r.error === "rate_limited" ? tr("fb.rate_limited", { m: Math.max(1, Math.ceil((r.wait || 600) / 60)) }) : tr("fb." + r.error);
+  });
   async function checkToken() {
     const s = await api().token_status(); tokHelpUrl = s.help_url;
     if (!s.has) openToken();
   }
-  const HELP_N = 12;
+  const HELP_N = 13;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button>`;

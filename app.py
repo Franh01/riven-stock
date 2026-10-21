@@ -30,6 +30,7 @@ import websocket
 import webview
 
 import cloud_backup
+import feedback
 import store
 import updater
 from orders import OrderCache
@@ -219,6 +220,21 @@ class Api:
         with store.connect() as conn:
             for k, v in kv.items():
                 store.set_setting(conn, k, v)
+
+    # ---- Sugerencias y reportes de bugs ----
+    def feedback_state(self):
+        with store.connect() as conn:
+            return {"wait": feedback.wait_left(conn)}
+
+    def feedback_logs(self):
+        return feedback.read_log(LOG_FILE)
+
+    def feedback_send(self, kind, text, contact, with_logs, shots):
+        logs = feedback.read_log(LOG_FILE) if with_logs else ""
+        with store.connect() as conn:
+            r = feedback.send(conn, updater.version_actual(), kind, text, contact, logs, shots)
+        logging.info("feedback %s -> %s", kind, r.get("error") or "ok")
+        return r
 
     def cloud_info(self):
         with store.connect() as conn:
