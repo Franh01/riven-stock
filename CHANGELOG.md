@@ -6,22 +6,47 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [0.8.1] - 2026-10-21
 
+#### Español
+
 ### Agregado
 - Recorrido guiado de las alertas de oportunidad (botón ? en la tarjeta y en la Ayuda), en español e inglés.
 - Ajustes rediseñados: ventana más ancha en dos columnas ("Precios y alertas" y "General"), con iconos y una sección de datos y copias.
 - "En juego al abrir la app" pasa a Ajustes como switch; "Invisible al cerrar" queda solo en Ajustes y se quita del menú de estado.
 - Las armas vigiladas en Oportunidad se ven como etiquetas con botón para quitarlas.
 - La ventana arranca maximizada.
+- Las notas de versión ahora vienen en español e inglés; la app muestra la de tu idioma.
 
 ### Corregido
 - Alertas de oportunidad: el estimado ya no sale tachado y los textos de cada fila quedan alineados al centro.
 - El tooltip del engranaje decía "ajuste automático de precio"; ahora dice "Ajustes".
 - Falso aviso de falla al abrir: las llamadas de la interfaz esperan a que la API de Python esté lista.
 
+#### English
+
+### Added
+- Guided tour of the opportunity alerts (? button on the card and in Help), in Spanish and English.
+- Release notes now come in Spanish and English; the app shows the one for your language.
+- Redesigned Settings: wider window in two columns ("Prices and alerts" and "General"), with icons and a data and backups section.
+- "In game when opening the app" moves to Settings as a switch; "Invisible when closing" stays only in Settings and is removed from the status menu.
+- Watched weapons in Opportunity show as tags with a button to remove them.
+- The window opens maximized.
+
+### Fixed
+- Opportunity alerts: the estimate is no longer struck through and the text in each row is centered.
+- The gear tooltip said "automatic price adjustment"; it now says "Settings".
+- False failure notice on startup: the interface waits for the Python API to be ready before calling it.
+
 ## [0.8.0] - 2026-10-21
+
+#### Español
 
 ### Agregado
 - Alertas de oportunidad: la app busca en segundo plano publicaciones muy por debajo del estimado (descuento y ganancia mínimos configurables, armas vigiladas a elección) y avisa con un botón a la publicación.
+
+#### English
+
+### Added
+- Opportunity alerts: the app searches in the background for listings far below the estimate (configurable discount and minimum gain, weapons watched at your choice) and notifies you with a button to the listing.
 
 ## [0.7.0] - 2026-10-21
 - Informes de errores: si la app se cierra con un error, al abrirla de nuevo te ofrece enviar un informe técnico (sin token ni datos personales); podés elegir enviarlos siempre.

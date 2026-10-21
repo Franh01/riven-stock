@@ -2816,6 +2816,14 @@ document.addEventListener('mousedown', (e) => {
     }
     return out + (open ? "</ul>" : "");
   }
+  // Notas bilingües: bloques "#### Español" y "#### English"; sin marcas = solo español. Cae al español si falta el idioma.
+  function pickLang(t) {
+    const parts = t.split(/^#### (Español|English)[ 	]*?$/m);
+    if (parts.length < 3) return t;
+    const by = {};
+    for (let i = 1; i < parts.length; i += 2) by[parts[i] === "English" ? "en" : "es"] = parts[i + 1];
+    return by[I18N.lang] || by.es || by.en || "";
+  }
   // Changelog -> una sección por versión, sin el encabezado ni las secciones vacías.
   function renderChangelog(t) {
     const partes = t.split(/^## /m).slice(1);
@@ -2827,14 +2835,14 @@ document.addEventListener('mousedown', (e) => {
       if (!cuerpo.trim()) continue;
       const m = tit.match(/^\[([^\]]+)\](?:\s*-\s*(.+))?$/);
       if (!m || !/^\d/.test(m[1])) continue;
-      out += `<div class="ver-h">${tr("upd.version", { v: escH(m[1]) })}${m[2] ? `<small>${escH(m[2])}</small>` : ""}</div>` + mdLite(cuerpo);
+      out += `<div class="ver-h">${tr("upd.version", { v: escH(m[1]) })}${m[2] ? `<small>${escH(m[2])}</small>` : ""}</div>` + mdLite(pickLang(cuerpo));
     }
     return out || `<p class="muted">${tr("upd.noNews")}</p>`;
   }
   function showUpdate() {
     if (!updInfo) return;
     $("#upd-title").textContent = tr("upd.new", { v: updInfo.version });
-    $("#upd-notes").innerHTML = mdLite(updInfo.notas);
+    $("#upd-notes").innerHTML = mdLite(pickLang(updInfo.notas));
     $("#upd-go").disabled = false; $("#upd-go").textContent = tr("upd.now");
     $("#upd-later").hidden = false; $("#upd-x").hidden = false; $("#upd-dialog").removeAttribute("data-no-backdrop");
     $("#upd-hint").textContent = tr("upd.restartHint");
