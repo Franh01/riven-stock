@@ -17,6 +17,7 @@ import store
 import updater
 from orders import OrderCache
 from pricing import estimate
+from ratelimit import QUEUE
 from wfm_client import SEARCH_CAP, WFMClient, WFMError, cheapest_ingame
 
 ROOT = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
@@ -404,6 +405,10 @@ class Api:
             # Si la búsqueda llegó al corte y no hubo `n` in game, puede haber más fuera del corte.
             "maybe_incomplete": len(found) >= SEARCH_CAP - 10 and len(top) < n,
         }
+
+    def queue_status(self):
+        """Avance de la cola de pedidos a warframe.market (para la barra de progreso)."""
+        return QUEUE.status()
 
     def market_search(self, weapon, stats=(), n=150):
         """Pestaña Mercado: ventas directas de un arma (con esos stats positivos, si hay), de las

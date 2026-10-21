@@ -1,13 +1,13 @@
 """Cliente para la API de warframe.market (rivens, solo ventas directas).
 
 Todas las llamadas a la API pasan por este módulo: si la API cambia, se
-arregla acá. Rate limit: como máximo ~3 requests/segundo.
+arregla acá. Rate limit: como máximo 3 requests/segundo, garantizado por la cola
+central de ratelimit.py (todo pedido, REST o WebSocket, pasa por ahí).
 """
 
 import http.cookiejar
 import json
 import os
-import threading
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -16,10 +16,11 @@ import requests
 import websocket
 from dotenv import load_dotenv
 
+from ratelimit import QUEUE
+
 BASE_URL = "https://api.warframe.market"
 CACHE_DIR = Path(__file__).parent / "cache"
 CATALOG_MAX_AGE_HOURS = 24
-MIN_INTERVAL_S = 0.35  # ~3 req/s
 WS_URL = "wss://ws.warframe.market/socket"
 # Estado del usuario (Invisible / Online / Online in game): va por WebSocket, no por REST.
 STATUSES = ("invisible", "online", "ingame")
@@ -54,17 +55,8 @@ class WFMClient:
         # La API manda una cookie JWT anónima en cada respuesta; si la sesión la reenvía,
         # v1 la prefiere al header Authorization y responde 401. Auth va solo por header.
         self.session.cookies.set_policy(http.cookiejar.DefaultCookiePolicy(allowed_domains=[]))
-        self._lock = threading.Lock()
-        self._last_request = 0.0
 
     # ---- HTTP base ---------------------------------------------------
-
-    def _throttle(self):
-        with self._lock:
-            wait = self._last_request + MIN_INTERVAL_S - time.monotonic()
-            if wait > 0:
-                time.sleep(wait)
-            self._last_request = time.monotonic()
 
     def _request(self, method, path, *, auth=False, **kwargs):
         headers = kwargs.pop("headers", {})
@@ -74,13 +66,10 @@ class WFMClient:
             # Verificado: v1 acepta "JWT <token>" (con "Bearer" da 401); v2 acepta "Bearer <token>".
             scheme = "JWT" if path.startswith("/v1/") else "Bearer"
             headers["Authorization"] = f"{scheme} {self.jwt}"
-        for attempt in range(3):
-            self._throttle()
-            res = self.session.request(method, BASE_URL + path, headers=headers, timeout=20, **kwargs)
-            if res.status_code == 429 and attempt < 2:
-                time.sleep(4 * (attempt + 1))
-                continue
-            break
+        # La cola espacia los pedidos y reintenta sola los 429 (con enfriamiento global).
+        res = QUEUE.submit(
+            lambda: self.session.request(method, BASE_URL + path, headers=headers, timeout=20, **kwargs),
+            label=f"{method} {path}")
         if res.status_code in (401, 403) and auth:
             raise AuthError(f"{res.status_code} en {path}: el JWT no sirve o expiró")
         if res.status_code == 429:
@@ -150,9 +139,10 @@ class WFMClient:
         Devuelve {"status": <último @wfm|event/status/set>, "reply": <respuesta al comando>}."""
         if not self.jwt:
             raise AuthError("Falta WFM_JWT en .env")
-        self._throttle()
-        ws = websocket.create_connection(WS_URL, timeout=timeout, origin="https://warframe.market",
-                                         header=[f"User-Agent: {HEADERS['User-Agent']}"])
+        ws = QUEUE.submit(
+            lambda: websocket.create_connection(WS_URL, timeout=timeout, origin="https://warframe.market",
+                                                header=[f"User-Agent: {HEADERS['User-Agent']}"]),
+            label="WebSocket")
         try:
             ws.send(json.dumps({"route": "@wfm|cmd/auth/signIn", "payload": {"token": self.jwt}, "id": "auth"}))
             status = reply = None

@@ -6,6 +6,7 @@ import threading
 import time
 
 from pricing import slim
+from ratelimit import QUEUE
 
 ONLINE = ("ingame", "online")
 
@@ -106,7 +107,7 @@ class OrderCache:
 
     def _loop(self):
         while not self._stop.wait(self.PAUSE_S):
-            if not self.idle():
+            if not self.idle() or QUEUE.busy():   # nunca le roba turno a lo que pidió el usuario
                 continue
             try:
                 todo = [w for w in self.wanted_fn() if not self.get(w, self.TTL_S)]

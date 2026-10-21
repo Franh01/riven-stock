@@ -182,6 +182,15 @@
   }
   .fab svg { display: block; flex: none; }
 
+  .qbar { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); z-index: 60; width: min(420px, 90vw);
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px;
+    box-shadow: 0 8px 30px #0008; font-size: 12.5px; }
+  .qbar[hidden] { display: none; }
+  .qbar .qtop { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; color: var(--muted); }
+  .qbar .qtop b { color: var(--text); }
+  .qbar .track { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .qbar .fill { height: 100%; width: 0; background: var(--accent-2); transition: width .3s; }
+  .qbar.wait .fill { background: #e5a54b; }
   .toast {
     position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 50;
     background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
@@ -653,6 +662,10 @@
   </form>
 </dialog>
 
+<div class="qbar" id="qbar" hidden>
+  <div class="qtop"><b id="q-title">Consultando warframe.market…</b><span id="q-eta"></span></div>
+  <div class="track"><div class="fill" id="q-fill"></div></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2094,6 +2107,28 @@ document.addEventListener('mousedown', (e) => {
   $("#news-x").addEventListener("click", () => $("#news-dialog").close());
 
   setInterval(loadAlerts, 15000);
+
+  // Barra global: avance de la cola de pedidos (máx. 3 por segundo, en orden de llegada).
+  let qBusy = false;
+  setInterval(async () => {
+    if (qBusy || !window.pywebview) return;
+    qBusy = true;
+    try {
+      const q = await api().queue_status();
+      const bar = $("#qbar");
+      // Un solo pedido y sin demora no vale la pena mostrarlo: parpadearía.
+      const show = q.pending > 1 || q.cooldown_s > 0;
+      bar.hidden = !show;
+      if (show) {
+        bar.classList.toggle("wait", q.cooldown_s > 0);
+        $("#q-title").textContent = q.cooldown_s > 0
+          ? "warframe.market pidió esperar un poco…"
+          : `Consultando warframe.market… ${q.done} de ${q.total}`;
+        $("#q-fill").style.width = q.percent + "%";
+        $("#q-eta").textContent = q.eta_s >= 1 ? `~${Math.ceil(q.eta_s)} s` : "casi listo";
+      }
+    } catch (e) {} finally { qBusy = false; }
+  }, 400);
 
   window.addEventListener("pywebviewready", async () => {
     try {
