@@ -618,6 +618,7 @@
   <button class="bell" id="tok-btn" title="Token de warframe.market" data-i18n-title="tok.tip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 14a4 4 0 1 1 3.9-5H21v3h-2v2h-3v-2h-5.100A4 4 0 0 1 7 14zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
   <button class="bell" id="fb-btn" title="Sugerencias y reporte de bugs" data-i18n-title="fb.tip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-7 11h-2v-2h2v2zm0-4h-2V6h2v3z"/></svg></button>
   <button class="bell" id="help-btn" title="Ayuda: qué hace la app y cómo usarla" data-i18n-title="hdr.helpTip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.5h-2V15.4h2v2.1zm1.9-6.2-.9.9c-.7.7-1 1.2-1 2.3h-2v-.5c0-1 .3-1.8 1-2.5l1.2-1.2c.4-.3.6-.8.6-1.300 0-1.100-.9-2-2-2s-2 .9-2 2H8c0-2.200 1.800-4 4-4s4 1.800 4 4c0 .9-.4 1.700-1.100 2.300z"/></svg></button>
+  <button class="bell" id="opp-btn" title="Alertas de oportunidad" data-i18n-title="hdr.oppTip"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></button>
   <button class="bell" id="gear" title="Ajustes" data-i18n-title="hdr.gearTip">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.700 7.700 0 0 0 0 2l-2.1 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.4 2.600h4l.4-2.600c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>
   </button>
@@ -2825,10 +2826,10 @@ document.addEventListener('mousedown', (e) => {
       <div class="sum-card"><label class="switch-row"><span><b>${ic("globe")}${tr("lang.label")}</b><small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
       <h4 class="cfg-sec">${ic("data", 16)}${tr("cfg.secData")}</h4>
       <div class="sum-card" id="bk-card"><div style="display:flex;justify-content:space-between;align-items:center"><b>${ic("save")}${tr("bk.title")}</b><button class="ghost" id="bk-tour" title="${tr("stock.tourTip")}" style="padding:4px 10px">?</button></div><small style="display:block;margin:2px 0 8px" class="muted">${tr("bk.sub")}</small>
-        <div id="bk-info" class="muted" style="font-size:12px;margin-bottom:8px"></div>
+        <div id="bk-info" class="muted" style="font-size:12px;margin-bottom:8px;min-height:18px"></div>
         <div id="bk-btns" style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="bk-now">${tr("bk.now")}</button><button class="ghost" id="bk-export">${tr("bk.export")}</button><button class="ghost" id="bk-import">${tr("bk.import")}</button><button class="ghost" id="bk-folder">${tr("bk.folder")}</button></div></div>
       <div class="sum-card" id="cl-card"><b>${ic("cloud")}${tr("cl.title")}</b><small style="display:block;margin:2px 0 8px" class="muted">${tr("cl.sub")}</small>
-        <div id="cl-body"></div></div>
+        <div id="cl-body" style="min-height:130px"></div></div>
       <div class="muted" style="font-size:12px">${tr("cfg.total", { h: "<b>" + total.toFixed(1) + " h</b>" })}</div>
     </div></div>`;
     loadBackupInfo(); loadCloud(); setupOpp();
@@ -2884,6 +2885,8 @@ document.addEventListener('mousedown', (e) => {
   });
   const saveCfg = (k, v) => { settings[k] = v; api().set_setting(k, v); };
   $("#gear").addEventListener("click", openConfig);
+  $("#opp-btn").addEventListener("click", () => openConfig().then(() => { const c = $("#opp-card"); if (!c) return; c.scrollIntoView({ block: "center" }); c.animate([{ boxShadow: "0 0 0 2px #e8a33d" }, { boxShadow: "0 0 0 0 transparent" }], { duration: 1600 }); }));
+  new ResizeObserver(() => { if (tour?.place) tour.place(); }).observe($("#cfg-body"));   // el contenido asincrono de Ajustes cambia el alto: el recorrido se realinea
   $("#rd-auto-on").addEventListener("change", (e) => editing && api().set_autodrop(editing.id, e.target.checked).then(loadMine));
   for (const id of ["#rd-ov-h", "#rd-ov-a", "#rd-ov-f"]) $(id).addEventListener("change", () => editing && api().set_overrides(editing.id, $("#rd-ov-h").value, $("#rd-ov-a").value, $("#rd-ov-f").value).then(loadMine));
   $("#cfg-x").addEventListener("click", () => $("#cfg-dialog").close());
@@ -3347,7 +3350,8 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
   #tour-tip button { padding: 6px 12px; }
   #tour-tip label { justify-content: flex-start; text-align: left; }
   #tour-tip label input { width: auto; flex: none; margin: 0; }
-  .help .tour-btn { margin: 2px 0 10px; }
+  .help .tour-pick { display: flex; gap: 8px; margin: 2px 0 10px; }
+  .help .tour-pick select { flex: 1; min-width: 0; }
   .help h4 { margin: 18px 0 4px; color: var(--accent-2); font-size: 15px; }
   .help h4:first-child { margin-top: 0; }
   .help p { margin: 0 0 6px; line-height: 1.5; font-size: 14px; }
@@ -3430,10 +3434,10 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
   const HELP_N = 16;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
-      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><button class="ghost tour-btn" data-tour="inicio">${tr("help.tourStart")}</button> <button class="ghost tour-btn" data-tour="stock">${tr("help.tourStock")}</button> <button class="ghost tour-btn" data-tour="reporte">${tr("help.tourReport")}</button> <button class="ghost tour-btn" data-tour="backup">${tr("help.tourBackup")}</button> <button class="ghost tour-btn" data-tour="opp">${tr("help.tourOpp")}</button>`;
+      let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><div class="tour-pick"><select id="tour-sel">${["inicio", "stock", "reporte", "backup", "opp"].map((k) => `<option value="${k}">${tr("tour.name." + k)}</option>`).join("")}</select><button class="ghost tour-btn" id="tour-go">${tr("help.tourGo")}</button></div>`;
       for (let k = 1; k <= HELP_N; k++) h += `<div class="hsec"><h4>${tr("help." + k + ".t")}</h4><p>${tr("help." + k + ".x")}</p></div>`;
       document.getElementById("help-body").innerHTML = h;
-      document.querySelectorAll("[data-tour]").forEach((b) => b.addEventListener("click", () => startTour(b.dataset.tour)));
+      document.getElementById("tour-go").addEventListener("click", () => startTour(document.getElementById("tour-sel").value));
     };
     renderHelp(); document.addEventListener("langchange", renderHelp);
     document.getElementById("stock-help").addEventListener("click", () => startTour("stock"));
