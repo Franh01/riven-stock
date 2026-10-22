@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.11.0] - 2026-10-22
+
 #### Español
 - Mercado: nueva sección «Lo más movido (24 h)» con las armas más vendidas y las que más publicaciones nuevas tuvieron (datos de la nube). Tocar un arma la busca en el mercado.
 
