@@ -26,7 +26,10 @@ async function top(limit) {
     { $limit: limit },
   ]).toArray();
   const median = (a) => { const b = [...a].sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; };
+  const st = await (await collection("collector_state")).find({ n: { $exists: true } }, { projection: { n: 1, truncated: 1 } }).toArray();
+  const stats = { weapons: st.length, truncated: st.filter((x) => x.truncated).length, ge480: st.filter((x) => x.n >= 480).length };
   return {
+    stats,
     sold: sold.map((d) => ({ weapon: d._id, sold: d.sold, median: median(d.prices) })),
     orders: orders.map((d) => ({ weapon: d._id, orders: d.n })),
     since: since.toISOString(),

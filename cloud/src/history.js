@@ -40,13 +40,14 @@ const slim = (a) => ({
 // Firma de los atributos (sin valores): sirve para detectar la misma publicación republicada.
 const sig = (attrs) => attrs.map((a) => `${a[0]}${a[2] ? "+" : "-"}`).sort().join("|");
 
-async function record(weapon, auctions, now = new Date()) {
+// `gap`: con dos búsquedas (baratas y caras) queda sin ver la franja {lo, hi}; null si se vio todo o se usa el corte simple.
+async function record(weapon, auctions, now = new Date(), gap = null) {
   const { listings, sales, state } = await ensure();
   const market = auctions
     .filter((a) => a.is_direct_sell && a.visible !== false && !a.closed && !a.private)
     .map(slim);
   const cur = new Map(market.map((a) => [a.id, a]));
-  const truncated = auctions.length >= CUT;
+  const truncated = !gap && auctions.length >= CUT;
   const top = market.reduce((m, a) => Math.max(m, a.price), 0);
 
   const last = await state.findOne({ _id: weapon });
@@ -61,6 +62,7 @@ async function record(weapon, auctions, now = new Date()) {
     for (const [id, r] of prev) {
       if (cur.has(id)) continue;
       if (truncated && r.price_last >= top) continue;   // pudo quedar fuera del corte
+      if (gap && r.price_last >= gap.lo && r.price_last <= gap.hi) continue;   // cayó en la franja no vista
       const gone = { $set: { active: false, gone_at: now } };
       if (curSigs.has(`${r.seller}#${r.name}#${sig(r.attrs)}`)) {   // republicada: no es venta
         ops.push({ updateOne: { filter: { _id: id }, update: gone } });
@@ -111,7 +113,7 @@ async function record(weapon, auctions, now = new Date()) {
   }
   if (saleOps.length) await sales.bulkWrite(saleOps, { ordered: false });
   if (ops.length) await listings.bulkWrite(ops, { ordered: false });
-  await state.updateOne({ _id: weapon }, { $set: { at: now, n: market.length, truncated } }, { upsert: true });
+  await state.updateOne({ _id: weapon }, { $set: { at: now, n: market.length, truncated: truncated || !!gap } }, { upsert: true });
   return sold;
 }
 

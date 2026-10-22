@@ -30,6 +30,7 @@ function summarize(auctions) {
   };
 }
 
+const CUT = 480;           // la búsqueda de warframe.market devuelve como máximo ~500
 const MARGIN_MS = 60000;   // tiempo que se deja para cerrar y relanzarse
 const MAX_CHAIN = 30;      // tope de relevos encadenados en un mismo día (evita bucles infinitos)
 
@@ -72,9 +73,19 @@ exports.handler = async (event, context) => {
         if (wait > 0) await sleep(wait);
         try {
           const qs = new URLSearchParams({ type: "riven", weapon_url_name: weapon, buyout_policy: "direct", sort_by: "price_asc" });
-          const auctions = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
+          let auctions = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
+          let gap = null;
+          if (auctions.length >= CUT) {   // la búsqueda corta en ~500: se pide también desde las más caras y se une
+            qs.set("sort_by", "price_desc");
+            const caras = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
+            const ids = new Set(auctions.map((a) => a.id));
+            const lo = Math.max(...auctions.map((a) => a.buyout_price ?? 0));
+            const hi = Math.min(...caras.map((a) => a.buyout_price ?? Infinity));
+            auctions = auctions.concat(caras.filter((a) => !ids.has(a.id)));
+            gap = lo < hi ? { lo, hi } : { lo: 1, hi: 0 };   // sin franja vista -> {1,0} (vacía): se vio todo el mercado
+          }
           await col.updateOne({ weapon, day }, { $set: { weapon, day, ...summarize(auctions) } }, { upsert: true });
-          await history.record(weapon, auctions);
+          await history.record(weapon, auctions, new Date(), gap);
           await state.updateOne({ _id: weapon }, { $set: { slot } });
         } catch (e) {
           lastError = `${weapon}: ${e.message}`;
