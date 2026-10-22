@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.12.0] - 2026-10-22
+
 #### Español
 - Ajustes: nuevo interruptor opcional (apagado por defecto) para compartir tus ventas de forma anónima (arma, atributos, precios y fechas, sin usuario) y mejorar las estimaciones.
 
