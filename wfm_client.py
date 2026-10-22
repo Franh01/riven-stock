@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 
 import store
 from ratelimit import QUEUE
+from updater import version_actual
 
 BASE_URL = "https://api.warframe.market"
 # Instalado (exe) la carpeta de la app no es escribible ni guarda datos: token y cache van a la carpeta de datos.
@@ -36,10 +37,8 @@ HEADERS = {
     "Platform": "pc",
     "Language": "en",
     "Accept": "application/json",
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/130.0 Safari/537.36"
-    ),
+    # Las reglas de warframe.market piden un User-Agent propio (proyecto, versión, repo), sin disfrazarse de navegador.
+    "User-Agent": f"RivenStock/{version_actual()} (+https://github.com/Franh01/riven-stock)",
 }
 
 
