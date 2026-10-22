@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.10.1] - 2026-10-22
+
 #### Español
 - Actualizador: si la descarga se corta o llega corrupta, reintenta una vez sola y, si vuelve a fallar, explica el motivo (descarga incompleta, red, antivirus o proxy) en vez de un error genérico.
 
