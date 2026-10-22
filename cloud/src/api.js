@@ -1,5 +1,6 @@
-// API de lectura (Function URL pública). Solo GET /trend?weapon=<slug>&days=<n>.
-const { snapshots } = require("./db");
+// API de lectura (Function URL pública). GET /trend?weapon=<slug>&days=<n> y GET /top (lo más movido en 24 h).
+const { snapshots, collection } = require("./db");
+const history = require("./history");
 
 const json = (status, body, cache = "public, max-age=300") => ({
   statusCode: status,
@@ -7,8 +8,32 @@ const json = (status, body, cache = "public, max-age=300") => ({
   body: JSON.stringify(body),
 });
 
+// Armas con más ventas inferidas en las últimas 24 h y con más órdenes publicadas en la última foto.
+async function top(limit) {
+  const { sales } = await history.ensure();
+  const since = new Date(Date.now() - 86400000);
+  const sold = await sales.aggregate([
+    { $match: { detected_at: { $gte: since } } },
+    { $group: { _id: "$weapon", sold: { $sum: 1 }, prices: { $push: "$price" } } },
+    { $sort: { sold: -1 } },
+    { $limit: limit },
+  ]).toArray();
+  const state = await collection("collector_state");
+  const orders = await state.find({ n: { $gt: 0 } }, { projection: { n: 1, at: 1 } }).sort({ n: -1 }).limit(limit).toArray();
+  const median = (a) => { const b = [...a].sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; };
+  return {
+    sold: sold.map((d) => ({ weapon: d._id, sold: d.sold, median: median(d.prices) })),
+    orders: orders.map((d) => ({ weapon: d._id, orders: d.n })),
+    since: since.toISOString(),
+  };
+}
+
 exports.handler = async (event) => {
   const q = event.queryStringParameters || {};
+  if ((event.rawPath || "").replace(/\/+$/, "") === "/top") {
+    const limit = Math.min(Math.max(parseInt(q.limit, 10) || 10, 1), 30);
+    return json(200, await top(limit));
+  }
   const weapon = String(q.weapon || "");
   if (!/^[a-z0-9_]{2,60}$/.test(weapon)) return json(400, { error: "weapon inválida" }, "no-store");
   const days = Math.min(Math.max(parseInt(q.days, 10) || 90, 1), 730);

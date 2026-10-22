@@ -597,6 +597,12 @@
   .mk-filters { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
   .mk-lbl { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
   .mk-row { cursor: pointer; }
+  .hot-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .hot-cols h4 { margin: 0 0 6px; }
+  .hot-row { display: flex; align-items: baseline; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
+  .hot-row:hover { background: #a066f614; }
+  .hot-row .n { color: var(--muted); width: 22px; font-size: 12px; }
+  .hot-row .w { flex: 1; }
   .mk-row:hover td { background: #a066f614; }
   tr.busy td:not(.actions) { opacity: .7; }
   tr.busy .editable { cursor: default; }
@@ -670,6 +676,11 @@
       <div class="mk-lbl"><span data-i18n="mkf.neg">Negativo</span> <select id="mkf-neg"><option value="any" data-i18n="mkf.any">Cualquiera</option><option value="none" data-i18n="mkf.none">Sin negativo</option><option value="has" data-i18n="mkf.has">Con negativo</option></select></div>
     </div>
     <div id="mk-results"></div>
+  </section>
+
+  <section class="card view-market" id="mk-hot">
+    <div class="card-head"><h2 data-i18n="hot.title">Lo más movido (24 h)</h2><button class="icon" id="hot-reload" title="Actualizar" data-i18n-title="hot.reload">↻</button></div>
+    <div id="hot-body"><small class="muted" data-i18n="common.loading">Cargando…</small></div>
   </section>
 
   <section class="card view-mine">
@@ -2767,6 +2778,26 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     }
   }
   $("#mk-go").addEventListener("click", runMarket);
+  // Lo más movido (24 h): lista de la nube; tocar un arma la busca en el mercado.
+  async function loadHot() {
+    const body = $("#hot-body");
+    let r;
+    try { r = await api().market_top(10); } catch (e) { r = { error: true }; }
+    if (!r || r.error) { body.innerHTML = `<small class="muted">${tr("hot.err")}</small>`; return; }
+    const name = (slug) => weaponBySlug[slug]?.name || slug;
+    const list = (rows, line) => rows.length ? rows.map((x, i) => `<div class="hot-row" data-w="${esc(x.weapon)}"><span class="n">${i + 1}</span><span class="w">${esc(name(x.weapon))}</span>${line(x)}</div>`).join("")
+      : `<small class="muted">${tr("hot.none")}</small>`;
+    body.innerHTML = `<div class="hot-cols">
+      <div><h4>${tr("hot.sold")}</h4>${list(r.sold || [], (x) => `<small class="muted">${tr("hot.soldLine", { n: x.sold, p: x.median })}</small>`)}</div>
+      <div><h4>${tr("hot.orders")}</h4>${list(r.orders || [], (x) => `<small class="muted">${tr("hot.ordersLine", { n: x.orders })}</small>`)}</div></div>
+      <small class="muted" style="display:block;margin-top:8px">${tr("hot.note")}</small>`;
+  }
+  $("#hot-reload").addEventListener("click", loadHot);
+  $("#hot-body").addEventListener("click", (e) => {
+    const row = e.target.closest(".hot-row"); if (!row) return;
+    mkWeapon.set(row.dataset.w);
+    refreshMkStats(); runMarket(); window.scrollTo({ top: 0, behavior: "smooth" });
+  });
   $("#mk-results").addEventListener("click", (e) => {
     const h = e.target.closest(".mk-sort");
     if (h) { mkSort = mkSort.k === h.dataset.k ? { k: mkSort.k, d: -mkSort.d } : { k: h.dataset.k, d: 1 }; renderMarket(); return; }
@@ -2776,6 +2807,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const b = e.target.closest("button"); if (!b) return;
     document.querySelector("main").dataset.view = b.dataset.view;
     document.querySelectorAll("#views button").forEach((x) => x.classList.toggle("on", x === b));
+    if (b.dataset.view === "market") loadHot();
     if (b.dataset.view === "report") { const ts = tourState(); if (!ts.off && !ts.done.reporte) setTimeout(() => startTour("reporte"), 300); }
   });
 
@@ -3636,7 +3668,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     const s = await api().token_status(); tokHelpUrl = s.help_url;
     if (!s.has) openToken();
   }
-  const HELP_N = 16;
+  const HELP_N = 17;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><div class="tour-pick"><select id="tour-sel">${["inicio", "stock", "reporte", "backup", "opp"].map((k) => `<option value="${k}">${tr("tour.name." + k)}</option>`).join("")}</select><button class="ghost tour-btn" id="tour-go">${tr("help.tourGo")}</button></div>`;

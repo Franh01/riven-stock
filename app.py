@@ -622,6 +622,15 @@ class Api:
             pass
         return {"points": [by_day[d] for d in sorted(by_day)]}
 
+    def market_top(self, limit=10):
+        """Lo más movido en las últimas 24 h según la nube: armas con más ventas inferidas y con más órdenes."""
+        try:
+            r = requests.get(CLOUD_API_URL.rstrip("/") + "/top", params={"limit": limit}, timeout=8)
+            r.raise_for_status()
+            return r.json()
+        except (requests.RequestException, ValueError):
+            return {"error": True}
+
     def weapon_orders(self, weapon):
         """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta)."""
         try:

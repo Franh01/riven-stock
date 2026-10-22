@@ -16,6 +16,7 @@ async function ensure() {
       await l.createIndex({ weapon: 1, active: 1 });
       await l.createIndex({ gone_at: 1 }, { expireAfterSeconds: KEEP_GONE_S });
       await s.createIndex({ weapon: 1, detected_at: 1 });
+      await s.createIndex({ detected_at: 1 });
       return { listings: l, sales: s, state: await collection("collector_state") };
     })();
   }
