@@ -1811,11 +1811,8 @@ document.addEventListener('mousedown', (e) => {
   document.addEventListener("langchange", renderReport);
 
   // ---- Exportar datos y resumen mensual -------------------------------------
-  const csvCell = (v) => { const t = v === null || v === undefined ? "" : String(v); return /[",;
-]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
-  const csvRows = (rows) => rows.map((r) => r.map(csvCell).join(";")).join("
-") + "
-";
+  const csvCell = (v) => { const t = v === null || v === undefined ? "" : String(v); return /[",;\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const csvRows = (rows) => rows.map((r) => r.map(csvCell).join(";")).join("\r\n") + "\r\n";
   const statsText = (stats) => (stats || []).map((st) => { const m = statBySlug[st.slug]; return `${st.value > 0 ? "+" : ""}${st.value}${UNIT[m?.unit] ?? ""} ${m?.name ?? st.slug}`; }).join(" | ");
   const isoDay = (d) => new Date(d).toISOString().slice(0, 10);
   const monthKey = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}`; };
