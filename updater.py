@@ -85,16 +85,35 @@ def preparar(info, timeout=60):
     staging = Path(tempfile.mkdtemp(prefix="rivenstock_upd_"))
     esperado = requests.get(info["sha_url"], timeout=timeout).text.split()[0].strip().lower()
     zpath = staging / ("RivenStock-Setup.exe" if FROZEN else "paquete.zip")
-    h = hashlib.sha256()
-    with requests.get(info["zip_url"], timeout=timeout, stream=True) as r:
-        r.raise_for_status()
-        with open(zpath, "wb") as f:
-            for chunk in r.iter_content(1 << 16):
-                f.write(chunk)
-                h.update(chunk)
-    if h.hexdigest() != esperado:
+    motivo = ""
+    for _intento in range(2):   # una descarga cortada o corrupta suele salir bien al repetirla
+        h = hashlib.sha256()
+        total = 0
+        esperado_len = None
+        try:
+            with requests.get(info["zip_url"], timeout=timeout, stream=True) as r:
+                r.raise_for_status()
+                esperado_len = int(r.headers.get("Content-Length") or 0) or None
+                with open(zpath, "wb") as f:
+                    for chunk in r.iter_content(1 << 16):
+                        f.write(chunk)
+                        h.update(chunk)
+                        total += len(chunk)
+        except requests.RequestException as e:
+            motivo = f"La descarga se cortó ({type(e).__name__}). Revisá tu conexión y reintentá."
+            continue
+        if esperado_len and total != esperado_len:
+            motivo = f"La descarga quedó incompleta ({total} de {esperado_len} bytes). Reintentá; si sigue igual, puede ser tu antivirus o la red."
+            continue
+        if h.hexdigest() != esperado:
+            motivo = (f"El paquete descargado no coincide con su sha256 (esperado {esperado[:12]}…, obtenido {h.hexdigest()[:12]}…, "
+                      f"{total} bytes); no se instala. Puede ser un antivirus o proxy que modifica la descarga.")
+            continue
+        motivo = ""
+        break
+    if motivo:
         shutil.rmtree(staging, ignore_errors=True)
-        raise RuntimeError("El paquete descargado no coincide con su sha256; no se instala.")
+        raise RuntimeError(motivo)
     if FROZEN:
         return staging, zpath
     nuevo = staging / "nuevo"
