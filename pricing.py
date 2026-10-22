@@ -98,7 +98,7 @@ def similarity(pos, neg, rolls, other, rtype=None, rank=None):
         # sin negativo vale más que con uno; un negativo distinto cambia poco
         sim *= 0.9 if (neg and oneg) else 0.8
     if len(pos) != len(opos):
-        sim *= 0.8   # 2 y 3 positivos no se venden igual: la misma configuración tiene que ir primero
+        sim *= 0.6   # 2 y 3 positivos no se venden igual: la misma configuración tiene que ir primero
     sim *= 1.0 - min(abs(rolls - other["r"]), 20) * 0.004
     return max(sim, 0.0)
 
