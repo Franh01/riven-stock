@@ -25,8 +25,9 @@ def cheapest_online(auctions, n=8):
 class OrderCache:
     IDLE_S = 30        # sin uso de la app durante este tiempo = idle
     TTL_S = 600        # pasado esto una entrada se vuelve a cargar
-    PAUSE_S = 3        # descanso entre armas (además del _throttle del cliente)
-    BACKOFF_S = 60     # espera tras un error (429, red)
+    PAUSE_S = 6        # descanso entre armas: la búsqueda de contratos admite ~10-20 pedidos por minuto (docs rules)
+    BACKOFF_S = 10     # primera espera tras un error (429, red); se duplica en cada error seguido
+    BACKOFF_MAX_S = 60  # tope: una ventana completa del límite por minuto
 
     def __init__(self, client, wanted_fn, path=None):
         self.client = client
@@ -36,6 +37,7 @@ class OrderCache:
         self._lock = threading.Lock()
         self._active = time.monotonic()
         self._stop = threading.Event()
+        self._fails = 0                 # errores seguidos de la carga de fondo
         self.path = path
         self._restore()
 
@@ -114,5 +116,7 @@ class OrderCache:
                 todo = [w for w in self.wanted_fn() if not self.get(w, self.TTL_S)]
                 if todo:
                     self.load(todo[0])
+                self._fails = 0
             except Exception:
-                self._stop.wait(self.BACKOFF_S)   # 429, sin red, etc.: esperar y seguir
+                self._fails += 1                  # 429, sin red, etc.: esperar (creciente) y seguir
+                self._stop.wait(min(self.BACKOFF_S * 2 ** (self._fails - 1), self.BACKOFF_MAX_S))
