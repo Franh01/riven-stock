@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.10.0] - 2026-10-22
+
 #### Español
 - Reporte: el gráfico de ganancia por período ahora tiene eje vertical de platino, líneas guía, las barras apoyan sobre el eje, y al pasar el mouse la barra brilla y muestra la ganancia de ese período.
 - Reporte: nuevos botones para exportar tus ventas (respeta los filtros del reporte) y tu stock con costos a CSV, y un resumen mensual imprimible (se abre en el navegador para imprimir o guardar como PDF).
