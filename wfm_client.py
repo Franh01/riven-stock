@@ -208,7 +208,7 @@ class WFMClient:
         if not self.jwt:
             raise AuthError("Falta WFM_JWT en .env")
         ws = QUEUE.submit(
-            lambda: websocket.create_connection(WS_URL, timeout=timeout, origin="https://warframe.market",
+            lambda: websocket.create_connection(WS_URL, timeout=timeout,
                                                 header=[f"User-Agent: {HEADERS['User-Agent']}"]),
             label="ws_status")
         try:
