@@ -560,6 +560,7 @@
   main:not([data-view="report"]) > .view-report { display: none; }
   .rp-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 12px; }
   .rp-filters > label { display: flex; flex-direction: column; gap: 4px; }
+  .rp-export button { height: 40px; min-width: 170px; }
   .rp-filters input[type=date] { height: 40px; box-sizing: border-box; color-scheme: dark; }
   .rp-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
   .rp-kpi { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
@@ -1767,7 +1768,8 @@ document.addEventListener('mousedown', (e) => {
       <label><span>${tr("lot.type")}</span> <select data-f="type">${opt("", tr("rp.allTypes"), rep.type)}${types.map((t) => opt(t, typeName(t), rep.type)).join("")}</select></label>
     </div>`;
 
-    if (!sales.length) { $("#report").innerHTML = filters + `<div class="state">${tr("rp.empty")}</div>`; return; }
+    const exportBar = reportExportBar();
+    if (!sales.length) { $("#report").innerHTML = filters + exportBar + `<div class="state">${tr("rp.empty")}</div>`; return; }
 
     const kpis = `<div class="rp-kpis">
       ${kpi(tr("rp.sales"), sales.length)}
@@ -1800,13 +1802,90 @@ document.addEventListener('mousedown', (e) => {
         <td class="bar-cell">${r.known && r.profit > 0 ? `<div class="rbar" style="width:${(r.profit / rmax) * 100}%"></div>` : ""}</td></tr>`).join("")}
       </tbody></table>`;
 
-    $("#report").innerHTML = filters + kpis + chart + ranking + reportRolling() + reportTiming(sales);
+    $("#report").innerHTML = filters + exportBar + kpis + chart + ranking + reportRolling() + reportTiming(sales);
   }
   $("#report").addEventListener("change", (e) => {
     const f = e.target.dataset?.f; if (!f) return;
     rep[f] = e.target.value; renderReport();
   });
   document.addEventListener("langchange", renderReport);
+
+  // ---- Exportar datos y resumen mensual -------------------------------------
+  const csvCell = (v) => { const t = v === null || v === undefined ? "" : String(v); return /[",;
+]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const csvRows = (rows) => rows.map((r) => r.map(csvCell).join(";")).join("
+") + "
+";
+  const statsText = (stats) => (stats || []).map((st) => { const m = statBySlug[st.slug]; return `${st.value > 0 ? "+" : ""}${st.value}${UNIT[m?.unit] ?? ""} ${m?.name ?? st.slug}`; }).join(" | ");
+  const isoDay = (d) => new Date(d).toISOString().slice(0, 10);
+  const monthKey = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}`; };
+  const soldClosed = () => closed.filter((c) => !c.pending && c.sold_price);
+
+  function reportExportBar() {
+    const months = [...new Set(soldClosed().map((c) => monthKey(c.closed_at)))].sort().reverse();
+    if (!rep.month || !months.includes(rep.month)) rep.month = months[0] || "";
+    const mopt = months.map((m) => `<option value="${m}"${m === rep.month ? " selected" : ""}>${m}</option>`).join("");
+    return `<div class="rp-filters rp-export">
+      <button class="ghost" data-exp="sales">${tr("exp.sales")}</button>
+      <button class="ghost" data-exp="stock">${tr("exp.stock")}</button>
+      ${months.length ? `<label><span>${tr("exp.month")}</span> <select data-f="month">${mopt}</select></label><button class="ghost" data-exp="month">${tr("exp.summary")}</button>` : ""}
+    </div>`;
+  }
+
+  async function saveExport(name, content, open) {
+    const r = await api().save_text_file(name, content, !!open);
+    if (r.error) toast(tr("exp.error", { e: r.error }), true);
+    else if (r.ok) toast(tr("exp.saved"));
+  }
+
+  function exportSalesCsv() {
+    const rows = [[tr("exp.c.date"), tr("common.weapon"), tr("exp.c.riven"), tr("exp.c.stats"), tr("exp.c.sold"), tr("exp.c.cost"), tr("exp.c.profit"), tr("exp.c.hours")]];
+    const sales = reportSales();
+    const byId = new Map(closed.map((c) => [c.closed_at + "|" + c.weapon + "|" + c.sold_price, c]));
+    for (const s of sales.sort((a, b) => a.at - b.at)) {
+      const c = byId.get(s.at.toISOString() + "|" + s.weapon + "|" + s.sold) || closed.find((x) => x.weapon === s.weapon && new Date(x.closed_at).getTime() === s.at.getTime() && x.sold_price === s.sold);
+      rows.push([isoDay(s.at), weaponName(s.weapon), c?.name ?? "", statsText(c?.stats), s.sold, s.cost ?? "", s.profit ?? "", s.hours === null ? "" : Math.round(s.hours * 10) / 10]);
+    }
+    saveExport(`riven-stock-ventas-${isoDay(Date.now())}.csv`, csvRows(rows));
+  }
+
+  function exportStockCsv() {
+    const rows = [[tr("common.weapon"), tr("exp.c.riven"), tr("exp.c.stats"), tr("exp.c.price"), tr("exp.c.cost"), tr("exp.c.created")]];
+    for (const a of mine) rows.push([weaponName(a.weapon), a.name, statsText(a.stats), a.price, costs[a.id]?.cost ?? "", a.created ? isoDay(a.created) : ""]);
+    saveExport(`riven-stock-stock-${isoDay(Date.now())}.csv`, csvRows(rows));
+  }
+
+  function exportMonthSummary() {
+    const m = rep.month; if (!m) return;
+    const sales = soldClosed().filter((c) => monthKey(c.closed_at) === m).map((c) => {
+      const cost = costs[c.id]?.cost;
+      return { weapon: c.weapon, name: c.name, at: new Date(c.closed_at), sold: c.sold_price, cost, profit: cost === undefined ? null : c.sold_price - cost };
+    }).sort((a, b) => a.at - b.at);
+    const revenue = sales.reduce((t, s) => t + s.sold, 0);
+    const known = sales.filter((s) => s.profit !== null);
+    const profit = known.reduce((t, s) => t + s.profit, 0);
+    const spent = known.reduce((t, s) => t + s.cost, 0);
+    const margin = spent > 0 ? `${Math.round((profit / spent) * 100)}%` : "—";
+    const byW = new Map();
+    for (const s of sales) { const r = byW.get(s.weapon) || { n: 0, rev: 0, pr: 0 }; r.n++; r.rev += s.sold; r.pr += s.profit || 0; byW.set(s.weapon, r); }
+    const top = [...byW].sort((a, b) => b[1].pr - a[1].pr || b[1].rev - a[1].rev);
+    const h = esc;
+    const html = `<!doctype html><html lang="${I18N.lang || "es"}"><head><meta charset="utf-8"><title>${h(tr("exp.title", { m }))}</title>
+<style>body{font-family:Segoe UI,Arial,sans-serif;max-width:820px;margin:30px auto;color:#111}h1{margin:0 0 4px}table{border-collapse:collapse;width:100%;margin:10px 0 24px}th,td{border-bottom:1px solid #ccc;padding:6px 8px;text-align:left}th{background:#f2f2f2}.k{display:flex;gap:14px;flex-wrap:wrap}.k div{border:1px solid #ccc;border-radius:8px;padding:10px 16px}.k b{display:block;font-size:1.3rem}@media print{body{margin:0}}</style></head><body>
+<h1>${h(tr("exp.title", { m }))}</h1><div>Riven Stock</div>
+<div class="k"><div>${h(tr("rp.sales"))}<b>${sales.length}</b></div><div>${h(tr("rp.revenue"))}<b>${h(fmtP(revenue))}</b></div><div>${h(tr("rp.profit"))}<b>${known.length ? h(fmtP(profit)) : "—"}</b></div><div>${h(tr("rp.margin"))}<b>${margin}</b></div></div>
+<h2>${h(tr("rp.ranking"))}</h2><table><tr><th>${h(tr("common.weapon"))}</th><th>${h(tr("rp.sales"))}</th><th>${h(tr("rp.revenue"))}</th><th>${h(tr("rp.profit"))}</th></tr>
+${top.map(([w, r]) => `<tr><td>${h(weaponName(w))}</td><td>${r.n}</td><td>${h(fmtP(r.rev))}</td><td>${h(fmtP(r.pr))}</td></tr>`).join("")}</table>
+<h2>${h(tr("exp.detail"))}</h2><table><tr><th>${h(tr("exp.c.date"))}</th><th>${h(tr("exp.c.riven"))}</th><th>${h(tr("exp.c.sold"))}</th><th>${h(tr("exp.c.cost"))}</th><th>${h(tr("exp.c.profit"))}</th></tr>
+${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} ${h(s.name || "")}</td><td>${h(fmtP(s.sold))}</td><td>${s.cost === undefined ? "—" : h(fmtP(s.cost))}</td><td>${s.profit === null ? "—" : h(fmtP(s.profit))}</td></tr>`).join("")}</table>
+</body></html>`;
+    saveExport(`riven-stock-resumen-${m}.html`, html, true);
+  }
+
+  $("#report").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-exp]"); if (!b) return;
+    ({ sales: exportSalesCsv, stock: exportStockCsv, month: exportMonthSummary })[b.dataset.exp]();
+  });
 
   // ---- Modal: riven → referencia → publicar / editar ------------------------
 

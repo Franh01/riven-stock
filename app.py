@@ -3,6 +3,7 @@
 import ctypes
 import json
 import logging
+import os
 import sys
 import threading
 import traceback
@@ -209,6 +210,22 @@ class Api:
         try:
             Path(dest).unlink(missing_ok=True)
             store._copy_db(store.DB_PATH, dest)
+        except Exception as e:
+            return {"error": str(e)}
+        return {"ok": True, "path": str(dest)}
+
+    def save_text_file(self, name, content, open_after=False):
+        """Guarda un texto (CSV o HTML del resumen) donde elija el usuario. El CSV va con BOM para que Excel lo abra bien."""
+        ext = Path(name).suffix.lower()
+        types = {".csv": ("CSV (*.csv)",), ".html": ("Página web (*.html)",)}.get(ext, ("Todos los archivos (*.*)",))
+        dest = self._window.create_file_dialog(webview.FileDialog.SAVE, save_filename=name, file_types=types)
+        if not dest:
+            return {"cancelled": True}
+        dest = dest if isinstance(dest, str) else dest[0]
+        try:
+            Path(dest).write_text(content, encoding="utf-8-sig" if ext == ".csv" else "utf-8", newline="")
+            if open_after:
+                os.startfile(dest)
         except Exception as e:
             return {"error": str(e)}
         return {"ok": True, "path": str(dest)}
