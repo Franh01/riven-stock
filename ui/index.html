@@ -566,14 +566,25 @@
   .rp-kpi { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
   .rp-kpi small { display: block; color: var(--muted); font-size: .75rem; margin-bottom: 2px; }
   .rp-kpi b { font-size: 1.15rem; }
-  .rp-chart { display: flex; align-items: stretch; justify-content: flex-start; gap: 4px; height: 170px; margin: 6px 0 4px; border-bottom: 1px solid var(--line); }
-  .rp-col { flex: 1; min-width: 6px; max-width: 40px; display: flex; flex-direction: column; }
-  .rp-col i { display: block; border-radius: 3px; min-height: 2px; }
+  .rp-plot { display: flex; gap: 4px; margin: 14px 0 0; }
+  .rp-yaxis { position: relative; width: 46px; height: 170px; flex: none; color: var(--muted); font-size: .68rem; }
+  .rp-yaxis span { position: absolute; right: 0; transform: translateY(-50%); white-space: nowrap; }
+  .rp-chart { position: relative; display: flex; align-items: stretch; justify-content: flex-start; gap: 4px; height: 170px; flex: 1; }
+  .rp-grid { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line); opacity: .6; pointer-events: none; }
+  .rp-grid.zero { border-top: 1px solid var(--muted); opacity: .8; }
+  .rp-col { position: relative; z-index: 1; flex: 1; min-width: 6px; max-width: 40px; display: flex; flex-direction: column; border-radius: 4px; transition: background .12s; }
+  .rp-col:hover { background: rgba(255,255,255,.06); z-index: 5; }
+  .rp-col i { display: block; border-radius: 3px; min-height: 2px; transition: box-shadow .12s, filter .12s; }
   .rp-col .up { background: var(--pos); }
   .rp-col .dn { background: var(--neg); }
+  .rp-col:hover .up { box-shadow: 0 0 10px 2px var(--pos); filter: brightness(1.15); }
+  .rp-col:hover .dn { box-shadow: 0 0 10px 2px var(--neg); filter: brightness(1.15); }
+  .rp-tip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; font-size: .75rem; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  .rp-tip small { display: block; color: var(--muted); }
+  .rp-col:hover .rp-tip { display: block; }
   .rp-half { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
   .rp-half.b { justify-content: flex-start; }
-  .rp-labels { display: flex; justify-content: flex-start; gap: 4px; color: var(--muted); font-size: .7rem; }
+  .rp-labels { display: flex; justify-content: flex-start; gap: 4px; color: var(--muted); font-size: .7rem; margin: 4px 0 0 50px; }
   .rp-labels span { flex: 1; min-width: 6px; max-width: 40px; text-align: center; overflow: hidden; white-space: nowrap; }
   .rp-heat { display: flex; flex-direction: column; gap: 3px; margin: 6px 0; }
   .rp-hrow { display: grid; grid-template-columns: 38px repeat(24, 1fr); gap: 3px; align-items: center; font-size: .72rem; color: var(--muted); }
@@ -1781,10 +1792,15 @@ document.addEventListener('mousedown', (e) => {
 
     const bk = reportBuckets(sales);
     const max = Math.max(1, ...bk.map((b) => Math.abs(b.v)));
+    const hasNeg = bk.some((b) => b.v < 0);
+    const tv = (v) => (v > 0 ? "+" : "") + fmtP(Math.round(v));
+    const ticks = (hasNeg ? [max, max / 2, 0, -max / 2, -max] : [max, max / 2, 0]).map((v) => ({ v, top: (1 - v / max) * (hasNeg ? 50 : 100), label: v === 0 ? "0" : tv(v) }));
     const chart = `<h3 style="margin:10px 0 0;font-size:.95rem">${tr("rp.overTime")} <small style="color:var(--muted);font-weight:400">· ${tr("rp.per." + rep.span)} · ${tr("rp.scale", { v: fmtP(max) })}</small></h3>
-      <div class="rp-chart">${bk.map((b) => `<div class="rp-col" title="${esc(b.label)}: ${b.v > 0 ? "+" : ""}${fmtP(b.v)}">
+      <div class="rp-plot"><div class="rp-yaxis">${ticks.map((t) => `<span style="top:${t.top}%">${t.label}</span>`).join("")}</div>
+      <div class="rp-chart">${ticks.map((t) => `<div class="rp-grid${t.v === 0 ? " zero" : ""}" style="top:${t.top}%"></div>`).join("")}${bk.map((b) => `<div class="rp-col">
+        <div class="rp-tip"><small>${esc(b.label)}</small>${tr("rp.profit")}: <b>${b.v > 0 ? "+" : ""}${fmtP(b.v)}</b></div>
         <div class="rp-half">${b.v > 0 ? `<i class="up" style="height:${(b.v / max) * 100}%"></i>` : ""}</div>
-        <div class="rp-half b">${b.v < 0 ? `<i class="dn" style="height:${(-b.v / max) * 100}%"></i>` : ""}</div></div>`).join("")}</div>
+        ${hasNeg ? `<div class="rp-half b">${b.v < 0 ? `<i class="dn" style="height:${(-b.v / max) * 100}%"></i>` : ""}</div>` : ""}</div>`).join("")}</div></div>
       <div class="rp-labels">${bk.map((b, i) => `<span>${bk.length > 14 && i % Math.ceil(bk.length / 12) ? "" : esc(b.label)}</span>`).join("")}</div>`;
 
     const byW = new Map();
