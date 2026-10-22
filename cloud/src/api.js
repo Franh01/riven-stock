@@ -8,7 +8,7 @@ const json = (status, body, cache = "public, max-age=300") => ({
   body: JSON.stringify(body),
 });
 
-// Armas con más ventas inferidas en las últimas 24 h y con más órdenes publicadas en la última foto.
+// Armas con más ventas inferidas en las últimas 24 h y con más publicaciones nuevas (la búsqueda de la API corta en 500, así que el total de órdenes no sirve).
 async function top(limit) {
   const { sales } = await history.ensure();
   const since = new Date(Date.now() - 86400000);
@@ -18,8 +18,13 @@ async function top(limit) {
     { $sort: { sold: -1 } },
     { $limit: limit },
   ]).toArray();
-  const state = await collection("collector_state");
-  const orders = await state.find({ n: { $gt: 0 } }, { projection: { n: 1, at: 1 } }).sort({ n: -1 }).limit(limit).toArray();
+  const { listings } = await history.ensure();
+  const orders = await listings.aggregate([
+    { $match: { created: { $gte: since.toISOString() } } },
+    { $group: { _id: "$weapon", n: { $sum: 1 } } },
+    { $sort: { n: -1 } },
+    { $limit: limit },
+  ]).toArray();
   const median = (a) => { const b = [...a].sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; };
   return {
     sold: sold.map((d) => ({ weapon: d._id, sold: d.sold, median: median(d.prices) })),

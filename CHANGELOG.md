@@ -5,10 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
-- Mercado: nueva sección «Lo más movido (24 h)» con las armas más vendidas y las que más órdenes tienen ahora (datos de la nube). Tocar un arma la busca en el mercado.
+- Mercado: nueva sección «Lo más movido (24 h)» con las armas más vendidas y las que más publicaciones nuevas tuvieron (datos de la nube). Tocar un arma la busca en el mercado.
 
 #### English
-- Market: new "Most active (24 h)" section with the best-selling weapons and the ones with the most orders right now (cloud data). Tapping a weapon searches it on the market.
+- Market: new "Most active (24 h)" section with the best-selling weapons and the ones with the most new listings (cloud data). Tapping a weapon searches it on the market.
 
 ## [0.10.1] - 2026-10-22
 
@@ -16,7 +16,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - Actualizador: si la descarga se corta o llega corrupta, reintenta una vez sola y, si vuelve a fallar, explica el motivo (descarga incompleta, red, antivirus o proxy) en vez de un error genérico.
 
 #### English
-- Market: new "Most active (24 h)" section with the best-selling weapons and the ones with the most orders right now (cloud data). Tapping a weapon searches it on the market.
+- Market: new "Most active (24 h)" section with the best-selling weapons and the ones with the most new listings (cloud data). Tapping a weapon searches it on the market.
 - Updater: if the download is cut off or arrives corrupted, it retries once and, if it fails again, explains why (incomplete download, network, antivirus or proxy) instead of a generic error.
 
 ## [0.10.0] - 2026-10-22
