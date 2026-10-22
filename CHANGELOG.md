@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.9.1] - 2026-10-22
+
 #### Español
 - Mercado: trae hasta 500 publicaciones (antes cortaba en las 150 más baratas y ocultaba a los vendedores online más caros). Columna de fecha de publicación, y se puede ordenar por precio, estado del vendedor y fecha (clic en el encabezado). Ahora se listan todas las publicaciones del arma (antes solo vendedores en juego u online) y hay filtros sobre la tabla: estado del vendedor, precio máximo, rolls máximos y negativo.
 - El estimador tiene en cuenta cuánto lleva publicado tu riven sin venderse, que los comparables más baratos y parecidos marcan el nivel, y que las publicaciones viejas pesan menos; las razones se ven en la tarjeta.
