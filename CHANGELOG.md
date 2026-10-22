@@ -7,10 +7,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 #### Español
 - Reporte: el gráfico de ganancia por período ahora tiene eje vertical de platino, líneas guía, las barras apoyan sobre el eje, y al pasar el mouse la barra brilla y muestra la ganancia de ese período.
 - Reporte: nuevos botones para exportar tus ventas (respeta los filtros del reporte) y tu stock con costos a CSV, y un resumen mensual imprimible (se abre en el navegador para imprimir o guardar como PDF).
+- Estimador: los comparables con distinta cantidad de positivos que tu riven pesan bastante menos; la misma configuración va primero.
 
 #### English
 - Report: the profit-over-time chart now has a vertical platinum axis, guide lines, bars sit on the axis, and hovering a bar makes it glow and shows that period's profit.
 - Report: new buttons to export your sales (honoring the report filters) and your stock with costs to CSV, plus a printable monthly summary (opens in the browser to print or save as PDF).
+- Estimator: comparables with a different number of positives than your riven count for much less; the same configuration comes first.
 
 ## [0.9.1] - 2026-10-22
 
