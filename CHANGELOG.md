@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Compartir ventas anónimas ahora viene activado por defecto (se puede apagar en Ajustes, Copia en la nube).
+
+#### English
+- Anonymous sales sharing is now on by default (you can turn it off in Settings, Cloud backup).
+
 ## [0.12.0] - 2026-10-22
 
 #### Español

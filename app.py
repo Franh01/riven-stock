@@ -333,7 +333,7 @@ class Api:
         with store.connect() as conn:
             st = store.settings(conn)
         return {"code": st.get("cloud_code"), "auto": st.get("cloud_auto", True), "last": st.get("cloud_last"),
-                "active": st.get("cloud_active"), "share": bool(st.get("share_sales"))}
+                "active": st.get("cloud_active"), "share": st.get("share_sales") is not False}
 
     def cloud_enable(self):
         """Crea el código de recuperación y sube la primera copia."""
@@ -413,7 +413,7 @@ class Api:
 
     def _share_sales(self, st, iid):
         """Si el usuario lo activó, manda las ventas nuevas (lotes de 50) y recuerda hasta dónde llegó."""
-        if not st.get("share_sales"):
+        if st.get("share_sales") is False:   # activado por defecto; solo se frena si el usuario lo apaga
             return
         since = st.get("share_sales_last")
         for _ in range(10):
