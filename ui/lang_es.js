@@ -578,6 +578,8 @@ window.LANGS.es = {
   "cl.copied": "Código copiado.",
   "cl.warn": "Guardá este código en un lugar seguro. Sin él no se puede recuperar la copia, y no hay forma de pedirlo de nuevo.",
   "cl.last": "Última subida: {d}.",
+  "cl.share": "Compartir mis ventas de forma anónima",
+  "cl.shareHint": "Al marcar una venta se envía arma, atributos, precio publicado, precio vendido y fechas, sin tu usuario. Sirve para mejorar las estimaciones.",
   "cl.auto": "Subir automáticamente cada día y al cerrar",
   "cl.now": "Subir ahora",
   "cl.done": "Copia subida.",

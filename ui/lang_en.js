@@ -578,6 +578,8 @@ window.LANGS.en = {
   "cl.copied": "Code copied.",
   "cl.warn": "Keep this code somewhere safe. Without it the backup can't be recovered, and it can't be requested again.",
   "cl.last": "Last upload: {d}.",
+  "cl.share": "Share my sales anonymously",
+  "cl.shareHint": "When you mark a sale, the weapon, stats, listed price, sold price and dates are sent, without your username. It helps improve estimates.",
   "cl.auto": "Upload automatically every day and on close",
   "cl.now": "Upload now",
   "cl.done": "Backup uploaded.",

@@ -1,6 +1,7 @@
 """Riven Stock: app desktop (ventana pywebview + interfaz HTML en ui/)."""
 
 import ctypes
+import hashlib
 import json
 import logging
 import os
@@ -108,7 +109,7 @@ class Api:
 
     SETTING_KEYS = {"cloud_auto", "lang", "tracked_weapons", "auto_ingame", "mine_sort", "invisible_on_close",
                     "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials",
-                    "show_requests", "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain"}
+                    "show_requests", "share_sales", "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain"}
 
     # ---- Token de warframe.market ----
     def token_status(self):
@@ -332,7 +333,7 @@ class Api:
         with store.connect() as conn:
             st = store.settings(conn)
         return {"code": st.get("cloud_code"), "auto": st.get("cloud_auto", True), "last": st.get("cloud_last"),
-                "active": st.get("cloud_active")}
+                "active": st.get("cloud_active"), "share": bool(st.get("share_sales"))}
 
     def cloud_enable(self):
         """Crea el código de recuperación y sube la primera copia."""
@@ -394,6 +395,36 @@ class Api:
         self._cloud_set(cloud_active=r.get("active"))
         return {"active": r.get("active"), "total": r.get("total")}
 
+    def _sales_payload(self, conn, since):
+        """Ventas reales marcadas en la app desde `since`, anónimas (sin usuario ni id de contrato en claro)."""
+        out = []
+        for r in conn.execute("SELECT auction_id, sold_price, snapshot, at FROM auction_events "
+                              "WHERE action = 'close' AND sold_price IS NOT NULL AND at > ? ORDER BY at LIMIT 50",
+                              (since or "",)).fetchall():
+            a = json.loads(r["snapshot"])
+            item = a.get("item") or {}
+            out.append({"id": hashlib.sha256(f"rs-sale:{r['auction_id']}".encode()).hexdigest(),
+                        "weapon": item.get("weapon_url_name"),
+                        "attrs": [[s["url_name"], s["value"], bool(s["positive"])] for s in item.get("attributes", [])],
+                        "rolls": item.get("re_rolls"), "mr": item.get("mastery_level"), "rank": item.get("mod_rank"),
+                        "price": a.get("buyout_price"), "sold": r["sold_price"],
+                        "listed": a.get("created"), "closed": r["at"], "_at": r["at"]})
+        return out
+
+    def _share_sales(self, st, iid):
+        """Si el usuario lo activó, manda las ventas nuevas (lotes de 50) y recuerda hasta dónde llegó."""
+        if not st.get("share_sales"):
+            return
+        since = st.get("share_sales_last")
+        for _ in range(10):
+            with store.connect() as conn:
+                batch = self._sales_payload(conn, since)
+            if not batch:
+                return
+            cloud_backup.send_sales(iid, updater.version_actual(), [{k: v for k, v in s.items() if k != "_at"} for s in batch])
+            since = batch[-1]["_at"]
+            self._cloud_set(share_sales_last=since)
+
     def _cloud_loop(self):
         """Cada ~30 min: un ping diario anónimo (conteo de instalaciones activas) y la subida automática."""
         if self._stop.wait(60):
@@ -408,6 +439,7 @@ class Api:
                     cloud_backup.ping(iid, updater.version_actual())
                     self._cloud_set(cloud_ping=today)
                     self.cloud_stats()
+                self._share_sales(st, iid)
                 last = st.get("cloud_last")
                 due = not last or (datetime.now(timezone.utc) - datetime.fromisoformat(last.replace("Z", "+00:00"))).total_seconds() > self.CLOUD_EVERY_S
                 if st.get("cloud_code") and st.get("cloud_auto", True) and due:

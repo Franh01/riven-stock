@@ -4,6 +4,7 @@
 //   {op:"get", id}            devuelve la copia
 //   {op:"del", id}            borra la copia
 //   {op:"ping", iid, v}       registra una instalación activa (iid = UUID anónimo)
+//   {op:"sales", iid, v, sales:[...]}  ventas reales anónimas que el usuario eligió compartir (opt-in)
 //   {op:"stats"}              cuántas instalaciones hubo activas en los últimos 30 días
 const { createHash } = require("crypto");
 const { collection } = require("./db");
@@ -15,8 +16,13 @@ const reply = (status, body) => ({
   body: JSON.stringify(body),
 });
 // Límites anti-abuso (la Function URL es pública): por IP y por hora, y topes globales para no llenar el cluster gratuito.
-const HOURLY = { put: 20, get: 30, del: 20, ping: 30, stats: 120 };
+const HOURLY = { put: 20, get: 30, del: 20, ping: 30, sales: 12, stats: 120 };
 const MAX_BACKUPS = 3000;
+const MAX_USER_SALES = 100000;   // tope global para no llenar el cluster gratuito
+const MAX_SALES_PER_CALL = 50;
+const SLUG = /^[a-z0-9_]{1,60}$/;
+const isoOk = (s) => typeof s === "string" && s.length <= 40 && !Number.isNaN(Date.parse(s));
+const int = (v, lo, hi) => (Number.isInteger(v) && v >= lo && v <= hi ? v : null);
 const MAX_NEW_INSTALLS_PER_IP_DAY = 20;
 let indexed;
 async function hit(op, ip) {
@@ -77,6 +83,30 @@ exports.handler = async (event) => {
       { $set: { last_seen: now, v: VER.test(req.v || "") ? req.v : null }, $setOnInsert: { first_seen: now } },
       { upsert: true });
     return reply(200, { ok: true });
+  }
+  if (req.op === "sales") {
+    if (!IID.test(req.iid || "") || !Array.isArray(req.sales)) return reply(400, { error: "pedido inválido" });
+    const col = await collection("user_sales");
+    await col.createIndex({ weapon: 1 }).catch(() => {});
+    if ((await col.estimatedDocumentCount()) >= MAX_USER_SALES) return reply(503, { error: "full" });
+    const docs = [];
+    for (const s of req.sales.slice(0, MAX_SALES_PER_CALL)) {
+      const attrs = Array.isArray(s.attrs) ? s.attrs.slice(0, 4).map((a) => [String(a[0]), Number(a[1]), !!a[2]]) : null;
+      const price = int(s.price, 1, 1e6), sold = int(s.sold, 1, 1e6);
+      if (!ID.test(s.id || "") || !SLUG.test(s.weapon || "") || !attrs || !attrs.every((a) => SLUG.test(a[0]) && Number.isFinite(a[1])) || !price || !sold || !isoOk(s.closed)) continue;
+      docs.push({
+        _id: s.id, iid: createHash("sha256").update(req.iid).digest("hex").slice(0, 16), weapon: s.weapon, attrs,
+        rolls: int(s.rolls, 0, 100000), mr: int(s.mr, 0, 40), rank: int(s.rank, 0, 8),
+        price, sold, listed: isoOk(s.listed) ? new Date(s.listed) : null, closed: new Date(s.closed),
+        v: VER.test(req.v || "") ? req.v : null, received: now,
+      });
+    }
+    let stored = 0;
+    if (docs.length) {
+      const r = await col.bulkWrite(docs.map((d) => ({ updateOne: { filter: { _id: d._id }, update: { $setOnInsert: d }, upsert: true } })), { ordered: false });
+      stored = r.upsertedCount;
+    }
+    return reply(200, { ok: true, received: req.sales.length, accepted: docs.length, stored });
   }
   if (req.op === "stats") {
     const col = await collection("installs");

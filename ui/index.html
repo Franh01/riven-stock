@@ -3054,14 +3054,15 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const st = await api().cloud_stats();
     const users = st.active != null ? `<div class="muted" style="font-size:12px;margin-top:8px">${tr("cl.users", { n: st.active })}</div>` : "";
     const restore = `<div style="display:flex;gap:6px;margin-top:8px"><input id="cl-code" placeholder="${tr("cl.codePh")}" style="flex:1"><button class="ghost" id="cl-restore">${tr("cl.restore")}</button></div>`;
-    if (!i.code) { el.innerHTML = `<button class="ghost" id="cl-on">${tr("cl.on")}</button>${restore}${users}`; return; }
+    const share = `<label class="switch-row" style="margin-top:10px"><span>${tr("cl.share")}</span>${sw("cl-share", !!i.share)}</label><div class="muted" style="font-size:12px;margin-top:4px">${tr("cl.shareHint")}</div>`;
+    if (!i.code) { el.innerHTML = `<button class="ghost" id="cl-on">${tr("cl.on")}</button>${restore}${users}${share}`; return; }
     const last = i.last ? new Date(i.last).toLocaleString(I18N.locale) : "-";
     el.innerHTML = `<div class="muted" style="font-size:12px">${tr("cl.code")}</div>
       <div style="display:flex;gap:6px;margin:4px 0"><input id="cl-shown" readonly value="${i.code}" style="flex:1;font-family:monospace"><button class="ghost" id="cl-copy">${tr("cl.copy")}</button></div>
       ${code ? `<div style="font-size:12px;color:#e8a33d;margin-bottom:6px">${tr("cl.warn")}</div>` : ""}
       <div class="muted" style="font-size:12px;margin-bottom:6px">${tr("cl.last", { d: last })}</div>
       <label class="switch-row" style="margin-bottom:6px"><span>${tr("cl.auto")}</span>${sw("cl-auto", i.auto !== false)}</label>
-      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="cl-now">${tr("cl.now")}</button><button class="ghost" id="cl-off">${tr("cl.off")}</button></div>${restore}${users}`;
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="cl-now">${tr("cl.now")}</button><button class="ghost" id="cl-off">${tr("cl.off")}</button></div>${restore}${users}${share}`;
   }
   for (const box of [$("#cfg-body"), $("#opp-body")]) box.addEventListener("click", async (e) => {
     const id = e.target.closest("button")?.id;
@@ -3107,6 +3108,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   for (const box of [$("#cfg-body"), $("#opp-body")]) box.addEventListener("change", (e) => {
     const t = e.target;
     if (t.id === "cl-auto") saveCfg("cloud_auto", t.checked);
+    if (t.id === "cl-share") saveCfg("share_sales", t.checked);
     else if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "cfg.on" : "cfg.off")); }
     else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));

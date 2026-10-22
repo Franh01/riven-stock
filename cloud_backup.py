@@ -132,5 +132,9 @@ def ping(iid, version):
     _post({"op": "ping", "iid": iid, "v": version})
 
 
+def send_sales(iid, version, sales):
+    return _post({"op": "sales", "iid": iid, "v": version, "sales": sales})
+
+
 def stats():
     return _post({"op": "stats"})
