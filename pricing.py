@@ -64,12 +64,24 @@ def _max_rank_factor(rank):
     return 9 / (rank + 1) if rank is not None and 0 <= rank <= 8 else 1.0
 
 
+# Multiplicador de los valores positivos según la configuración (positivos, con negativo): wiki de Warframe.
+CONFIG_BONUS = {(2, False): 0.99, (2, True): 1.2375, (3, False): 0.75, (3, True): 0.9375}
+
+
+def _config_bonus(npos, has_neg):
+    return CONFIG_BONUS.get((npos, bool(has_neg)), 1.0)
+
+
 def similarity(pos, neg, rolls, other, rtype=None, rank=None):
     f_mine = _max_rank_factor(rank)
     f_other = _max_rank_factor(other.get("k")) if rank is not None else 1.0
-    pos = {s: v * f_mine for s, v in pos.items()}
-    opos = {s: v * f_other for s, v, p in other["s"] if p}
+    oraw = [(s, v) for s, v, p in other["s"] if p]
     oneg = next((s for s, v, p in other["s"] if not p), None)
+    # el mismo valor vale distinto según la configuración: se lleva a su equivalente sin multiplicador
+    f_mine /= _config_bonus(len(pos), neg)
+    f_other /= _config_bonus(len(oraw), oneg)
+    pos = {s: v * f_mine for s, v in pos.items()}
+    opos = {s: v * f_other for s, v in oraw}
     union = set(pos) | set(opos)
     if not union:
         return 0.0
@@ -85,6 +97,8 @@ def similarity(pos, neg, rolls, other, rtype=None, rank=None):
     if neg != oneg:
         # sin negativo vale más que con uno; un negativo distinto cambia poco
         sim *= 0.9 if (neg and oneg) else 0.8
+    if len(pos) != len(opos):
+        sim *= 0.92   # 2 y 3 positivos no se venden igual
     sim *= 1.0 - min(abs(rolls - other["r"]), 20) * 0.004
     return max(sim, 0.0)
 
