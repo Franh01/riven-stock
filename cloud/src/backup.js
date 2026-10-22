@@ -101,12 +101,12 @@ exports.handler = async (event) => {
         v: VER.test(req.v || "") ? req.v : null, received: now,
       });
     }
-    let stored = 0;
+    let stored = 0, matched = 0;
     if (docs.length) {
       const r = await col.bulkWrite(docs.map((d) => ({ updateOne: { filter: { _id: d._id }, update: { $setOnInsert: d }, upsert: true } })), { ordered: false });
-      stored = r.upsertedCount;
+      stored = r.upsertedCount; matched = r.matchedCount;
     }
-    return reply(200, { ok: true, received: req.sales.length, accepted: docs.length, stored });
+    return reply(200, { ok: true, received: req.sales.length, accepted: docs.length, stored, matched });
   }
   if (req.op === "stats") {
     const col = await collection("installs");
