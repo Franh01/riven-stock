@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.12.1] - 2026-10-22
+
 #### Español
 - Compartir ventas anónimas ahora viene activado por defecto (se puede apagar en Ajustes, Copia en la nube).
 
