@@ -573,12 +573,12 @@
   .rp-grid { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line); opacity: .6; pointer-events: none; }
   .rp-grid.zero { border-top: 1px solid var(--muted); opacity: .8; }
   .rp-col { position: relative; z-index: 1; flex: 1; min-width: 6px; max-width: 40px; display: flex; flex-direction: column; border-radius: 4px; transition: background .12s; }
-  .rp-col:hover { background: rgba(255,255,255,.06); z-index: 5; }
+  .rp-col:hover { background: rgba(255,255,255,.05); z-index: 5; }
   .rp-col i { display: block; border-radius: 3px; min-height: 2px; transition: box-shadow .12s, filter .12s; }
   .rp-col .up { background: var(--pos); }
   .rp-col .dn { background: var(--neg); }
-  .rp-col:hover .up { box-shadow: 0 0 10px 2px var(--pos); filter: brightness(1.15); }
-  .rp-col:hover .dn { box-shadow: 0 0 10px 2px var(--neg); filter: brightness(1.15); }
+  .rp-col:hover .up { box-shadow: 0 0 5px 0 var(--pos); }
+  .rp-col:hover .dn { box-shadow: 0 0 5px 0 var(--neg); }
   .rp-tip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; font-size: .75rem; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
   .rp-tip small { display: block; color: var(--muted); }
   .rp-col:hover .rp-tip { display: block; }
