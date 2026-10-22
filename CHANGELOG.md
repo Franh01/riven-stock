@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Actualizador: si la descarga se corta o llega corrupta, reintenta una vez sola y, si vuelve a fallar, explica el motivo (descarga incompleta, red, antivirus o proxy) en vez de un error genérico.
+
+#### English
+- Updater: if the download is cut off or arrives corrupted, it retries once and, if it fails again, explains why (incomplete download, network, antivirus or proxy) instead of a generic error.
+
 ## [0.10.0] - 2026-10-22
 
 #### Español
