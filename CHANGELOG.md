@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.0] - 2026-10-22
+
 #### Español
 - Reemplazada la sección «Rentabilidad de rollear» del Reporte por «¿Conviene rolear?»: para cada riven publicado simula tiradas de Kuva y te dice si conviene rolearlo, cuántas veces, cuánto Kuva cuesta y la ganancia esperada. El valor del Kuva en platinum es ajustable.
 
