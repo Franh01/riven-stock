@@ -1307,6 +1307,7 @@ document.addEventListener('mousedown', (e) => {
   function posBadges(a, busy) {
     const p = position[a.id];
     if (!p || !p.tags.length) return "";
+    if (p.price != null && p.price !== a.price) return "";   // etiqueta calculada con un precio anterior
     const tip = tr("pos.tip", { e: p.estimate, p: (p.pct > 0 ? "+" : "") + p.pct });
     const adj = (p.tags.includes("caro") || p.tags.includes("barato")) && !busy
       ? `<button type="button" class="pos-adj" data-act="pos-adjust" title="${tr("pos.adjustTip", { p: p.estimate })}">→ ${p.estimate}p</button>` : "";
@@ -1315,7 +1316,7 @@ document.addEventListener('mousedown', (e) => {
 
   function renderPosFilter() {
     const box = $("#pos-filter");
-    const n = (t) => Object.keys(position).filter((id) => mine.some((a) => a.id === id) && position[id].tags.includes(t)).length;
+    const n = (t) => Object.keys(position).filter((id) => { const a = mine.find((x) => x.id === id); return a && (position[id].price == null || position[id].price === a.price) && position[id].tags.includes(t); }).length;
     const counts = { caro: n("caro"), barato: n("barato"), estancado: n("estancado") };
     if (!counts.caro && !counts.barato && !counts.estancado) { box.hidden = true; posFilter = null; return; }
     box.hidden = false;
@@ -1331,7 +1332,7 @@ document.addEventListener('mousedown', (e) => {
 
   function renderMine() {
     const visibles = mine.filter((a) => a.visible).length;
-    const rows = sortedMine().filter(matchesQuery).filter((a) => !posFilter || position[a.id]?.tags.includes(posFilter));
+    const rows = sortedMine().filter(matchesQuery).filter((a) => !posFilter || (position[a.id]?.tags.includes(posFilter) && (position[a.id].price == null || position[a.id].price === a.price)));
     renderPosFilter();
     $("#mine-title").textContent = tr("mine.title", { v: visibles, h: mine.length - visibles }) +
       (queryTokens.length ? ` · ${tr("mine.matches", { n: rows.length })}` : "");
@@ -1368,7 +1369,7 @@ document.addEventListener('mousedown', (e) => {
     mine = mine.map((x) => (x.id === a.id ? (res.error ? before : res.auction) : x));
     renderMine(); renderTotals();
     if (res.error) toast(tr("err.save", { e: res.error }), true);
-    else if (okMsg) toast(okMsg);
+    else { if (okMsg) toast(okMsg); if (changes.price != null) loadPosition(); }
   }
 
   async function saveCost(id, cost) {

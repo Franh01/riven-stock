@@ -5,12 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 ## [0.13.1] - 2026-10-22
+- Corregido: las etiquetas Caro/Barato y el botón «→ precio» ya no quedan desactualizadas después de cambiar el precio (aparecía «Barato → 70p» con el riven ya en 70p).
 
 #### Español
 - Corregido: al cambiar el precio de un riven (baja automática, manual o revertida) ahora también se actualiza el caché, así el detalle ya no muestra un precio distinto al del historial.
 - Stock unveiled más compacto: los rivens sin abrir del mismo tipo y mismo costo unitario se agrupan en una sola fila, y al abrir uno elegís el grupo sin ver lotes repetidos.
 
 #### English
+- Fixed: the Expensive/Cheap tags and the "→ price" button no longer go stale after a price change (it showed "Cheap → 70p" with the riven already at 70p).
 - Fixed: when a riven's price changes (automatic drop, manual or reverted) the cache is now updated too, so the detail no longer shows a price different from the history.
 - More compact unveiled stock: unopened rivens of the same type and unit cost are grouped in a single row, and when opening one you pick the group without seeing repeated lots.
 

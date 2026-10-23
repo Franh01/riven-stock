@@ -21,6 +21,6 @@ def position(view, market, rtype, hours, need_hours, weapon=None):
         tags.append("barato")
     if hours is not None and need_hours and hours >= need_hours:
         tags.append("estancado")
-    return {"estimate": ref, "low": est["low"], "high": est["high"], "diff": diff,
+    return {"price": price, "estimate": ref, "low": est["low"], "high": est["high"], "diff": diff,
             "pct": round(diff / ref * 100) if ref else 0, "confidence": est["confidence"],
             "tags": tags}
