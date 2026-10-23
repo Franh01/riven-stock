@@ -651,20 +651,33 @@ class Api:
             a["item"]["re_rolls"] = int(item.get("re_rolls") or 0)
             a["item"]["mod_rank"] = int(item.get("mod_rank") or 0)
             a["item"]["mastery_level"] = int(item.get("mastery_level") or 8)
-            w = a["item"]["weapon_url_name"]
             view = auction_view(a)
             view["id"] = exclude_id or "draft"
-            e = self._cache.get(w, self.CACHE_MAX_AGE_S) or self._cache.load(w)
-            market = (e or {}).get("market") or []
-            if len(market) < reroll.MIN_MARKET:
-                return {"none": "market", "n": len(market)}
-            bases = json.loads(BASES.read_text(encoding="utf-8")) if BASES.exists() else {}
-            disp = {x["slug"]: (x.get("disposition"), x.get("rivenType")) for x in self.client.riven_weapons()}
-            d, rtype = disp.get(w, (None, None))
-            adv = reroll.evaluate(view, market, rtype, w, d, self.client.riven_attributes(), bases.get(rtype) or {}, reroll.KUVA_PLAT)
-            return {"advice": adv} if adv else {"none": "estimate"}
+            return self._reroll_view(view, a["item"]["weapon_url_name"])
         except (WFMError, requests.RequestException, KeyError, ValueError) as e:
             return {"error": str(e)}
+
+    def reroll_for(self, auction_id):
+        """Lo mismo para un riven ya guardado o visto en el mercado (detalle del riven)."""
+        try:
+            a = self._seen.get(auction_id) or self._market.get(auction_id) or self._from_cache(auction_id)
+            if not a:
+                return {"error": "Riven no encontrado."}
+            return self._reroll_view(auction_view(a), a["item"]["weapon_url_name"])
+        except (WFMError, requests.RequestException, KeyError, ValueError) as e:
+            return {"error": str(e)}
+
+    def _reroll_view(self, view, w):
+        orders = self.weapon_orders(w)
+        pool, _ = self._pool_for(w, view, orders.pop("market", []))
+        market = list(pool.values())
+        if len(market) < reroll.MIN_MARKET:
+            return {"none": "market", "n": len(market)}
+        bases = json.loads(BASES.read_text(encoding="utf-8")) if BASES.exists() else {}
+        disp = {x["slug"]: (x.get("disposition"), x.get("rivenType")) for x in self.client.riven_weapons()}
+        d, rtype = disp.get(w, (None, None))
+        adv = reroll.evaluate(view, market, rtype, w, d, self.client.riven_attributes(), bases.get(rtype) or {}, reroll.KUVA_PLAT)
+        return {"advice": adv} if adv else {"none": "estimate"}
 
     def market_trend(self, weapon, days=90):
         """Tendencia del arma: primero la nube (historial central de todas las armas); la foto local
@@ -751,12 +764,9 @@ class Api:
             store.set_overrides(conn, auction_id, num(hours, float), num(amount, int), num(floor, int))
         return {"ok": True}
 
-    def _estimate_for(self, a, exclude_id):
-        """Vista, órdenes y estimado de un contrato (guardado o borrador)."""
-        weapon = a["item"]["weapon_url_name"]
-        orders = self.weapon_orders(weapon)
-        view = auction_view(a)
-        pool = {o["id"]: o for o in orders.pop("market", [])}
+    def _pool_for(self, weapon, view, base):
+        """Publicaciones del arma: el mercado base más las consultas por los stats del riven."""
+        pool = {o["id"]: o for o in base}
         positives = [s["slug"] for s in view["stats"] if s["positive"]]
         # Consultas por stats: todos juntos y cada par; así entran las publicaciones que de verdad se parecen.
         combos = [positives] if len(positives) >= 2 else []
@@ -769,6 +779,14 @@ class Api:
                     pool[o["id"]] = o
             except (WFMError, requests.RequestException):
                 failed = True   # sin esas consultas el estimado sale bajo: se avisa en vez de callarlo
+        return pool, failed
+
+    def _estimate_for(self, a, exclude_id):
+        """Vista, órdenes y estimado de un contrato (guardado o borrador)."""
+        weapon = a["item"]["weapon_url_name"]
+        orders = self.weapon_orders(weapon)
+        view = auction_view(a)
+        pool, failed = self._pool_for(weapon, view, orders.pop("market", []))
         try:
             rtype = self._rtype(weapon)
         except (WFMError, requests.RequestException):
@@ -823,6 +841,11 @@ class Api:
             with store.connect() as conn:
                 hist = store.price_history(conn, auction_id)
                 h = store.riven_hours(conn).get(auction_id)
+            # si la última lectura del contrato quedó vieja (la API tarda en reflejar un cambio nuestro),
+            # manda el último precio que fijamos nosotros, así el detalle no contradice al historial
+            if hist and hist[-1]["source"] in ("auto", "manual", "revert") and hist[-1]["price"] != a["buyout_price"]:
+                a = dict(a, buyout_price=hist[-1]["price"], starting_price=hist[-1]["price"])
+                self._seen[auction_id] = a
         view, orders, est = self._estimate_for(a, auction_id)
         out = {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
         if foreign:

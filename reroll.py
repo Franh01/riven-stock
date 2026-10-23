@@ -110,11 +110,13 @@ def evaluate(view, market, rtype, weapon, disposition, attrs, bases, kuva_plat):
     # mi riven valorado igual que los simulados: sin precio ni antigüedad propios, para que sea comparable
     mine = dict(view, price=None, created=None)
     cur = estimate(mine, market, exclude_id=view.get("id"), rtype=rtype, weapon=weapon)
-    if not cur or cur["confidence"] == "baja" or cur["n"] < 3:
-        return None
-    current = cur["price"]
     prices = sorted(o["p"] for o in market if o.get("p"))
-    floor = _percentile(prices, 0.1)           # un riven sin comparables se asume de lo más barato
+    floor = _percentile(prices, 0.1)
+    # sin comparables propios = sin demanda visible: se asume de lo más barato del arma
+    if cur and cur["confidence"] != "baja" and cur["n"] >= 3:
+        current, conf = cur["price"], cur["confidence"]
+    else:
+        current, conf = floor, "baja"           # un riven sin comparables se asume de lo más barato
     rolls = (view.get("rolls") or 0)
     rng = random.Random(f"{weapon}:{rolls}:{len(market)}")
     vals, no_ref = [], 0
@@ -149,7 +151,7 @@ def evaluate(view, market, rtype, weapon, disposition, attrs, bases, kuva_plat):
     p_better = sum(1 for v in vals if v > current * 1.1) / n
     verdict = "rolear" if best_n and best_net >= MIN_GAIN else "no"
     return {
-        "current": current, "confidence": cur["confidence"],
+        "current": current, "confidence": conf,
         "verdict": verdict, "tries": best_n, "net": round(best_net), "kuva": curve[best_n - 1]["kuva"] if best_n else 0,
         "expected": curve[best_n - 1]["expected"] if best_n else current,
         "next_kuva": KUVA_COSTS[min(rolls, len(KUVA_COSTS) - 1)], "first_net": first["net"],

@@ -2928,6 +2928,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
           <div class="kpi"><b>${o.orders ? cheaper : "—"}</b><span>${tr("sum.cheaper")}</span></div>
         </div><div class="stats" style="margin-top:12px">${a.stats.map((st) => formatStat(st)).join("")}</div></div>
         ${estCard}
+        <div class="sum-card" id="sum-reroll"></div>
         <div class="sum-card" id="trend-card"><h4>${tr("trend.title")}</h4><small class="muted">${tr("common.loading")}</small></div>
         ${mk ? "" : `<div class="sum-card" id="sum-auto-card"><label class="switch-row"><span>${tr("sum.auto")}<small>${tr("sum.autoSub")}</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
@@ -2941,6 +2942,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">${tr("sum.tabOrders")}</button>${es ? `<button data-tab="comps">${tr("sum.tabComps", { n: es.n })}</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">${tr("sum.dataAge", { n: Math.max(0, Math.round(o.age_s / 60)) })}</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
     document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
+    if (aid.startsWith("demo")) $("#sum-reroll")?.remove();
+    else api().reroll_for(aid).then((rr) => { const c = $("#sum-reroll"); if (!c) return; const h = rerollHtml(rr); if (h) c.innerHTML = h; else c.remove(); }).catch(() => $("#sum-reroll")?.remove());
     (aid.startsWith("demo") ? Promise.resolve(demoTrend()) : api().market_trend(a.weapon, 90)).then((t) => {
       const c = $("#trend-card"); if (!c) return;
       const tracked = () => (settings.tracked_weapons || []).includes(a.weapon);
