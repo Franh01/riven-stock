@@ -389,8 +389,8 @@
   .al-card .when { color: var(--muted); font-size: 12px; margin-top: 6px; }
   .al-card.rev .new, .al-card.rev .old, .al-card.rev .al-name { opacity: .5; }
   .al-card .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #e5546b26; color: var(--neg); margin-left: 8px; }
-  .al-card .acts { display: flex; flex-direction: column; gap: 6px; }
-  .al-card .acts button { min-width: 92px; }
+  .al-card .acts { display: flex; flex-direction: column; gap: 6px; width: 150px; flex: none; }
+  .al-card .acts button { width: 100%; white-space: nowrap; }
   button.danger { background: #e5546b22; border: 1px solid #e5546b88; color: var(--neg); box-shadow: none; }
   button.danger:hover { background: #e5546b44; }
   #confirm-dialog { width: min(440px, 92vw); }
@@ -2760,6 +2760,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       alerts = await api().notifications(); renderBell();
       const top = alerts.items.reduce((m, n) => Math.max(m, n.id), 0);
       if (lastAlertId !== null && top > lastAlertId) announce(alerts.items.filter((n) => n.id > lastAlertId && !n.read_at).reverse());
+      if (lastAlertId !== null && top > lastAlertId && $("#alerts-dialog").open) renderAlerts();
       lastAlertId = top;
     } catch (e) { /* sin conexión con el backend */ }
   }
