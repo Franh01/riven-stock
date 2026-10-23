@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.8] - 2026-10-23
+
 #### Español
 - Corregido: la app no cargaba (Mis ventas quedaba en esqueletos, el estado en "Status..." y el selector de tipo vacío). La 0.13.7 traía un error de sintaxis en el código de la interfaz que impedía que arrancara; ahora está arreglado, y cada publicación revisa la sintaxis antes de salir.
 
