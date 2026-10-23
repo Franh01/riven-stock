@@ -402,41 +402,6 @@ class Api(CloudMixin, LoopsMixin):
             score[w] = max(score.get(w, 0), ratio)
         return sorted(score, key=score.get, reverse=True) + [w for w in extra if w not in score]
 
-    OPP_PASS_S = 90
-
-    def _opp_loop(self):
-        """Mira el caché de las armas vigiladas (lo llena el caché en idle) y avisa de las publicaciones
-        muy por debajo de su estimado. No hace pedidos propios."""
-        while not self._stop.wait(self.OPP_PASS_S):
-            loophealth.beat("oportunidades", self.OPP_PASS_S)
-            try:
-                with store.connect() as conn:
-                    cfg = store.settings(conn)
-                if not cfg.get("opp_enabled"):
-                    continue
-                self.scan_opportunities(cfg)
-            except Exception as e:
-                loophealth.beat("oportunidades", self.OPP_PASS_S, e)
-                logging.info("Alertas de oportunidad: se reintenta", exc_info=True)
-
-    def scan_opportunities(self, cfg=None):
-        if cfg is None:
-            with store.connect() as conn:
-                cfg = store.settings(conn)
-        thr, gain = cfg.get("opp_threshold", 30), cfg.get("opp_min_gain", 15)
-        mine = set(self._seen)
-        n_new = 0
-        for w in cfg.get("opp_weapons") or []:
-            e = self._cache.get(w, self.CACHE_MAX_AGE_S)
-            if not e or not e.get("market"):
-                continue
-            for o in opportunities.find(e["market"], self._rtype(w), thr, gain, mine, weapon=w):
-                text = json.dumps({"weapon": w, **o}, ensure_ascii=False)
-                with store.connect() as conn:
-                    if store.add_opportunity(conn, o["id"], text):
-                        n_new += 1
-        return n_new
-
     def _fill_for_position(self):
         """Carga el caché de las armas de mi stock que falten (la tabla lo pidió; no espera a que la app esté ociosa)."""
         try:
