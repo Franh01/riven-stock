@@ -18,7 +18,8 @@ flowchart LR
         API --> PRICING["pricing.py · stockcheck.py<br/>reroll.py · opportunities.py"]
         API --> UPD["updater.py"]
         API --> CRASH["crashes.py · feedback.py<br/>netdiag.py"]
-        API --> CB["cloud_backup.py<br/>AES-GCM"]
+        API --> CLAPI["cloudapi.py · CloudMixin<br/>métodos cloud_*, _cloud_loop"]
+        CLAPI --> CB["cloud_backup.py<br/>AES-GCM"]
     end
     WFM -- "REST + WebSocket" --> WM[("warframe.market")]
     UPD -- "Releases" --> GH[("GitHub")]
@@ -195,7 +196,7 @@ Publicar: `python tools/release.py X.Y.Z` (git limpio; toma "Sin publicar" del C
 Ordenadas por lo que más conviene atacar. Son hallazgos de leer el código, no bugs confirmados.
 
 1. **Tests parciales.** `tests/test_core.py` cubre `pricing`, `stockcheck`, `opportunities`, `reroll.kuva_cost` e Invertido; falta `autodrop_pass` (vive en `app.py` y depende de la app, se podrá probar al partirlo) y Balance.
-2. **`app.py` monolítico (unas 1400 líneas, clase `Api` con más de 100 métodos).** Mezcla API para la UI, los cinco bucles, nube, feedback y cierre. Separar los bucles y la nube en módulos propios bajaría el riesgo de tocar uno y romper otro.
+2. **`app.py` monolítico (unas 1300 líneas, clase `Api` con más de 100 métodos).** La nube ya salió a `cloudapi.py` (`CloudMixin`, que `Api` hereda sin cambiar nombres de métodos). Faltan separar los bucles (contador, fotos, oportunidades, bajas) y el feedback/crashes, de a uno por commit.
 3. **`ui/index.html` de unas 3900 líneas en un solo archivo.** HTML, CSS, JS, ayuda y recorridos juntos. Partir al menos el JS y el CSS en archivos facilita revisar cambios y que `check_js.py` señale mejor los errores.
 4. **Archivos sobrantes en el repo:** `_backup/` (copias viejas de app, store, wfm_client, orders, updater) y `poc.py`. Git ya guarda el historial; son candidatos a borrar (hay que confirmarlo antes).
 5. **Autodrop de a uno por pasada (cada 5 min).** Con muchos rivens vencidos a la vez el ciclo completo se estira. Es una decisión consciente; revisar solo si el stock crece mucho.
