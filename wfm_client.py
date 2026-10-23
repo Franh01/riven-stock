@@ -6,6 +6,8 @@ central de ratelimit.py (todo pedido, REST o WebSocket, pasa por ahí).
 """
 
 import http.cookiejar
+import logging
+import re
 import json
 import os
 import sys
@@ -78,6 +80,9 @@ def _explain_error(res, method, path):
 MAX_PRICE = 900000  # tope que acepta warframe.market (probado a mano)
 
 
+log = logging.getLogger(__name__)
+
+
 class WFMError(Exception):
     pass
 
@@ -139,7 +144,9 @@ class WFMClient:
         except requests.exceptions.RequestException:
             raise WFMError("No se pudo conectar con warframe.market (no responde). Revisá tu conexión y probá de nuevo en un momento.")
         if res.status_code in (401, 403) and auth:
-            raise AuthError(f"{res.status_code} en {path}: el JWT no sirve o expiró")
+            body = re.sub(r"\s+", " ", res.text or "")[:300]
+            log.warning("%s en %s (%s): %s", res.status_code, path, res.headers.get("server", "?"), body)
+            raise AuthError(f"{res.status_code} en {path}: warframe.market rechazó el pedido (el token vencido es solo una de las causas posibles; si recién lo renovaste, mandá un reporte con el botón de reportar)")
         if res.status_code == 429:
             # Cloudflare (error 1015) bloquea un rato si hay muchas búsquedas seguidas.
             raise WFMError("warframe.market está limitando los pedidos (429). Esperá un minuto y probá de nuevo.")
