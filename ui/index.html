@@ -101,6 +101,11 @@
   td.price { font-weight: 700; color: var(--accent-2); font-size: 16px; white-space: nowrap; }
   td.nowrap, td:has(> .badge) { white-space: nowrap; }
   .editable { display: inline-flex; align-items: center; cursor: text; border-radius: 6px; padding: 2px 6px; margin: -2px -6px; }
+  .slots-ctl { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; font-size: 13px; padding: 6px 10px; border-radius: 999px; background: var(--panel-2); color: var(--text); white-space: nowrap; }
+  .slots-ctl small { font-weight: 500; opacity: .6; margin-right: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .slots-ctl.full { color: #fbbf24; } .slots-ctl.over { color: #f87171; }
+  .slots-ctl .editable { margin: -2px 0; padding: 0 4px; }
+  .slots-ctl .inline-input { width: 48px; }
   .editable:hover { background: var(--panel-2); }
   .inline-input { width: 84px; padding: 4px 8px; font-weight: 700; color: var(--accent-2); }
   .riven-weapon { font-weight: 600; }
@@ -666,6 +671,7 @@
     <p data-i18n="hdr.sub">Ventas directas en warframe.market</p>
   </div>
   <span class="au" id="au" hidden><i class="au-dot"></i><span id="au-txt"></span></span>
+  <span class="slots-ctl" data-slots></span>
   <div class="status-wrap">
     <button class="status-pill" id="status-pill" title="Tu estado en warframe.market" data-i18n-title="hdr.statusTip">
       <span class="dot"></span><span id="status-label" data-i18n="status.loading">Estado…</span><span class="status-until" id="status-until"></span>
@@ -723,6 +729,7 @@
     <div class="card-head">
       <h2 id="mine-title">Mis ventas directas</h2>
       <div class="head-tools">
+        <span class="slots-ctl" data-slots></span>
         <div class="search">
           <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           <input id="search" placeholder="Buscar arma, nombre o stat…" data-i18n-placeholder="mine.searchPh" autocomplete="off" title="Filtra tus contratos y los cerrados (Ctrl+F)" data-i18n-title="mine.searchTip">
@@ -1226,7 +1233,30 @@ document.addEventListener('mousedown', (e) => {
 
   // ---- Resumen (header) ---------------------------------------------------
 
+  function renderSlots() {
+    const n = mine.length, cls = n > rivenSlots ? "over" : n === rivenSlots ? "full" : "";
+    document.querySelectorAll("[data-slots]").forEach((el) => {
+      el.className = "slots-ctl " + cls; el.title = tr("tot.slotsTip", { n: rivenSlots });
+      el.innerHTML = `<small>${tr("tot.slots")}</small>${n}/<span class="editable" data-act="edit-slots" title="${tr("cfg.slotsSub")}">${rivenSlots}</span>`;
+    });
+  }
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest('[data-act="edit-slots"]'); if (!el) return;
+    el.outerHTML = `<input type="number" min="1" step="1" value="${rivenSlots}" class="inline-input" id="slots-edit">`;
+    const input = $("#slots-edit"); input.focus(); input.select();
+    let done = false;
+    const finish = (save) => {
+      if (done) return; done = true;
+      const v = Math.round(Number(input.value));
+      if (save && v >= 1) { rivenSlots = v; saveCfg("riven_slots", v); }
+      renderSlots();
+    };
+    input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") finish(true); if (ev.key === "Escape") finish(false); });
+    input.addEventListener("blur", () => finish(true));
+  });
+
   function renderTotals() {
+    renderSlots();
     const sold = closed.reduce((s, c) => s + (c.sold_price || 0), 0);
     const balance = sold - invested;
     const onSale = mine.filter((a) => a.visible).reduce((s, a) => s + a.price, 0);
@@ -1237,7 +1267,6 @@ document.addEventListener('mousedown', (e) => {
       [tr("tot.balance"), (balance > 0 ? "+" : "") + fmtP(balance), balance >= 0 ? "good" : "bad", tr("tot.balanceTip")],
       [tr("tot.onSale"), fmtP(onSale), "accent", tr("tot.onSaleTip")],
       [tr("tot.stock"), tr("tot.unopened", { n: stock }), "", tr("tot.stockTip")],
-      [tr("tot.slots"), `${mine.length}/${rivenSlots}`, mine.length > rivenSlots ? "bad" : mine.length === rivenSlots ? "accent" : "", tr("tot.slotsTip", { n: rivenSlots })],
     ].map(([k, v, cls, title]) => `<div class="total ${cls}" title="${title}"><b>${v}</b><span>${k}</span></div>`).join("");
   }
 
@@ -3065,7 +3094,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         <div class="cfg-row"><span>${tr("cfg.floor")}<small>${tr("cfg.floorSub")}</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
       <h4 class="cfg-sec">${ic("cog", 16)}${tr("cfg.secGeneral")}</h4>
-      <div class="sum-card"><div class="cfg-row"><span>${tr("cfg.slots")}<small>${tr("cfg.slotsSub")}</small></span><span><input type="number" id="cfg-slots" min="15" step="5" value="${cfgVal("riven_slots") || 15}"></span></div></div>
+      <div class="sum-card"><div class="cfg-row"><span>${tr("cfg.slots")}<small>${tr("cfg.slotsSub")}</small></span><span><input type="number" id="cfg-slots" min="1" step="5" value="${cfgVal("riven_slots") || 15}"></span></div></div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.invis")}</b><small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.autoIn")}</b><small>${tr("cfg.autoInSub")}</small></span>${sw("cfg-autoin", cfgVal("auto_ingame") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row" style="flex-direction:column;align-items:stretch;gap:10px"><span><b>${ic("globe")}${tr("lang.label")}</b><small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
@@ -3167,7 +3196,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     else if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "cfg.on" : "cfg.off")); }
     else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
-    else if (t.id === "cfg-slots") { const v = Math.max(15, Math.round(Number(t.value) || 15)); t.value = v; rivenSlots = v; saveCfg("riven_slots", v); renderTotals(); }
+    else if (t.id === "cfg-slots") { const v = Math.max(1, Math.round(Number(t.value) || 15)); t.value = v; rivenSlots = v; saveCfg("riven_slots", v); renderSlots(); }
     else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
     else if (t.id === "opp-enabled") { saveCfg("opp_enabled", t.checked); $("#opp-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "opp.on" : "opp.off")); }
     else if (t.id === "opp-thr") { const v = Math.min(90, Math.max(5, Math.round(Number(t.value) || 30))); t.value = v; saveCfg("opp_threshold", v); }
@@ -3628,7 +3657,8 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     renderTotals();
     settings = await api().get_settings();
     if (settings.mine_sort) sort = settings.mine_sort;
-    rivenSlots = Math.max(15, Number(settings.riven_slots) || 15);
+    rivenSlots = Math.max(1, Number(settings.riven_slots) || 15);
+    renderSlots();
     if (settings.lang && settings.lang !== I18N.lang) I18N.setLang(settings.lang); else if (!settings.lang) saveCfg("lang", I18N.lang);
     await loadMine();
     hideSplash();
