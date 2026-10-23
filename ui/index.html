@@ -1129,6 +1129,7 @@ document.addEventListener('mousedown', (e) => {
   const DURATIONS = [[30, "30 min"], [60, "1 h"], [120, "2 h"], [240, "4 h"]];
   let myStatus = null;          // {status, statusUntil, statusSetAt}
   let settings = {};            // preferencias locales (auto_ingame, mine_sort)
+  let rivenSlots = 15;
   const autoIngame = () => settings.auto_ingame !== false;   // por defecto, activado
   let statusBusy = false;
 
@@ -1236,6 +1237,7 @@ document.addEventListener('mousedown', (e) => {
       [tr("tot.balance"), (balance > 0 ? "+" : "") + fmtP(balance), balance >= 0 ? "good" : "bad", tr("tot.balanceTip")],
       [tr("tot.onSale"), fmtP(onSale), "accent", tr("tot.onSaleTip")],
       [tr("tot.stock"), tr("tot.unopened", { n: stock }), "", tr("tot.stockTip")],
+      [tr("tot.slots"), `${mine.length}/${rivenSlots}`, mine.length > rivenSlots ? "bad" : mine.length === rivenSlots ? "accent" : "", tr("tot.slotsTip", { n: rivenSlots })],
     ].map(([k, v, cls, title]) => `<div class="total ${cls}" title="${title}"><b>${v}</b><span>${k}</span></div>`).join("");
   }
 
@@ -3063,6 +3065,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         <div class="cfg-row"><span>${tr("cfg.floor")}<small>${tr("cfg.floorSub")}</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
       <h4 class="cfg-sec">${ic("cog", 16)}${tr("cfg.secGeneral")}</h4>
+      <div class="sum-card"><div class="cfg-row"><span>${tr("cfg.slots")}<small>${tr("cfg.slotsSub")}</small></span><span><input type="number" id="cfg-slots" min="15" step="5" value="${cfgVal("riven_slots") || 15}"></span></div></div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.invis")}</b><small>${tr("cfg.invisSub")}</small></span>${sw("cfg-invis", cfgVal("invisible_on_close") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("eye")}${tr("cfg.autoIn")}</b><small>${tr("cfg.autoInSub")}</small></span>${sw("cfg-autoin", cfgVal("auto_ingame") !== false)}</label></div>
       <div class="sum-card"><label class="switch-row" style="flex-direction:column;align-items:stretch;gap:10px"><span><b>${ic("globe")}${tr("lang.label")}</b><small>${tr("lang.hint")}</small></span><select id="cfg-lang">${I18N.SUPPORTED.map((l) => `<option value="${l}" ${l === I18N.lang ? "selected" : ""}>${tr("lang." + l)}</option>`).join("")}</select></label></div>
@@ -3164,6 +3167,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     else if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "cfg.on" : "cfg.off")); }
     else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
+    else if (t.id === "cfg-slots") { const v = Math.max(15, Math.round(Number(t.value) || 15)); t.value = v; rivenSlots = v; saveCfg("riven_slots", v); renderTotals(); }
     else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
     else if (t.id === "opp-enabled") { saveCfg("opp_enabled", t.checked); $("#opp-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "opp.on" : "opp.off")); }
     else if (t.id === "opp-thr") { const v = Math.min(90, Math.max(5, Math.round(Number(t.value) || 30))); t.value = v; saveCfg("opp_threshold", v); }
@@ -3624,6 +3628,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     renderTotals();
     settings = await api().get_settings();
     if (settings.mine_sort) sort = settings.mine_sort;
+    rivenSlots = Math.max(15, Number(settings.riven_slots) || 15);
     if (settings.lang && settings.lang !== I18N.lang) I18N.setLang(settings.lang); else if (!settings.lang) saveCfg("lang", I18N.lang);
     await loadMine();
     hideSplash();

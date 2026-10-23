@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Nuevo: contador de slots de riven ("Slots 17/20") en el resumen, contra tus contratos, y campo en Ajustes para tus slots totales (15 base + packs de 5).
+
+#### English
+- New: riven slot counter ("Slots 17/20") in the summary, counted against your listings, and a Settings field for your total slots (15 base + packs of 5).
+
 ## [0.13.5] - 2026-10-23
 
 #### Español
