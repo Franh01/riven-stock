@@ -48,6 +48,7 @@ import cloud_backup
 import feedback
 import store
 import opportunities
+import reroll
 import stockcheck
 import updater
 from orders import OrderCache
@@ -109,7 +110,8 @@ class Api:
 
     SETTING_KEYS = {"cloud_auto", "lang", "tracked_weapons", "auto_ingame", "mine_sort", "invisible_on_close",
                     "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials",
-                    "show_requests", "share_sales", "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain"}
+                    "show_requests", "share_sales", "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain",
+                    "kuva_plat"}
 
     # ---- Token de warframe.market ----
     def token_status(self):
@@ -639,6 +641,51 @@ class Api:
             if pos:
                 out[aid] = pos
         return out
+
+    def reroll_advice(self):
+        """¿Conviene rolear cada riven publicado? Se calcula en segundo plano con el caché (tarda ~1 s por riven)
+        y se reutiliza mientras no cambien el mercado, el riven ni el valor del Kuva."""
+        with store.connect() as conn:
+            kuva_plat = float(store.settings(conn).get("kuva_plat") or 10)
+        if not hasattr(self, "_reroll"):
+            self._reroll = {}
+        todo, out = [], {}
+        for aid, a in list(self._seen.items()):
+            if not a.get("visible", True):
+                continue
+            w = a["item"]["weapon_url_name"]
+            e = self._cache.get(w, self.CACHE_MAX_AGE_S)
+            if not e or not e.get("market"):
+                continue
+            v = auction_view(a)
+            sig = (e["at"], v["rolls"], kuva_plat, tuple((s["slug"], s["value"]) for s in v["stats"]))
+            hit = self._reroll.get(aid)
+            if hit and hit[0] == sig:
+                out[aid] = hit[1]
+            else:
+                todo.append((aid, sig, v, e["market"], w))
+        if todo and not getattr(self, "_rerolling", False):
+            self._rerolling = True
+            threading.Thread(target=self._compute_reroll, args=(todo, kuva_plat), daemon=True).start()
+        return {"items": out, "pending": bool(todo), "kuva_plat": kuva_plat}
+
+    def _compute_reroll(self, todo, kuva_plat):
+        try:
+            bases = json.loads(BASES.read_text(encoding="utf-8")) if BASES.exists() else {}
+            attrs = self.client.riven_attributes()
+            disp = {w["slug"]: (w.get("disposition"), w.get("rivenType")) for w in self.client.riven_weapons()}
+            for aid, sig, view, market, w in todo:
+                d, rtype = disp.get(w, (None, None))
+                try:
+                    adv = reroll.evaluate(view, market, rtype, w, d, attrs, bases.get(rtype) or {}, kuva_plat)
+                except Exception:
+                    logging.exception("reroll.evaluate falló para %s", w)
+                    adv = None
+                self._reroll[aid] = (sig, adv)
+        except Exception:
+            logging.exception("calculo de rolear falló")
+        finally:
+            self._rerolling = False
 
     def market_trend(self, weapon, days=90):
         """Tendencia del arma: primero la nube (historial central de todas las armas); la foto local

@@ -1235,7 +1235,7 @@ document.addEventListener('mousedown', (e) => {
       closed = [];
       applyLocal(data);
       renderAll();
-      loadPosition();
+      loadPosition(); loadReroll();
     } finally {
       $("#reload").disabled = false;
     }
@@ -1483,7 +1483,7 @@ document.addEventListener('mousedown', (e) => {
     posFilter = c.dataset.pos || null;
     renderMine();
   });
-  setInterval(() => { if (mine.length && !document.hidden) loadPosition(); }, 300000);
+  setInterval(() => { if (mine.length && !document.hidden) { loadPosition(); loadReroll(); } }, 300000);
 
   $("#mine").addEventListener("click", (e) => {
     const th = e.target.closest("th[data-sort]");
@@ -1753,36 +1753,32 @@ document.addEventListener('mousedown', (e) => {
       <table class="rp-rank">${th(tr("common.weapon"), tr("rp.sales"), tr("rp.medianH"))}<tbody>${wRows}</tbody></table></div>${sugg}`;
   }
 
-  // Rentabilidad de rollear: cuánto cuesta cada riven vendible de un lote y qué rinde por tipo y por arma.
+  // ¿Conviene rolear (gastar Kuva)? Una fila por riven publicado, ordenadas por la ganancia neta esperada.
+  let reroll = { items: {}, pending: false, kuva_plat: 10 };
+  async function loadReroll() {
+    try { reroll = (await api().reroll_advice()) || reroll; } catch {}
+    renderReport();
+    if (reroll.pending) setTimeout(loadReroll, 8000);
+  }
   function reportRolling() {
-    const byLot = new Map(lots.map((l) => [l.id, l]));
-    const pub = new Map();   // lote -> rivens publicados
-    for (const c of Object.values(costs)) if (c.lot_id) pub.set(c.lot_id, (pub.get(c.lot_id) || 0) + 1);
-    const T = new Map();
-    for (const l of lots) {
-      if (!l.opened) continue;
-      const t = T.get(l.riven_type) || { lots: 0, opened: 0, pub: 0, spent: 0, sold: 0, revenue: 0 };
-      t.lots++; t.opened += l.opened; t.pub += Math.min(pub.get(l.id) || 0, l.opened); t.spent += l.unit_cost * l.opened;
-      T.set(l.riven_type, t);
-    }
-    const W = new Map();
-    for (const c of closed) {
-      const lot = byLot.get(costs[c.id]?.lot_id);
-      if (!lot || !c.sold_price || c.pending) continue;
-      const t = T.get(lot.riven_type); if (t) { t.sold++; t.revenue += c.sold_price; }
-      const w = W.get(c.weapon) || { n: 0, revenue: 0 }; w.n++; w.revenue += c.sold_price; W.set(c.weapon, w);
-    }
-    if (!T.size) return `<h3 style="margin:16px 0 4px;font-size:.95rem">${tr("rp.roll")}</h3><div class="hint">${tr("rp.rollNone")}</div>`;
+    const head = `<h3 style="margin:16px 0 4px;font-size:.95rem">${tr("rp.roll")}</h3>`;
+    const kuvaBox = `<div class="hint" style="margin:0 0 6px">${tr("rp.rollKuva")} <input type="number" min="0" step="1" value="${reroll.kuva_plat}" data-kuva style="width:70px"> ${tr("rp.rollKuvaUnit")}</div>`;
+    const rows = mine.filter((a) => a.visible).map((a) => ({ a, adv: reroll.items[a.id] }));
+    if (!rows.length) return head + `<div class="hint">${tr("rp.rollNone")}</div>`;
+    const done = rows.filter((r) => r.adv).sort((x, y) => y.adv.net - x.adv.net);
+    const rest = rows.filter((r) => !r.adv).length;
     const sign = (n) => `<span class="${n >= 0 ? "pos-txt" : "neg-txt"}">${n > 0 ? "+" : ""}${fmtP(Math.round(n))}</span>`;
-    const rows = [...T].sort((a, b) => (b[1].revenue - b[1].spent) - (a[1].revenue - a[1].spent)).map(([type, t]) =>
-      `<tr><td>${esc(typeName(type))}</td><td>${t.opened}</td><td>${t.opened ? Math.round((t.pub / t.opened) * 100) : 0}%</td>
-       <td>${t.pub ? fmtP(Math.round(t.spent / t.pub)) : "—"}</td><td>${t.sold}</td><td>${fmtP(t.revenue)}</td><td class="nowrap">${sign(t.revenue - t.spent)}</td></tr>`).join("");
-    const wRows = [...W].filter(([, w]) => w.n).sort((a, b) => b[1].revenue / b[1].n - a[1].revenue / a[1].n).slice(0, 8).map(([w, r]) =>
-      `<tr><td>${esc(weaponName(w))}</td><td>${r.n}</td><td>${fmtP(Math.round(r.revenue / r.n))}</td></tr>`).join("");
-    return `<h3 style="margin:16px 0 4px;font-size:.95rem">${tr("rp.roll")}</h3>
-      <table class="rp-rank rp-roll"><thead><tr><th>${tr("lot.type")}</th><th>${tr("rp.rollOpened")}</th><th>${tr("rp.rollUsable")}</th><th>${tr("rp.rollCostEach")}</th><th>${tr("rp.sales")}</th><th>${tr("rp.revenue")}</th><th>${tr("rp.profit")}</th></tr></thead><tbody>${rows}</tbody></table>
-      ${wRows ? `<table class="rp-rank" style="margin-top:8px"><thead><tr><th>${tr("rp.rollBestW")}</th><th>${tr("rp.sales")}</th><th>${tr("rp.rollAvg")}</th></tr></thead><tbody>${wRows}</tbody></table>` : ""}
-      <div class="hint" style="margin-top:6px">${tr("rp.rollNote")}</div>`;
+    const body = done.map(({ a, adv }) => `<tr>
+      <td>${esc(weaponName(a.weapon))}<div class="muted">${esc(a.name)}</div></td>
+      <td>${fmtP(adv.current)}</td>
+      <td>${adv.verdict === "rolear" ? `<b class="pos-txt">${tr("rp.rollYes", { n: adv.tries })}</b>` : `<span class="muted">${tr("rp.rollNo")}</span>`}</td>
+      <td class="nowrap">${adv.verdict === "rolear" ? `${adv.kuva.toLocaleString()} Kuva` : `${adv.next_kuva.toLocaleString()} Kuva`}</td>
+      <td>${fmtP(adv.expected)}</td>
+      <td class="nowrap">${adv.verdict === "rolear" ? sign(adv.net) : `<span class="muted">—</span>`}</td>
+      <td>${adv.p_better}%</td></tr>`).join("");
+    const note = reroll.pending ? `<div class="hint">${tr("rp.rollCalc")}</div>` : (rest ? `<div class="hint">${tr("rp.rollSkipped", { n: rest })}</div>` : "");
+    return head + kuvaBox + (done.length ? `<table class="rp-rank rp-roll"><thead><tr><th>${tr("common.weapon")}</th><th>${tr("rp.rollNow")}</th><th>${tr("rp.rollVerdict")}</th><th>${tr("rp.rollCost")}</th><th>${tr("rp.rollExpected")}</th><th>${tr("rp.profit")}</th><th>${tr("rp.rollBetter")}</th></tr></thead><tbody>${body}</tbody></table>` : "") +
+      note + `<div class="hint" style="margin-top:6px">${tr("rp.rollNote")}</div>`;
   }
 
   function renderReport() {
@@ -1847,6 +1843,11 @@ document.addEventListener('mousedown', (e) => {
     $("#report").innerHTML = filters + exportBar + kpis + chart + ranking + reportRolling() + reportTiming(sales);
   }
   $("#report").addEventListener("change", (e) => {
+    if (e.target.dataset?.kuva !== undefined) {
+      const v = Math.max(1, Number(e.target.value) || 10);
+      settings.kuva_plat = v; api().set_setting("kuva_plat", v);
+      reroll.items = {}; reroll.kuva_plat = v; loadReroll(); return;
+    }
     const f = e.target.dataset?.f; if (!f) return;
     rep[f] = e.target.value; renderReport();
   });
