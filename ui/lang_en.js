@@ -347,7 +347,7 @@ window.LANGS.en = {
   "trend.none": "No data yet: one snapshot is logged per day.",
   "trend.pct": "{p}% over {n} days",
   "trend.legend": "Median (strong violet) and minimum · {a} online of {b}",
-  "al.total": "{n} drops in total: from {a} to {b} (−{d})",
+  "al.orig": "Original {a} pt",
   "al.revertTo": "Revert to {p}",
   "al.drops": "{n} drops",
   "al.now": "now {p} pt",
