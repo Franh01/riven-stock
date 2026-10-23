@@ -51,7 +51,8 @@ sequenceDiagram
     M->>A: Api() y start_counter()
     A->>A: lanza hilos (sección 3)
     M->>W: create_window(ui/index.html)
-    W-->>A: evento shown (estado En juego por 4 h si auto_ingame)
+    W-->>A: evento shown (solo pone el ícono de la ventana)
+    W->>A: set_status(ingame, 240) al cargar la UI, si auto_ingame
     Note over W,A: ... uso normal ...
     W->>A: on_closing (se cancela el cierre)
     A->>W: showClosing
@@ -66,7 +67,7 @@ Todos arrancan en `start_counter`. Los de red no hacen pedidos propios fuera de 
 
 ```mermaid
 flowchart TB
-    subgraph T["Hilos en app.py"]
+    subgraph T["Hilos (loops.py y cloudapi.py)"]
         C["_counter_loop · TICK<br/>horas online y por riven (solo visibles)<br/>renueva el estado antes de las 4 h"]
         D["_drop_loop · 300 s<br/>autodrop_pass: baja como máximo UN riven"]
         S["_snapshot_loop · 120 s<br/>una foto por arma y día, solo en reposo"]
