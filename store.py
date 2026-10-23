@@ -513,6 +513,13 @@ def mark_read(conn, notification_id=None):
     conn.commit()
 
 
+def delete_read(conn):
+    """Borra los avisos ya leídos. Devuelve cuántos."""
+    n = conn.execute("DELETE FROM notifications WHERE read_at IS NOT NULL").rowcount
+    conn.commit()
+    return n
+
+
 def get_drop(conn, drop_id):
     r = conn.execute("SELECT * FROM price_drops WHERE id = ?", (drop_id,)).fetchone()
     return dict(r) if r else None

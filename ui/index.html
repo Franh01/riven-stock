@@ -922,7 +922,7 @@
 <div id="pop"></div>
 <dialog id="alerts-dialog">
   <div class="dlg-head"><h3 data-i18n="al.title">Alertas</h3>
-    <span><button class="ghost" id="al-readall" data-i18n="al.readAll">Marcar todas leídas</button> <button class="icon" id="al-x" title="Cerrar" data-i18n-title="common.close">×</button></span></div>
+    <span><button class="ghost" id="al-readall" data-i18n="al.readAll">Marcar todas leídas</button> <button class="ghost" id="al-delread" data-i18n="al.delRead">Borrar leídas</button> <button class="icon" id="al-x" title="Cerrar" data-i18n-title="common.close">×</button></span></div>
   <div id="al-list" style="overflow:auto; max-height: 70vh"></div>
 </dialog>
 
@@ -3164,6 +3164,11 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
 
   $("#sum-x").addEventListener("click", () => $("#sum-dialog").close());
   $("#al-readall").addEventListener("click", async () => { alerts = await api().mark_read(); renderBell(); renderAlerts(); });
+  $("#al-delread").addEventListener("click", async () => {
+    if (!alerts.items.some((n) => n.read_at)) { toast(tr("al.delNone")); return; }
+    if (!await askConfirm(tr("al.delTitle"), tr("al.delText"), tr("al.delOk"))) return;
+    alerts = await api().delete_read_notifications(); renderBell(); renderAlerts(); toast(tr("al.deleted"));
+  });
   $("#al-list").addEventListener("click", async (e) => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.act === "web") api().open_url("https://warframe.market/auction/" + b.dataset.aid);
