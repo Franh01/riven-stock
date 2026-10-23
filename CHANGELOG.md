@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.6] - 2026-10-23
+
 #### Español
 - Mejorado: el log guarda cada pedido a warframe.market (cuándo salió, cuánto tardó, estado, headers de Cloudflare y el cuerpo si falló), cada llamada de la interfaz con su duración y errores, el entorno (sistema, proxies, reloj) y un diagnóstico de red automático ante 403, 429 o cortes. Ya no se pisa en cada arranque (rota en 3 archivos) y el reporte incluye las sesiones anteriores.
 - Mejorado: la cola de pedidos a warframe.market registra en el log cada espera por 429 o corte de red, y si falla algo inesperado se recupera sola en vez de dejar la búsqueda cargando para siempre (reporte de Santino).
