@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Corregido: la app no cargaba (Mis ventas quedaba en esqueletos, el estado en "Status..." y el selector de tipo vacío). La 0.13.7 traía un error de sintaxis en el código de la interfaz que impedía que arrancara; ahora está arreglado, y cada publicación revisa la sintaxis antes de salir.
+
+#### English
+- Fixed: the app would not load (My sales stuck on skeletons, status stuck on "Status..." and the type selector empty). 0.13.7 shipped a syntax error in the interface code that stopped it from starting; it is fixed, and every release now checks the syntax before publishing.
+
 ## [0.13.7] - 2026-10-23
 
 #### Español

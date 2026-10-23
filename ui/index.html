@@ -3482,9 +3482,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     return { points: [92, 95, 90, 98, 104, 101, 108, 110].map((m, i) => ({ median: m, min_price: Math.round(m * 0.6), n_online: 20 + i, n_orders: 60 + i })) };
   }
   function uiLog(m) { try { api().log_ui(m); } catch (e) {} }
-  $("#riven-dialog").addEventListener("close", () => uiLog("riven-dialog cerrado
-" + (new Error().stack || "").split("
-").slice(1, 6).join(" | ")));
+  $("#riven-dialog").addEventListener("close", () => uiLog("riven-dialog cerrado\n" + (new Error().stack || "").split("\n").slice(1, 6).join(" | ")));
   new MutationObserver(() => uiLog("est-section hidden=" + $("#est-section").hidden)).observe($("#est-section"), { attributes: true, attributeFilter: ["hidden"] });
   let demoOpen = "";
   function closeDemo() {
