@@ -19,6 +19,7 @@ flowchart LR
         API --> UPD["updater.py"]
         API --> CRASH["crashes.py · feedback.py<br/>netdiag.py"]
         API --> CLAPI["cloudapi.py · CloudMixin<br/>métodos cloud_*, _cloud_loop"]
+        API --> LOOPS["loops.py · LoopsMixin<br/>bucles contador, fotos, oportunidades, bajas"]
         CLAPI --> CB["cloud_backup.py<br/>AES-GCM"]
     end
     WFM -- "REST + WebSocket" --> WM[("warframe.market")]
@@ -196,7 +197,7 @@ Publicar: `python tools/release.py X.Y.Z` (git limpio; toma "Sin publicar" del C
 Ordenadas por lo que más conviene atacar. Son hallazgos de leer el código, no bugs confirmados.
 
 1. **Tests parciales.** `tests/test_core.py` cubre `pricing`, `stockcheck`, `opportunities`, `reroll.kuva_cost` e Invertido; falta `autodrop_pass` (vive en `app.py` y depende de la app, se podrá probar al partirlo) y Balance.
-2. **`app.py` monolítico (unas 1300 líneas, clase `Api` con más de 100 métodos).** La nube ya salió a `cloudapi.py` (`CloudMixin`, que `Api` hereda sin cambiar nombres de métodos). Faltan separar los bucles (contador, fotos, oportunidades, bajas) y el feedback/crashes, de a uno por commit.
+2. **`app.py` monolítico (unas 1130 líneas, clase `Api` con más de 100 métodos).** La nube ya salió a `cloudapi.py` (`CloudMixin`, que `Api` hereda sin cambiar nombres de métodos). Los bucles (contador, fotos, oportunidades, bajas) también salieron a `loops.py` (`LoopsMixin`, mismos nombres de métodos; `start_counter`/`stop_counter` quedan en `app.py`). Falta separar el feedback/crashes.
 3. **`ui/index.html` de unas 3900 líneas en un solo archivo.** HTML, CSS, JS, ayuda y recorridos juntos. Partir al menos el JS y el CSS en archivos facilita revisar cambios y que `check_js.py` señale mejor los errores.
 4. **Archivos sobrantes en el repo:** `_backup/` (copias viejas de app, store, wfm_client, orders, updater) y `poc.py`. Git ya guarda el historial; son candidatos a borrar (hay que confirmarlo antes).
 5. **Autodrop de a uno por pasada (cada 5 min).** Con muchos rivens vencidos a la vez el ciclo completo se estira. Es una decisión consciente; revisar solo si el stock crece mucho.

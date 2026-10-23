@@ -1,14 +1,18 @@
-"""Bucles de fondo de Api (contador, fotos, oportunidades): métodos de Api (mixin), ver docs/ARQUITECTURA.md."""
+"""Bucles de fondo de Api (contador, fotos, oportunidades, bajas): métodos de Api (mixin), ver docs/ARQUITECTURA.md."""
 
 import json
 import logging
 import time
+import traceback
 from datetime import datetime, timezone
+
+import requests
 
 import loophealth
 import opportunities
 import store
 from ratelimit import QUEUE
+from wfm_client import WFMError
 
 
 class LoopsMixin:
@@ -97,3 +101,73 @@ class LoopsMixin:
                     if store.add_opportunity(conn, o["id"], text):
                         n_new += 1
         return n_new
+
+    DROP_PASS_S = 300      # cada cuánto corre el motor de baja
+
+    def _drop_loop(self):
+        while not self._stop.wait(self.DROP_PASS_S):
+            try:
+                r = self.autodrop_pass() if self._online else "offline"
+                self._log_pass(r)
+                loophealth.beat("bajas", self.DROP_PASS_S)
+            except Exception as e:
+                loophealth.beat("bajas", self.DROP_PASS_S, e)
+                self._log_pass(traceback.format_exc())
+
+    def _log_pass(self, result):
+        try:
+            p = store.DB_PATH.parent / "cache" / "autodrop.log"
+            with open(p, "a", encoding="utf-8") as f:
+                f.write(f"{store.now_iso()} {result}" + chr(10))
+        except Exception:
+            pass
+
+    def autodrop_pass(self):
+        """Una pasada: baja como mucho UN riven. Decide solo con órdenes del caché."""
+        with store.connect() as conn:
+            cfg, hours = store.settings(conn), store.riven_hours(conn)
+        if not cfg.get("autodrop_enabled", False):
+            return None
+        for aid, a in sorted(self._seen.items(), key=lambda kv: kv[1]["item"]["weapon_url_name"]):
+            h = hours.get(aid)
+            if not a.get("visible", True) or not h or not h["autodrop_on"]:
+                continue
+            need = h["hours_override"] or cfg.get("autodrop_hours", 10)
+            if h["hours"] < need:
+                continue
+            e = self._cache.get(a["item"]["weapon_url_name"], self.CACHE_MAX_AGE_S)
+            if not e:
+                continue   # el caché lo carga en idle; sin datos frescos no se decide
+            price = a["buyout_price"]
+            others = [o["buyout_price"] for o in e["orders"] if o["id"] != aid]
+            amount = h["amount_override"] or cfg.get("autodrop_amount", 5)
+            floor = h["floor_override"] or cfg.get("autodrop_floor", 10)
+            new = max(price - amount, floor)
+            if not others or price <= min(others) or new >= price:
+                with store.connect() as conn:   # ya es el más barato (o está en el piso): otras N horas
+                    store.reset_riven_hours(conn, aid)
+                continue
+            return self._apply_drop(aid, new)
+        return None
+
+    def _apply_drop(self, aid, new):
+        try:
+            cur = self._current(aid)
+            old = cur["buyout_price"]
+            if new >= old:
+                return None
+            upd = self.client.update_auction(
+                aid, price=new, visible=cur["visible"], note=cur.get("note_raw", ""),
+                minimal_reputation=cur.get("minimal_reputation", 0))
+        except (WFMError, requests.RequestException):
+            return None
+        self._seen[aid] = upd
+        item = upd["item"]
+        text = f"Bajé {item['weapon_url_name']} {item.get('name', '')} de {old} a {new} pt".replace("  ", " ")
+        with store.connect() as conn:
+            store.log_event(conn, upd, "update")
+            store.add_price(conn, aid, new, "auto")
+            store.add_drop(conn, aid, old, new, text)
+            store.reset_riven_hours(conn, aid)
+        self._price_changed(aid, new)
+        return {"id": aid, "old": old, "new": new}
