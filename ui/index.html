@@ -373,7 +373,7 @@
   .sum-orders .seller { font-weight: 600; }
   .sum-orders .seller small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
   #alerts-dialog { width: min(680px, 92vw); }
-  .al-card { display: grid; grid-template-columns: 4px 1fr auto; gap: 14px; align-items: center; padding: 14px 18px 14px 0; border-bottom: 1px solid var(--line); transition: background .25s; }
+  .al-card { display: grid; grid-template-columns: 4px 1fr auto auto; gap: 14px; align-items: center; padding: 14px 18px 14px 0; border-bottom: 1px solid var(--line); transition: background .25s; }
   .al-card .bar { align-self: stretch; background: transparent; border-radius: 0 3px 3px 0; transition: background .25s; }
   .al-card.unread { background: #a05cf614; }
   .al-card.unread .bar { background: var(--accent); }
@@ -389,6 +389,15 @@
   .al-card .when { color: var(--muted); font-size: 12px; margin-top: 6px; }
   .al-card.rev .new, .al-card.rev .old, .al-card.rev .al-name { opacity: .5; }
   .al-card .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #e5546b26; color: var(--neg); margin-left: 8px; }
+  .al-btn { display: inline-flex; align-items: center; gap: 7px; }
+  .al-btn .ic, .al-card .al-del .ic { width: 16px; height: 16px; flex: none; }
+  .al-eye { color: #7aa7ff; border-color: #7aa7ff55; }
+  .al-eye:hover { background: #7aa7ff22; }
+  .al-card .al-del { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border-radius: 8px; background: transparent; border: 1px solid transparent; color: var(--muted); box-shadow: none; transition: color .15s, background .15s, border-color .15s; }
+  .al-card .al-del:hover { color: var(--neg); background: #e5546b22; border-color: #e5546b66; }
+  #al-list .state { height: 100%; display: grid; place-items: center; }
+  .al-card { overflow: hidden; }
+  .al-card.leaving { transition: transform .28s cubic-bezier(.4,0,.8,.4), opacity .22s ease-in, height .26s ease .08s, padding .26s ease .08s, border-width .26s ease .08s; transform: translateX(70px); opacity: 0; height: 0 !important; padding-top: 0; padding-bottom: 0; border-bottom-width: 0; }
   .al-card .acts { display: flex; flex-direction: column; gap: 6px; width: 150px; flex: none; }
   .al-card .acts button { width: 100%; white-space: nowrap; }
   button.danger { background: #e5546b22; border: 1px solid #e5546b88; color: var(--neg); box-shadow: none; }
@@ -922,8 +931,8 @@
 <div id="pop"></div>
 <dialog id="alerts-dialog">
   <div class="dlg-head"><h3 data-i18n="al.title">Alertas</h3>
-    <span><button class="ghost" id="al-readall" data-i18n="al.readAll">Marcar todas leídas</button> <button class="ghost" id="al-delread" data-i18n="al.delRead">Borrar leídas</button> <button class="icon" id="al-x" title="Cerrar" data-i18n-title="common.close">×</button></span></div>
-  <div id="al-list" style="overflow:auto; max-height: 70vh"></div>
+    <span><button class="ghost al-btn al-eye" id="al-readall"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg><span data-i18n="al.readAll">Marcar todas leídas</span></button> <button class="danger al-btn" id="al-delread"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg><span data-i18n="al.delRead">Borrar leídas</span></button> <button class="icon" id="al-x" title="Cerrar" data-i18n-title="common.close">×</button></span></div>
+  <div id="al-list" style="overflow:auto; height: 70vh"></div>
 </dialog>
 
 <dialog id="sum-dialog">
@@ -2688,7 +2697,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
           ${op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("opp.open")}</button>` : ""}
           ${n.auction_id && !fake && !op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
           ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">${tr("al.revertTo", { p: fmtPt(n.old_price) })}</button>` : ""}
-        </div></div>`;
+        </div><button class="al-del" data-act="del" data-ids="${ids}" title="${tr("al.del")}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></div>`;
     }).join("") : `<div class="state">${tr("al.none")}</div>`;
   }
   // Marcar como leída al dejar el mouse un momento sobre la alerta
@@ -3164,13 +3173,27 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
 
   $("#sum-x").addEventListener("click", () => $("#sum-dialog").close());
   $("#al-readall").addEventListener("click", async () => { alerts = await api().mark_read(); renderBell(); renderAlerts(); });
+  // Saca las tarjetas con animación (se deslizan al costado y colapsan en alto) y recién después redibuja
+  async function leaveCards(cards) {
+    cards.forEach((c, i) => {
+      c.style.height = c.offsetHeight + "px"; void c.offsetHeight;
+      setTimeout(() => c.classList.add("leaving"), Math.min(i, 8) * 45);
+    });
+    await new Promise((r) => setTimeout(r, 400 + Math.min(cards.length, 9) * 45));
+  }
   $("#al-delread").addEventListener("click", async () => {
     if (!alerts.items.some((n) => n.read_at)) { toast(tr("al.delNone")); return; }
     if (!await askConfirm(tr("al.delTitle"), tr("al.delText"), tr("al.delOk"))) return;
-    alerts = await api().delete_read_notifications(); renderBell(); renderAlerts(); toast(tr("al.deleted"));
+    const cards = [...$("#al-list").querySelectorAll(".al-card:not(.unread)")];
+    const [r] = await Promise.all([api().delete_read_notifications(), leaveCards(cards)]);
+    alerts = r; renderBell(); renderAlerts(); toast(tr("al.deleted"));
   });
   $("#al-list").addEventListener("click", async (e) => {
     const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.act === "del") {
+      const [r] = await Promise.all([api().delete_notifications(b.dataset.ids.split(",").map(Number)), leaveCards([b.closest(".al-card")])]);
+      alerts = r; renderBell(); renderAlerts(); return;
+    }
     if (b.dataset.act === "web") api().open_url("https://warframe.market/auction/" + b.dataset.aid);
     if (b.dataset.act === "open") { $("#alerts-dialog").close(); openSummary(b.dataset.aid); }
     if (b.dataset.act === "revert") {

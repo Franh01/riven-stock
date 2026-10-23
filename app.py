@@ -742,6 +742,11 @@ class Api:
             store.delete_read(conn)
         return self.notifications()
 
+    def delete_notifications(self, ids):
+        with store.connect() as conn:
+            store.delete_notifications(conn, ids)
+        return self.notifications()
+
     def _price_changed(self, auction_id, price):
         """Propaga un cambio de precio propio a los caches (órdenes en disco y mercado en memoria)."""
         self._cache.patch_price(auction_id, price)

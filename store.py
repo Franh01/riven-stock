@@ -520,6 +520,13 @@ def delete_read(conn):
     return n
 
 
+def delete_notifications(conn, ids):
+    ids = [int(i) for i in ids]
+    if ids:
+        conn.execute(f"DELETE FROM notifications WHERE id IN ({','.join('?' * len(ids))})", ids)
+        conn.commit()
+
+
 def get_drop(conn, drop_id):
     r = conn.execute("SELECT * FROM price_drops WHERE id = ?", (drop_id,)).fetchone()
     return dict(r) if r else None

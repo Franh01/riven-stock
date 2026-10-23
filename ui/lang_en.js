@@ -78,6 +78,7 @@ window.LANGS.en = {
   "common.accept": "Accept",
   "al.title": "Alerts",
   "al.readAll": "Mark all as read",
+  "al.del": "Delete",
   "al.delRead": "Delete read",
   "al.delNone": "There are no read alerts to delete",
   "al.delTitle": "Delete read alerts",

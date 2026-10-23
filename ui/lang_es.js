@@ -78,6 +78,7 @@ window.LANGS.es = {
   "common.accept": "Aceptar",
   "al.title": "Alertas",
   "al.readAll": "Marcar todas leídas",
+  "al.del": "Borrar",
   "al.delRead": "Borrar leídas",
   "al.delNone": "No hay alertas leídas para borrar",
   "al.delTitle": "Borrar alertas leídas",
