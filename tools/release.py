@@ -14,7 +14,7 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-INCLUIR = ["app.py", "cloud_backup.py", "cloudapi.py", "crashes.py", "loops.py", "feedback.py", "loophealth.py", "netdiag.py", "opportunities.py", "ratelimit.py", "stockcheck.py", "orders.py", "pricing.py", "reroll.py", "store.py", "wfm_client.py", "updater.py", "requirements.txt",
+INCLUIR = ["app.py", "cloud_backup.py", "cloudapi.py", "crashes.py", "loops.py", "feedback.py", "feedbackapi.py", "loophealth.py", "netdiag.py", "opportunities.py", "ratelimit.py", "stockcheck.py", "orders.py", "pricing.py", "reroll.py", "store.py", "wfm_client.py", "updater.py", "requirements.txt",
            "VERSION", "CHANGELOG.md", "README.md", "instalar.bat", "assets", "data", "tools", "ui", "installer"]
 
 
