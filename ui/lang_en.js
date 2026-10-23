@@ -303,6 +303,7 @@ window.LANGS.en = {
   "sum.published": "Published {t}",
   "sum.seen": "Seen {t}",
   "sum.openTip": "See this riven's summary",
+  "sum.yourOrder": "Your order",
   "sum.rolls": "{n} rolls",
   "v.market": "Market price",
   "v.cheap": "Cheap: worth ~{d}p more ({p}%)",

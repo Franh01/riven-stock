@@ -303,6 +303,7 @@ window.LANGS.es = {
   "sum.published": "Publicado {t}",
   "sum.seen": "Visto {t}",
   "sum.openTip": "Ver el resumen de este riven",
+  "sum.yourOrder": "Tu orden",
   "sum.rolls": "{n} rolls",
   "v.market": "Precio de mercado",
   "v.cheap": "Barato: vale ~{d}p más ({p}%)",

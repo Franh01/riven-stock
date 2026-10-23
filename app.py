@@ -710,11 +710,18 @@ class Api:
                 e = self._cache.load(weapon)
         except (WFMError, requests.RequestException) as ex:
             return {"error": str(ex)}
+        rows = []
         for a in e["orders"]:
-            self._market[a["id"]] = a   # para poder abrir su resumen al tocarla
+            mine = self._seen.get(a["id"])
+            if mine:   # orden propia: vale el precio vigente, no el del caché
+                a = dict(a, buyout_price=mine["buyout_price"], starting_price=mine["buyout_price"])
+            else:
+                self._market[a["id"]] = a   # para poder abrir su resumen al tocarla
+            rows.append((a, bool(mine)))
+        rows.sort(key=lambda r: r[0]["buyout_price"])
         return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],
-                            "reputation": a["owner"].get("reputation"),
-                            "created": a.get("created"), "last_seen": a["owner"].get("last_seen")} for a in e["orders"][:7]],
+                            "reputation": a["owner"].get("reputation"), "mine": mine,
+                            "created": a.get("created"), "last_seen": a["owner"].get("last_seen")} for a, mine in rows[:7]],
                 "age_s": int(time.time() - e["at"]), "market": e.get("market", [])}
 
     def notifications(self):

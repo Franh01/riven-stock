@@ -70,12 +70,23 @@ class OrderCache:
     def patch_price(self, auction_id, price):
         """Un cambio de precio propio también va al caché, para que no quede un precio viejo."""
         hit = False
+        price = int(price)
         with self._lock:
             for e in self._data.values():
                 for o in e.get("market") or []:
                     if o.get("id") == auction_id and o.get("p") != price:
-                        o["p"] = int(price)
+                        o["p"] = price
                         hit = True
+                mine = [o for o in e.get("orders") or [] if o.get("id") == auction_id and o.get("buyout_price") != price]
+                for o in mine:   # las más baratas (la tabla del detalle)
+                    o["buyout_price"] = o["starting_price"] = price
+                    hit = True
+                if mine:
+                    e["orders"].sort(key=lambda x: x["buyout_price"])
+            for _, rows in self._targeted.values():
+                for o in rows:
+                    if o.get("id") == auction_id:
+                        o["p"] = price
         if hit:
             self._persist()
 
