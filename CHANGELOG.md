@@ -4,13 +4,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- «¿Conviene rolear?» pasó del Reporte al detalle de cada riven, debajo del estimado. Ahora dice sí o no con el motivo y muestra un riven publicado de la misma arma con stats que se venden caros. Se sacó el valor del Kuva en platinum (el Kuva se farmea).
+- Stock unveiled más compacto: los rivens sin abrir del mismo tipo y mismo costo unitario se agrupan en una sola fila, y al abrir uno elegís el grupo sin ver lotes repetidos.
+
+#### English
+- "Is it worth re-rolling?" moved from the Report to each riven's detail, below the estimate. It now answers yes or no with the reason and shows a listed riven of the same weapon with stats that sell high. The Kuva platinum value was removed (Kuva is farmed).
+- More compact unveiled stock: unopened rivens of the same type and unit cost are grouped in a single row, and when opening one you pick the group without seeing repeated lots.
+
 ## [0.13.0] - 2026-10-22
 
 #### Español
-- Reemplazada la sección «Rentabilidad de rollear» del Reporte por «¿Conviene rolear?», que ahora está en el detalle de cada riven: simula tiradas de Kuva y te dice si conviene rolearlo, cuántas veces y cuánto Kuva cuesta.
+- Reemplazada la sección «Rentabilidad de rollear» del Reporte por «¿Conviene rolear?»: para cada riven publicado simula tiradas de Kuva y te dice si conviene rolearlo, cuántas veces, cuánto Kuva cuesta y la ganancia esperada. El valor del Kuva en platinum es ajustable.
 
 #### English
-- Replaced the "Rolling profitability" section of the Report with "Is it worth re-rolling?", now in each riven's detail: it simulates Kuva rolls and tells you whether it pays off, how many rolls and the Kuva cost.
+- Replaced the "Rolling profitability" section of the Report with "Is it worth re-rolling?": for each listed riven it simulates Kuva rolls and tells you whether it pays off, how many rolls, the Kuva cost and the expected profit. The Kuva value in platinum is adjustable.
 
 ## [0.12.4] - 2026-10-22
 

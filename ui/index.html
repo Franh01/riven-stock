@@ -1525,26 +1525,37 @@ document.addEventListener('mousedown', (e) => {
   $("#lot-type").innerHTML = RIVEN_TYPES.map((t) => `<option value="${t}">${typeName(t)}</option>`).join("");
   $("#lot-type").value = "melee";
 
+  // Lotes con unidades sin abrir, agrupados por tipo y costo unitario: "rep" es el lote más viejo del grupo (el que se abre primero).
+  function lotGroups() {
+    const groups = new Map();
+    for (const l of [...lots].sort((x, y) => x.id - y.id)) {
+      if (!l.remaining) continue;
+      const key = `${l.riven_type}|${Math.round(l.unit_cost * 100)}`;
+      const g = groups.get(key);
+      if (g) { g.remaining += l.remaining; g.n += 1; g.ids.push(l.id); }
+      else groups.set(key, { rep: l, remaining: l.remaining, n: 1, ids: [l.id] });
+    }
+    return [...groups.values()];
+  }
+
   function renderLots() {
     const left = lots.reduce((s, l) => s + l.remaining, 0);
     $("#stock-title").textContent = tr("stock.titleN", { n: left });
-    if (!lots.length) {
+    const groups = lotGroups();
+    if (!groups.length) {
       $("#lots").innerHTML = `<div class="hint">${tr("lots.empty")}</div>`;
       return;
     }
     $("#lots").innerHTML = `<table>
-      <thead><tr><th>${tr("lot.type")}</th><th>${tr("lots.unopened")}</th><th>${tr("lots.unitCost")}</th><th>${tr("lots.total")}</th><th>${tr("lots.note")}</th><th>${tr("lots.added")}</th><th></th></tr></thead>
-      <tbody>${lots.map((l) => `<tr data-lot="${l.id}" class="${l.remaining ? "" : "hidden-row"}">
-        <td class="lot-type">${esc(typeName(l.riven_type))}</td>
-        <td class="nowrap"><span class="remaining">${l.remaining}</span> <span class="muted">${tr("lots.of", { n: l.quantity })}</span></td>
-        <td class="nowrap">${fmtP(l.unit_cost)}</td>
-        <td class="nowrap">${fmtP(l.total_cost)}</td>
-        <td class="muted">${esc(l.note)}</td>
-        <td class="nowrap muted" title="${esc(fullDate(l.created_at))}">${esc(ago(l.created_at))}</td>
+      <thead><tr><th>${tr("lot.type")}</th><th>${tr("lots.unopened")}</th><th>${tr("lots.unitCost")}</th><th></th></tr></thead>
+      <tbody>${groups.map((g) => `<tr data-lot="${g.rep.id}">
+        <td class="lot-type">${esc(typeName(g.rep.riven_type))}</td>
+        <td class="nowrap"><span class="remaining">${g.remaining}</span></td>
+        <td class="nowrap">${fmtP(g.rep.unit_cost)}</td>
         <td class="actions">
-          ${l.remaining ? `<button class="small" data-lot-act="open" title="${tr("lots.openTip")}">${tr("lots.open")}</button>
-          <button class="ghost" data-lot-act="discard" title="${tr("lots.discardTip")}">−1</button>` : ""}
-          ${l.opened ? "" : `<button class="ghost" data-lot-act="delete" title="${tr("lots.deleteTip")}">${tr("lots.delete")}</button>`}
+          <button class="small" data-lot-act="open" title="${tr("lots.openTip")}">${tr("lots.open")}</button>
+          <button class="ghost" data-lot-act="discard" title="${tr("lots.discardTip")}">−1</button>
+          ${g.n === 1 && !g.rep.opened ? `<button class="ghost" data-lot-act="delete" title="${tr("lots.deleteTip")}">${tr("lots.delete")}</button>` : ""}
         </td>
       </tr>`).join("")}</tbody></table>`;
   }
@@ -2162,9 +2173,10 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
 
   function refreshOrigins(selected = "") {
     $("#f-origin").innerHTML = `<option value="">${tr("rd.originNone")}</option>` +
-      lots.filter((l) => l.remaining > 0).map((l) =>
-        `<option value="${l.id}">${tr("rd.originLot", { t: typeName(l.riven_type), n: l.remaining, c: fmtP(l.unit_cost) })}${l.note ? ` · ${esc(l.note)}` : ""}</option>`).join("");
-    $("#f-origin").value = String(selected);
+      lotGroups().map((g) =>
+        `<option value="${g.rep.id}">${tr("rd.originLot", { t: typeName(g.rep.riven_type), n: g.remaining, c: fmtP(g.rep.unit_cost) })}</option>`).join("");
+    const sel = lotGroups().find((g) => g.ids.includes(Number(selected)));
+    $("#f-origin").value = sel ? String(sel.rep.id) : "";
   }
   $("#f-origin").addEventListener("change", () => {
     const lot = currentLot();
