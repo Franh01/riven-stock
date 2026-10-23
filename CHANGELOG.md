@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Mejorado: el estimado de precio ya no penaliza con un 0,6 fijo a los comparables con otra cantidad de stats. Ahora la penalización depende de la configuración (2 o 3 positivos, con o sin negativa) y sale de ventas reales: por ejemplo, 3 positivos sin negativa y 2 positivos con negativa se tratan casi como iguales.
+
+#### English
+- Improved: the price estimate no longer applies a flat 0.6 penalty to comparables with a different number of stats. The penalty now depends on the configuration (2 or 3 positives, with or without a negative) and is measured from real sales: for example, 3 positives with no negative and 2 positives with a negative are treated as nearly equal.
+
 ## [0.13.3] - 2026-10-23
 
 #### Español
