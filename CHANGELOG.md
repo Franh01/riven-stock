@@ -5,9 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
+- Corregido: tras un ajuste automático de precio, el editor mostraba el precio viejo (ej. 20p en vez de 10p) porque Mis ventas no se actualizaba; ahora se refresca sola cuando llega una alerta.
 - Nuevo: contador de slots de riven ("Slots 17/20") junto al estado y arriba de la tabla; el número de la izquierda son tus ventas publicadas (visibles u ocultas) y el de la derecha lo editás con un clic (también en Ajustes). Slots totales (15 base + packs de 5).
 
 #### English
+- Fixed: after an automatic price drop, the editor showed the old price (e.g. 20p instead of 10p) because My sales was not refreshed; it now refreshes itself when an alert arrives.
 - New: riven slot counter ("Slots 17/20") next to your status and above the table; the left number is your published listings (visible or hidden) and the right one is editable with a click (also in Settings). Total slots (15 base + packs of 5).
 
 ## [0.13.5] - 2026-10-23

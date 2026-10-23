@@ -2806,6 +2806,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       const top = alerts.items.reduce((m, n) => Math.max(m, n.id), 0);
       if (lastAlertId !== null && top > lastAlertId) announce(alerts.items.filter((n) => n.id > lastAlertId && !n.read_at).reverse());
       if (lastAlertId !== null && top > lastAlertId && $("#alerts-dialog").open) renderAlerts();
+      // Un ajuste automático cambió precios por detrás: refrescar Mis ventas para no editar con datos viejos.
+      if (lastAlertId !== null && top > lastAlertId) loadMine();
       lastAlertId = top;
     } catch (e) { /* sin conexión con el backend */ }
   }
