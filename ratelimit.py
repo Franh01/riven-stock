@@ -33,9 +33,28 @@ _TRANSIENT = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, 
               TimeoutError, ConnectionError, websocket.WebSocketException)
 
 
+_LOG_HEADERS = ("server", "cf-ray", "cf-mitigated", "cf-cache-status", "retry-after", "content-type",
+                "x-ratelimit-limit", "x-ratelimit-remaining", "x-ratelimit-reset", "date")
+STALL_S = 25          # un pedido en vuelo más de esto se registra como trabado
+
+
+def _describe(res):
+    """Resumen de una respuesta para el log: estado, tamaño, headers útiles para diagnosticar y, si falló, el cuerpo."""
+    status = getattr(res, "status_code", None)
+    if status is None:   # no es una respuesta HTTP (ej. el WebSocket)
+        return type(res).__name__
+    heads = " ".join(f"{h}={res.headers.get(h)}" for h in _LOG_HEADERS if res.headers.get(h))
+    out = f"{status} {len(getattr(res, 'content', b'') or b'')}B {heads}"
+    if status >= 300:
+        body = " ".join((getattr(res, "text", "") or "").split())[:300]
+        out += f" url={getattr(res, 'url', '')} cuerpo={body!r}"
+    return out
+
+
 class _Job:
     def __init__(self, fn, label):
         self.fn, self.label, self.tries = fn, label, 0
+        self.t_submit = time.monotonic()
         self.event = threading.Event()
         self.result = self.error = None
 
@@ -52,7 +71,9 @@ class RequestQueue:
         self._log = deque(maxlen=30)   # últimos pedidos que arrancaron (para mostrarlos en la UI)
         self._seq = 0
         self._total = self._done = 0   # lote actual: se reinicia cuando la cola se vacía
+        self._inflight = None          # (job, momento en que salió) mientras el pedido está en la red
         threading.Thread(target=self._run, daemon=True, name="wfm-queue").start()
+        threading.Thread(target=self._watch, daemon=True, name="wfm-queue-watch").start()
 
     # ---- API para quien pide ------------------------------------------
 
@@ -97,6 +118,31 @@ class RequestQueue:
             }
 
     # ---- Hilo ejecutor ------------------------------------------------
+
+    def _watch(self):
+        """Registra pedidos trabados en la red o una cola que no avanza (no toca nada, solo deja rastro en el log)."""
+        warned = {}
+        while True:
+            time.sleep(10)
+            try:
+                with self._cond:
+                    inflight, depth, active = self._inflight, len(self._q), self._active
+                    cooldown = max(0.0, self._cooldown_until - self._clock())
+                if inflight:
+                    job, since = inflight
+                    age = time.monotonic() - since
+                    if age > STALL_S and time.monotonic() - warned.get(id(job), 0) > 60:
+                        warned[id(job)] = time.monotonic()
+                        log.warning("Pedido trabado: %s lleva %.0f s sin respuesta (intento %d, %d en cola)",
+                                    job.label, age, job.tries + 1, depth)
+                elif active is not None and cooldown <= 0 and time.monotonic() - active.t_submit > 90                         and time.monotonic() - warned.get(id(active), 0) > 60:
+                    warned[id(active)] = time.monotonic()
+                    log.warning("La cola no avanza: %s espera hace %.0f s sin enfriamiento activo (%d en cola)",
+                                active.label, time.monotonic() - active.t_submit, depth)
+                if len(warned) > 200:
+                    warned.clear()
+            except Exception:
+                log.exception("Falla en el vigilante de la cola")
 
     def _wait_slot(self):
         """Bloquea hasta que se pueda arrancar un pedido sin pasar el límite, y lo registra."""
@@ -143,10 +189,17 @@ class RequestQueue:
             self._wait_slot()
             with self._cond:
                 self._seq += 1
-                self._log.append({"id": self._seq, "name": job.label, "retry": job.tries})
+                seq, depth = self._seq, len(self._q)
+                self._log.append({"id": seq, "name": job.label, "retry": job.tries})
+                t0 = time.monotonic()
+                self._inflight = (job, t0)
+            log.info("-> #%d %s (intento %d, esperó %.1f s en cola, %d detrás)", seq, job.label, job.tries + 1, t0 - job.t_submit, depth)
             try:
                 res = job.fn()
             except _TRANSIENT as e:   # timeout o corte de red: se reintenta solo antes de mostrar nada
+                self._inflight = None
+                log.warning("xx #%d %s falló a los %d ms: %s: %s", seq, job.label, (time.monotonic() - t0) * 1000, type(e).__name__, str(e)[:300])
+                _probe_later(f"{type(e).__name__} en {job.label}")
                 if job.tries < NET_RETRIES:
                     self._cooldown_until = self._clock() + NET_WAIT_S * (2 ** job.tries)
                     self._reason = "net"
@@ -159,9 +212,17 @@ class RequestQueue:
                 self._finish(job, error=e)
                 continue
             except Exception as e:   # el error le llega a quien pidió
+                self._inflight = None
+                log.warning("xx #%d %s falló a los %d ms: %s: %s", seq, job.label, (time.monotonic() - t0) * 1000, type(e).__name__, str(e)[:300])
                 self._finish(job, error=e)
                 continue
-            if getattr(res, "status_code", None) == 429 and job.tries < MAX_RETRIES:
+            self._inflight = None
+            status = getattr(res, "status_code", None)
+            log.log(logging.WARNING if (status or 0) >= 400 else logging.INFO,
+                    "<- #%d %s en %d ms: %s", seq, job.label, (time.monotonic() - t0) * 1000, _describe(res))
+            if status in (403, 429, 503):
+                _probe_later(f"{status} en {job.label}")
+            if status == 429 and job.tries < MAX_RETRIES:
                 retry_after = _retry_after(res)
                 wait = retry_after if retry_after is not None else COOLDOWN_S * (2 ** job.tries)
                 self._cooldown_until = self._clock() + min(wait, COOLDOWN_MAX_S)
@@ -173,6 +234,14 @@ class RequestQueue:
                     self._active = None
                 continue
             self._finish(job, result=res)
+
+
+def _probe_later(reason):
+    try:
+        import netdiag
+        netdiag.probe(reason)
+    except Exception:
+        log.exception("No se pudo lanzar el diagnóstico de red")
 
 
 def _retry_after(res):

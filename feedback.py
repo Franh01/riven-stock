@@ -29,10 +29,13 @@ def sanitize(text):
 
 
 def read_log(path):
-    try:
-        data = open(path, "rb").read()
-    except OSError:
-        return ""
+    """Últimos MAX_LOG bytes del log, incluidas las sesiones anteriores que rotaron a `.1` y `.2`."""
+    data = b""
+    for suffix in (".2", ".1", ""):
+        try:
+            data += open(f"{path}{suffix}", "rb").read()
+        except OSError:
+            pass
     return sanitize(data[-MAX_LOG:].decode("utf-8", "replace"))
 
 

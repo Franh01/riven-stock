@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import threading
+import functools
 import traceback
 import time
 from datetime import datetime, timezone
@@ -26,9 +27,12 @@ try:
         crashes.begin(_st.DATA_DIR, LOG_FILE, _va())   # antes de que el log se pise
     except Exception:
         pass
-    logging.basicConfig(filename=LOG_FILE, filemode="w", level=logging.INFO, encoding="utf-8",
-                        format="%(asctime)s %(levelname)s %(message)s")
-    logging.info("Arranque. Python %s en %s", sys.version.split()[0], sys.executable)
+    # El log rota en vez de pisarse en cada arranque: si la app se reinicia, los pedidos y errores de la sesión anterior siguen ahí.
+    from logging.handlers import RotatingFileHandler
+    _h = RotatingFileHandler(LOG_FILE, maxBytes=1_000_000, backupCount=2, encoding="utf-8")
+    _h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s [%(threadName)s] %(message)s"))
+    logging.basicConfig(level=logging.INFO, handlers=[_h])
+    logging.info("=== Arranque. Python %s en %s", sys.version.split()[0], sys.executable)
     def _hook(t, v, tb):
         logging.critical("Error sin capturar", exc_info=(t, v, tb))
         crashes.record("el programa", (t, v, tb))
@@ -1331,9 +1335,58 @@ def set_window_icon():
         user32.SendMessageW(hwnd, 0x80, which, hicon)  # WM_SETICON
 
 
+# Métodos de la interfaz que se llaman solos cada pocos segundos: solo se registran si fallan o tardan.
+_QUIET_API = {"queue_status", "request_log", "status", "notifications", "stock_position_pending", "get_settings",
+              "feedback_state", "crash_state", "token_status", "get_version", "cloud_info", "backup_info",
+              "online_hours", "activity", "local", "get_changelog"}
+# Sus argumentos son secretos o texto libre del usuario: no se anotan.
+_NO_ARGS_API = {"token_save", "cloud_restore", "feedback_send", "crash_ui_error", "import_backup", "save_text_file"}
+_SLOW_API_S = 3
+
+
+def _traced(name, fn):
+    quiet, hide = name in _QUIET_API, name in _NO_ARGS_API
+
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        shown = "" if hide else ", ".join([repr(a) for a in args[1:]] + [f"{k}={v!r}" for k, v in kwargs.items()])[:200]
+        if not quiet:
+            logging.info("UI -> %s(%s)", name, shown)
+        t0 = time.monotonic()
+        try:
+            res = fn(*args, **kwargs)
+        except BaseException:
+            logging.exception("UI xx %s(%s) lanzó una excepción tras %d ms", name, shown, (time.monotonic() - t0) * 1000)
+            raise
+        ms = (time.monotonic() - t0) * 1000
+        if isinstance(res, dict) and res.get("error"):
+            logging.warning("UI <- %s(%s) devolvió error tras %d ms: %s", name, shown, ms, str(res["error"])[:300])
+        elif not quiet or ms > _SLOW_API_S * 1000:
+            size = len(res) if isinstance(res, (list, dict, str)) else type(res).__name__
+            logging.log(logging.WARNING if ms > _SLOW_API_S * 1000 else logging.INFO,
+                        "UI <- %s en %d ms (%s)", name, ms, size)
+        return res
+    return wrapper
+
+
+def _trace_api(cls):
+    """Envuelve los métodos públicos de la interfaz para dejar en el log cada llamada, su duración y sus errores."""
+    for name, fn in list(vars(cls).items()):
+        if callable(fn) and not name.startswith("_"):
+            setattr(cls, name, _traced(name, fn))
+    return cls
+
+
 def main():
     # Agrupa la ventana en la barra de tareas con su propio ícono, no el de Python.
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("franh01.rivenstock")
+    _trace_api(Api)
+    try:
+        import netdiag
+        netdiag.environment()
+        netdiag.probe("arranque")
+    except Exception:
+        logging.exception("No se pudo registrar el entorno")
     api = Api()
     api.start_counter()
     window = webview.create_window(
