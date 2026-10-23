@@ -55,6 +55,7 @@ import reroll
 import stockcheck
 import updater
 from cloudapi import CloudMixin
+from loops import LoopsMixin
 from orders import OrderCache
 from pricing import estimate
 from ratelimit import QUEUE
@@ -72,7 +73,7 @@ BASES = ROOT / "data" / "riven_bases.json"  # lo genera tools/derive_riven_bases
 TITLE = "Riven Stock"
 
 
-class Api(CloudMixin):
+class Api(CloudMixin, LoopsMixin):
     """Métodos que la interfaz llama con window.pywebview.api.<método>()."""
 
     def __init__(self):
@@ -355,11 +356,6 @@ class Api(CloudMixin):
 
     # ---- Horas online efectivas ---------------------------------------------
 
-    TICK_S = 60          # una muestra por minuto
-    TICK_CAP_S = 120     # tope por muestra: una suspensión de la PC no suma horas
-    STATUS_REFRESH_S = 300
-    RENEW_BEFORE_S = 600
-
     def start_counter(self):
         try:
             with store.connect() as conn:
@@ -378,31 +374,6 @@ class Api(CloudMixin):
         if getattr(self, "_stop", None):
             self._stop.set()
         self._cache.stop()
-
-    def _counter_loop(self):
-        last = time.monotonic()
-        st, st_at = None, 0.0
-        while not self._stop.wait(self.TICK_S):
-            now = time.monotonic()
-            elapsed = min(now - last, self.TICK_CAP_S)
-            last = now
-            try:
-                if st is None or now - st_at > self.STATUS_REFRESH_S:
-                    st, st_at = self.client.get_status(), now
-                until = st.get("statusUntil") if st else None
-                left = (datetime.fromisoformat(until.replace("Z", "+00:00")) - datetime.now(timezone.utc)).total_seconds() if until else 0
-                self._online = bool(st and st.get("status") in ("online", "ingame") and left > 0)
-                if self._online:
-                    with store.connect() as conn:
-                        store.add_online_seconds(conn, elapsed)
-                        # solo cuentan los rivens visibles: uno oculto no está a la venta
-                        store.add_riven_seconds(conn, [i for i, a in list(self._seen.items()) if a.get("visible", True)], elapsed)
-                    if left < self.RENEW_BEFORE_S:   # el servidor corta a las 4 h: renovar mientras la app esté abierta
-                        st, st_at = self.client.set_status(st["status"], 240 * 60), now
-                loophealth.beat("contador", self.TICK_S)
-            except Exception as e:
-                loophealth.beat("contador", self.TICK_S, e)
-                st = None   # sin red o error de la API: no suma ese minuto y reintenta
 
     # ---- Caché de órdenes y baja automática ---------------------------------
 
