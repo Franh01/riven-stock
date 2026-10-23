@@ -42,3 +42,23 @@ class LoopsMixin:
             except Exception as e:
                 loophealth.beat("contador", self.TICK_S, e)
                 st = None   # sin red o error de la API: no suma ese minuto y reintenta
+
+    SNAPSHOT_PASS_S = 120
+
+    def _snapshot_loop(self):
+        """Una foto diaria por arma (stock y favoritas), solo en idle y por la cola central."""
+        while not self._stop.wait(self.SNAPSHOT_PASS_S):
+            loophealth.beat("fotos", self.SNAPSHOT_PASS_S)
+            if not self._cache.idle() or QUEUE.busy():
+                continue
+            try:
+                with store.connect() as conn:
+                    tracked = store.settings(conn).get("tracked_weapons") or []
+                    todo = [w for w in list(self._wanted_weapons()) + tracked if not store.snapshot_done_today(conn, w)]
+                    if not todo:
+                        continue
+                    e = self._cache.get(todo[0], self.VIEW_MAX_AGE_S) or self._cache.load(todo[0])
+                    store.save_snapshot(conn, todo[0], e.get("market", []))
+            except Exception as e:
+                loophealth.beat("fotos", self.SNAPSHOT_PASS_S, e)
+                self._stop.wait(60)

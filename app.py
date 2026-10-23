@@ -402,26 +402,6 @@ class Api(CloudMixin, LoopsMixin):
             score[w] = max(score.get(w, 0), ratio)
         return sorted(score, key=score.get, reverse=True) + [w for w in extra if w not in score]
 
-    SNAPSHOT_PASS_S = 120
-
-    def _snapshot_loop(self):
-        """Una foto diaria por arma (stock y favoritas), solo en idle y por la cola central."""
-        while not self._stop.wait(self.SNAPSHOT_PASS_S):
-            loophealth.beat("fotos", self.SNAPSHOT_PASS_S)
-            if not self._cache.idle() or QUEUE.busy():
-                continue
-            try:
-                with store.connect() as conn:
-                    tracked = store.settings(conn).get("tracked_weapons") or []
-                    todo = [w for w in list(self._wanted_weapons()) + tracked if not store.snapshot_done_today(conn, w)]
-                    if not todo:
-                        continue
-                    e = self._cache.get(todo[0], self.VIEW_MAX_AGE_S) or self._cache.load(todo[0])
-                    store.save_snapshot(conn, todo[0], e.get("market", []))
-            except Exception as e:
-                loophealth.beat("fotos", self.SNAPSHOT_PASS_S, e)
-                self._stop.wait(60)
-
     OPP_PASS_S = 90
 
     def _opp_loop(self):
