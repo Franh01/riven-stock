@@ -151,6 +151,9 @@
   .fb-kinds { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin: 4px 0 10px; }
   .fb-row { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 13px; cursor: pointer; }
   .fb-row input { width: 15px; height: 15px; margin: 0; padding: 0; accent-color: var(--accent); }
+  .fb-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border, rgba(255,255,255,.12)); border-radius: 8px; background: rgba(255,255,255,.03); }
+  .fb-opt a { font-size: 12px; white-space: nowrap; }
+  #fb-dialog .dlg-body { gap: 10px; }
   #fb-dialog textarea, #fb-dialog input[type=text], #fb-dialog #fb-contact { margin-top: 0; }
   .auto-row input { width: 15px; height: 15px; accent-color: var(--accent); }
   .totals { margin-left: 0; }
@@ -840,7 +843,7 @@
     <textarea id="fb-text" rows="5" maxlength="4000" style="width:100%" data-i18n-placeholder="fb.ph" placeholder="Contanos qué pasó o qué mejorarías"></textarea>
     <input id="fb-contact" maxlength="120" style="width:100%;margin-top:6px" data-i18n-placeholder="fb.contact" placeholder="Contacto (opcional)">
     <p style="margin:8px 0 2px"><button class="ghost" id="fb-add" data-i18n="fb.add">Adjuntar captura</button> <input type="file" id="fb-file" accept="image/*" multiple hidden> <span class="muted" id="fb-shots"></span></p>
-    <div class="fb-kinds"><label class="fb-row"><input type="checkbox" id="fb-logs"><span data-i18n="fb.logs">Incluir el registro (log) de la app</span></label><a href="#" id="fb-logview" data-i18n="fb.view">ver qué se envía</a></div>
+    <div class="fb-opt"><label class="fb-row"><input type="checkbox" id="fb-logs" checked><span data-i18n="fb.logs">Incluir el registro (log) de la app</span></label><a href="#" id="fb-logview" data-i18n="fb.view">ver qué se envía</a></div>
     <pre id="fb-logbox" class="muted" hidden style="max-height:140px;overflow:auto;white-space:pre-wrap;font-size:11px"></pre>
     <div class="muted" id="fb-msg" style="min-height:1.4em"></div>
     <div class="upd-actions"><button class="ghost" id="fb-cancel" data-i18n="common.cancel">Cancelar</button><button id="fb-send" data-i18n="fb.send">Enviar</button></div>
@@ -3643,7 +3646,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
   }
   $("#fb-btn").addEventListener("click", () => {
     fbShots = []; fbRenderShots(); $("#fb-msg").textContent = ""; $("#fb-logbox").hidden = true; $("#fb-send").disabled = false;
-    $("#fb-text").value = ""; $("#fb-logs").checked = false; $("#fb-dialog").showModal();
+    $("#fb-text").value = ""; $("#fb-logs").checked = true; $("#fb-dialog").showModal();
   });
   $("#fb-x").addEventListener("click", () => $("#fb-dialog").close());
   $("#fb-cancel").addEventListener("click", () => $("#fb-dialog").close());
