@@ -328,11 +328,13 @@
   .rk { display: inline-block; margin-top: 3px; font-size: 10.5px; padding: 1px 6px; border-radius: 5px; }
   .rk.max { background: #a066f62a; color: var(--accent-2); }
   .own-tag { position: absolute; top: 6px; right: 8px; background: #a066f62a; color: var(--accent-2); border: 1px solid var(--accent-2); border-radius: 6px; padding: 1px 7px; font-size: 11px; font-weight: 600; }
-  .comp.ord.mine { background: #a066f614; position: relative; padding-top: 28px; }
+  .comp.ord.mine { background: #a066f614; position: relative; padding-top: 24px; }
   .rk.low { background: #e5a54b26; color: #e5a54b; }
   .comp .stat:not(.shared):not(.neg) { opacity: .55; }
   .comp .stat.shared { box-shadow: inset 0 0 0 1px #7ee2a866; }
   .comp.ord { grid-template-columns: 96px 1fr 100px; padding: 10px 8px; }
+  .comp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; }
+  .comp-meta .rk, .comp-meta .pub { margin-top: 0; }
   .pub { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
   .pres { display: block; font-size: 11px; line-height: 1.5; }
   .pres .st { margin-top: 0; }
@@ -2898,8 +2900,9 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const pubTxt = (iso) => iso ? `<span class="pub" title="${esc(fullDate(iso))}">${tr("sum.published", { t: esc(ago(iso)) })}</span>` : "";
     const presence = (st, seen, name) => `<span class="pres"><span class="st ${esc(st || "offline")}">${stTxt(st)}</span>${st === "offline" || !st ? (seen ? `<span class="seen" title="${esc(fullDate(seen))}">${tr("sum.seen", { t: esc(ago(seen)) })}</span>` : "") : ""}${name ? `<span class="seller-nm" title="${esc(name)}">${esc(name)}</span>` : ""}</span>`;
     const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<div class="comps">${
-      o.orders.map((x) => `<div class="comp ord${x.mine ? " mine" : ""}" data-id="${esc(x.id)}" title="${tr("sum.openTip")}">${x.mine ? `<span class="own-tag">${tr("sum.yourOrder")}</span>` : ""}<div class="comp-price"><b>${x.price}p</b>${delta(x.price)}<span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
-        <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
+      o.orders.map((x) => `<div class="comp ord${x.mine ? " mine" : ""}" data-id="${esc(x.id)}" title="${tr("sum.openTip")}">${x.mine ? `<span class="own-tag">${tr("sum.yourOrder")}</span>` : ""}<div class="comp-price"><b>${x.price}p</b>${delta(x.price)}<span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
+        <div><div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
+        <div class="comp-meta">${rankTxt(x.rank)}${pubTxt(x.created)}</div></div>
         ${presence(x.status, x.last_seen, x.seller)}</div>`).join("")}</div>`;
     const es = r.estimate;
     const mk = r.market;
@@ -2916,8 +2919,9 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
           ${(es.reasons || []).map((r) => `<div class="${["negMain", "posUnused", "listedLong", "cheaperCap"].includes(r.key) ? "above" : "below"}" style="margin-top:4px;font-size:12px">${tr("why." + r.key, { s: String(r.slug || "").replace(/_/g, " "), p: r.share ?? r.p, f: Math.round((1 - (r.f ?? 1)) * 100), d: r.d, n: r.n })}</div>`).join("")}</div>`
       : `<div class="sum-card"><h4>${tr("sum.estimated")}</h4><small class="muted">${tr("sum.noComps")}</small></div>`;
     const comps = es ? `<div class="comp-legend">${tr("sum.legend")}</div><div class="comps">${
-      es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><b>${x.price}p</b><span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span>${rankTxt(x.rank)}${pubTxt(x.created)}</div>
-        <div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
+      es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><b>${x.price}p</b><span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
+        <div><div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
+        <div class="comp-meta">${rankTxt(x.rank)}${pubTxt(x.created)}</div></div>
         <div class="comp-side">${presence(x.status, x.last_seen, x.seller)}<div class="comp-sim" title="${tr("sum.simTip")}"><b>${Math.round(x.sim * 100)}%</b><i><u style="width:${Math.round(x.sim * 100)}%"></u></i></div></div></div>`).join("")}</div>` : "";
     const cheaper = o.orders ? o.orders.filter((x) => x.price < a.price).length : 0;
     $("#sum-meta").innerHTML = `<b>${tr("sum.rolls", { n: a.rolls })}</b><b>MR ${a.mr}</b>${own ? `<button class="icon" id="sum-edit" title="${tr("sum.editTip")}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.7 7.7 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>` : ""}<button class="icon copy-url" id="sum-copy" title="${tr("sum.copyTip")}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"/></svg></button>`;
