@@ -720,6 +720,9 @@ class Api:
     def notifications(self):
         with store.connect() as conn:
             items = store.notifications(conn)
+        for n in items:   # precio vigente: si lo cambiaste después de la baja, el aviso ya no es cierto
+            cur = self._seen.get(n["auction_id"]) if n.get("drop_id") else None
+            n["current_price"] = cur["buyout_price"] if cur else None
         return {"items": items, "unread": sum(1 for n in items if not n["read_at"])}
 
     def mark_read(self, notification_id=None):
@@ -1195,7 +1198,9 @@ class Api:
             warning = f"Se publicó la nueva pero no se pudo cerrar la vieja: {e}"
         with store.connect() as conn:
             store.log_event(conn, new, "create")
-            store.sync_rivens(conn, [new])
+            store.sync_rivens(conn, [new], prune=False)
+            if warning is None:
+                store.migrate_auction(conn, auction_id, new["id"])
             store.add_price(conn, new["id"], new["buyout_price"], "publish")
             if warning is None:
                 conn.execute("UPDATE riven_costs SET auction_id = ? WHERE auction_id = ?", (new["id"], auction_id))

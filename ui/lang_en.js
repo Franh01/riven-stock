@@ -348,6 +348,7 @@ window.LANGS.en = {
   "trend.pct": "{p}% over {n} days",
   "trend.legend": "Median (strong violet) and minimum · {a} online of {b}",
   "al.drops": "{n} drops",
+  "al.now": "now {p} pt",
   "al.view": "View Riven",
   "al.revert": "Revert",
   "al.none": "No alerts.",

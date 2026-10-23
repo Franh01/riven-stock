@@ -2644,7 +2644,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     return m ? { weapon: m[1].replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), name: m[2] } : null;
   };
   const fmtPt = (v) => Number(v).toLocaleString(I18N.locale);
-  const priceLine = (n) => `<div class="al-prices"><span class="old">${fmtPt(n.old_price)}</span><span class="arrow">→</span><span class="new">${fmtPt(n.new_price)} pt</span><span class="diff">−${fmtPt(n.old_price - n.new_price)}</span></div>`;
+  const changedPrice = (n) => n.current_price != null && n.current_price !== n.new_price;   // lo cambiaste después de la baja
+  const priceLine = (n) => `<div class="al-prices"><span class="old">${fmtPt(n.old_price)}</span><span class="arrow">→</span><span class="new">${fmtPt(n.new_price)} pt</span><span class="diff">−${fmtPt(n.old_price - n.new_price)}</span>${changedPrice(n) ? `<span class="tag">${tr("al.now", { p: fmtPt(n.current_price) })}</span>` : ""}</div>`;
   const agoTxt = (iso) => {
     const m = Math.round((Date.now() - new Date(iso)) / 60000);
     return m < 1 ? tr("time.now") : m < 60 ? tr("time.minAgo", { n: m }) : m < 1440 ? tr("time.hAgo", { n: Math.round(m / 60) }) : new Date(iso).toLocaleDateString(I18N.locale);
@@ -2664,7 +2665,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   function renderAlerts() {
     $("#al-list").innerHTML = alerts.items.length ? groupAlerts(alerts.items).map((n) => {
       const fake = String(n.auction_id || "").startsWith("FAKE");
-      const canRevert = n.drop_id && !n.reverted_at && !fake;
+      const canRevert = n.drop_id && !n.reverted_at && !fake && !changedPrice(n);
       const d = n.drop_id && n.old_price != null ? dropInfo(n) : null;
       const unread = n.all.some((x) => !x.read_at);
       const ids = n.all.map((x) => x.id).join(",");

@@ -348,6 +348,7 @@ window.LANGS.es = {
   "trend.pct": "{p}% en {n} días",
   "trend.legend": "Mediana (violeta fuerte) y mínimo · {a} online de {b}",
   "al.drops": "{n} bajas",
+  "al.now": "ahora {p} pt",
   "al.view": "Ver Riven",
   "al.revert": "Revertir",
   "al.none": "Sin alertas.",

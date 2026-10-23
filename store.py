@@ -398,7 +398,7 @@ def online_seconds(conn):
 
 # ---- Horas por riven e historial de precios ---------------------------------------
 
-def sync_rivens(conn, auctions):
+def sync_rivens(conn, auctions, prune=True):
     """Alinea riven_online_hours con los contratos abiertos: los nuevos empiezan en cero
     (con su primer precio en el historial) y los que ya no existen se borran."""
     ids = {a["id"] for a in auctions}
@@ -410,8 +410,24 @@ def sync_rivens(conn, auctions):
         last = last_price(conn, a["id"])
         if last is None:
             add_price(conn, a["id"], a["buyout_price"], "seen", commit=False)
-    for gone in known - ids:
-        conn.execute("DELETE FROM riven_online_hours WHERE auction_id = ?", (gone,))
+    if prune:   # con una lista parcial (ej. un solo contrato nuevo) NO se poda: borraria los ajustes de los demas
+        for gone in known - ids:
+            conn.execute("DELETE FROM riven_online_hours WHERE auction_id = ?", (gone,))
+    conn.commit()
+
+
+def migrate_auction(conn, old_id, new_id):
+    """Al editar un riven la publicación nueva reemplaza a la vieja: le pasa sus horas, interruptor y
+    ajustes propios, historial de precios y avisos, para que todo siga apuntando a un contrato vivo."""
+    row = conn.execute("SELECT * FROM riven_online_hours WHERE auction_id = ?", (old_id,)).fetchone()
+    if row:
+        conn.execute("UPDATE riven_online_hours SET seconds = ?, counting_since = ?, autodrop_on = ?, "
+                     "hours_override = ?, amount_override = ?, floor_override = ? WHERE auction_id = ?",
+                     (row["seconds"], row["counting_since"], row["autodrop_on"], row["hours_override"],
+                      row["amount_override"], row["floor_override"], new_id))
+        conn.execute("DELETE FROM riven_online_hours WHERE auction_id = ?", (old_id,))
+    for table in ("price_history", "price_drops", "notifications"):
+        conn.execute(f"UPDATE {table} SET auction_id = ? WHERE auction_id = ?", (new_id, old_id))
     conn.commit()
 
 

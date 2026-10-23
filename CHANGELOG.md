@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Corregido: al editar un riven (se publica uno nuevo y se cierra el viejo) se borraban el interruptor de ajuste automático y los ajustes propios de todos los demás rivens, y por eso bajaba precios con el interruptor apagado. Ahora no se toca a los demás.
+- Corregido: al editar un riven, sus horas, interruptor, ajustes, historial de precios y alertas pasan a la publicación nueva. Antes la alerta quedaba apuntando al contrato viejo (abría un detalle sin engranaje y con el precio anterior).
+- Las alertas de baja muestran el precio actual si lo cambiaste después, y ya no ofrecen revertir en ese caso.
+
+#### English
+- Fixed: editing a riven (a new listing is published and the old one closed) wiped the auto-drop switch and per-riven settings of every other riven, which made prices drop with the switch off. Other rivens are no longer touched.
+- Fixed: when editing a riven, its hours, switch, settings, price history and alerts move to the new listing. Before, the alert kept pointing to the old contract (it opened a detail without the gear button and with the old price).
+- Drop alerts show the current price if you changed it after the drop, and no longer offer to revert in that case.
+
 ## [0.13.1] - 2026-10-22
 - Corregido: las etiquetas Caro/Barato y el botón «→ precio» ya no quedan desactualizadas después de cambiar el precio (aparecía «Barato → 70p» con el riven ya en 70p).
 
