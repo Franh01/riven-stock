@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.12.4] - 2026-10-22
+
 #### Español
 - Arreglado el scroll horizontal que aparecía en el diálogo de sugerencias y bugs; los botones Cancelar y Enviar ahora miden lo mismo.
 
