@@ -327,12 +327,15 @@
   .comp-price span { display: block; font-size: 11px; color: var(--muted); }
   .rk { display: inline-block; margin-top: 3px; font-size: 10.5px; padding: 1px 6px; border-radius: 5px; }
   .rk.max { background: #a066f62a; color: var(--accent-2); }
-  .own-tag { position: absolute; top: 6px; right: 8px; background: #a066f62a; color: var(--accent-2); border: 1px solid var(--accent-2); border-radius: 6px; padding: 1px 7px; font-size: 11px; font-weight: 600; }
-  .comp.ord.mine { background: #a066f614; position: relative; padding-top: 24px; }
+  .own-tag { display: inline-block; background: #a066f62a; color: var(--accent-2); border: 1px solid var(--accent-2); border-radius: 6px; padding: 1px 7px; font-size: 11px; font-weight: 600; }
+  .comp.ord.mine { background: #a066f614; }
+  .ord .pl { display: flex; align-items: center; gap: 8px; }
+  .ord .pl .own-tag { display: inline-block; margin: 0; }
+  .ord .comp-price .sub small { display: inline; margin: 0; font-size: inherit; }
   .rk.low { background: #e5a54b26; color: #e5a54b; }
   .comp .stat:not(.shared):not(.neg) { opacity: .55; }
   .comp .stat.shared { box-shadow: inset 0 0 0 1px #7ee2a866; }
-  .comp.ord { grid-template-columns: 96px 1fr 100px; padding: 10px 8px; }
+  .comp.ord { grid-template-columns: auto 1fr 100px; gap: 16px; padding: 8px 16px; }
   .comp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; }
   .comp-meta .rk, .comp-meta .pub { margin-top: 0; }
   .pub { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
@@ -2900,7 +2903,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const pubTxt = (iso) => iso ? `<span class="pub" title="${esc(fullDate(iso))}">${tr("sum.published", { t: esc(ago(iso)) })}</span>` : "";
     const presence = (st, seen, name) => `<span class="pres"><span class="st ${esc(st || "offline")}">${stTxt(st)}</span>${st === "offline" || !st ? (seen ? `<span class="seen" title="${esc(fullDate(seen))}">${tr("sum.seen", { t: esc(ago(seen)) })}</span>` : "") : ""}${name ? `<span class="seller-nm" title="${esc(name)}">${esc(name)}</span>` : ""}</span>`;
     const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<div class="comps">${
-      o.orders.map((x) => `<div class="comp ord${x.mine ? " mine" : ""}" data-id="${esc(x.id)}" title="${tr("sum.openTip")}">${x.mine ? `<span class="own-tag">${tr("sum.yourOrder")}</span>` : ""}<div class="comp-price"><b>${x.price}p</b>${delta(x.price)}<span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
+      o.orders.map((x) => `<div class="comp ord${x.mine ? " mine" : ""}" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><div class="pl"><b>${x.price}p</b>${x.mine ? `<span class="own-tag">${tr("sum.yourOrder")}</span>` : ""}</div><span class="sub">${delta(x.price)} · ${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
         <div><div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
         <div class="comp-meta">${rankTxt(x.rank)}${pubTxt(x.created)}</div></div>
         ${presence(x.status, x.last_seen, x.seller)}</div>`).join("")}</div>`;
