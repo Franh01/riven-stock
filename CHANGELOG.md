@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.3] - 2026-10-23
+
 #### Español
 - Mejorado: la tabla de referencia ahora incluye también a los vendedores online (antes solo en juego) y muestra su estado.
 - Corregido: tras cambiar el precio de un riven propio, la tabla de las más baratas seguía mostrando el precio viejo. Ahora se actualiza y tu orden lleva la etiqueta "Tu orden".
