@@ -5,11 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
-- «¿Conviene rolear?» pasó del Reporte al detalle de cada riven, debajo del estimado. Ahora dice sí o no con el motivo y muestra un riven publicado de la misma arma con stats que se venden caros. Se sacó el valor del Kuva en platinum (el Kuva se farmea).
+- Corregido: al cambiar el precio de un riven (baja automática, manual o revertida) ahora también se actualiza el caché, así el detalle ya no muestra un precio distinto al del historial.
 - Stock unveiled más compacto: los rivens sin abrir del mismo tipo y mismo costo unitario se agrupan en una sola fila, y al abrir uno elegís el grupo sin ver lotes repetidos.
 
 #### English
-- "Is it worth re-rolling?" moved from the Report to each riven's detail, below the estimate. It now answers yes or no with the reason and shows a listed riven of the same weapon with stats that sell high. The Kuva platinum value was removed (Kuva is farmed).
+- Fixed: when a riven's price changes (automatic drop, manual or reverted) the cache is now updated too, so the detail no longer shows a price different from the history.
 - More compact unveiled stock: unopened rivens of the same type and unit cost are grouped in a single row, and when opening one you pick the group without seeing repeated lots.
 
 ## [0.13.0] - 2026-10-22

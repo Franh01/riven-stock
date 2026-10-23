@@ -67,6 +67,18 @@ class OrderCache:
         except Exception:
             pass
 
+    def patch_price(self, auction_id, price):
+        """Un cambio de precio propio también va al caché, para que no quede un precio viejo."""
+        hit = False
+        with self._lock:
+            for e in self._data.values():
+                for o in e.get("market") or []:
+                    if o.get("id") == auction_id and o.get("p") != price:
+                        o["p"] = int(price)
+                        hit = True
+        if hit:
+            self._persist()
+
     def touch(self):
         self._active = time.monotonic()
 

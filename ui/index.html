@@ -2449,7 +2449,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       if (r.error) { $("#est-results").innerHTML = `<div class="state error">${esc(r.error)}</div>`; return; }
       if (!es) { $("#est-results").innerHTML = `<div class="state">${tr("rd.estNone")}</div>`; return; }
       renderEstimate(es);
-      loadReroll(f);
+      // «¿Conviene rolear?» oculto hasta tener el análisis de datos (tarea 014f934c)
     } finally {
       btn.disabled = false; btn.textContent = tr("rd.estGo");
     }
@@ -2942,8 +2942,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">${tr("sum.tabOrders")}</button>${es ? `<button data-tab="comps">${tr("sum.tabComps", { n: es.n })}</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">${tr("sum.dataAge", { n: Math.max(0, Math.round(o.age_s / 60)) })}</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
     document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
-    if (aid.startsWith("demo")) $("#sum-reroll")?.remove();
-    else api().reroll_for(aid).then((rr) => { const c = $("#sum-reroll"); if (!c) return; const h = rerollHtml(rr); if (h) c.innerHTML = h; else c.remove(); }).catch(() => $("#sum-reroll")?.remove());
+    $("#sum-reroll")?.remove();   // «¿Conviene rolear?» oculto hasta tener el análisis de datos (tarea 014f934c)
     (aid.startsWith("demo") ? Promise.resolve(demoTrend()) : api().market_trend(a.weapon, 90)).then((t) => {
       const c = $("#trend-card"); if (!c) return;
       const tracked = () => (settings.tracked_weapons || []).includes(a.weapon);

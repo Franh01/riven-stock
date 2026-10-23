@@ -727,6 +727,13 @@ class Api:
             store.mark_read(conn, notification_id)
         return self.notifications()
 
+    def _price_changed(self, auction_id, price):
+        """Propaga un cambio de precio propio a los caches (órdenes en disco y mercado en memoria)."""
+        self._cache.patch_price(auction_id, price)
+        m = self._market.get(auction_id)
+        if m:
+            m["buyout_price"] = m["starting_price"] = int(price)
+
     def revert_drop(self, drop_id):
         """Vuelve al precio anterior a la baja y apaga la baja automática de ese riven."""
         with store.connect() as conn:
@@ -746,6 +753,7 @@ class Api:
             store.log_event(conn, new, "update")
             store.add_price(conn, aid, new["buyout_price"], "revert")
             store.mark_reverted(conn, drop_id, aid)
+        self._price_changed(aid, new["buyout_price"])
         return {"auction": auction_view(new), **self.notifications()}
 
     def set_autodrop(self, auction_id, on):
@@ -916,6 +924,7 @@ class Api:
             store.add_price(conn, aid, new, "auto")
             store.add_drop(conn, aid, old, new, text)
             store.reset_riven_hours(conn, aid)
+        self._price_changed(aid, new)
         return {"id": aid, "old": old, "new": new}
 
     def online_hours(self):
@@ -1128,6 +1137,7 @@ class Api:
         with store.connect() as conn:
             store.log_event(conn, new, "update")
             store.add_price(conn, auction_id, new["buyout_price"], "manual")
+        self._price_changed(auction_id, new["buyout_price"])
         return {"auction": auction_view(new)}
 
     def price_history(self, auction_id):

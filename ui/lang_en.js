@@ -556,7 +556,7 @@ window.LANGS.en = {
   "rp.suggest": "A riven takes a median of {med} online to sell. You could use {h} h as the time before the automatic price drop (now: {cur}).",
   "rp.suggestFew": "With {n} sale(s) that have hours it is too early to suggest a drop time; at least 5 are needed.",
   "help.9.t": "Sales report",
-  "help.9.x": "The \"Report\" tab summarizes what you sold: revenue, profit and margin over cost, a profit-over-time chart and the ranking of most profitable weapons. You can filter by period, weapon and type. Profit only counts sales that have a cost set. It also shows a heat map of when you sell and the median online hours until a sale. In each riven's detail, below \"How much is this riven worth?\", \"Is it worth re-rolling?\" tells you whether spending Kuva on re-rolls pays off and why, with an example from the same weapon.",
+  "help.9.x": "The \"Report\" tab summarizes what you sold: revenue, profit and margin over cost, a profit-over-time chart and the ranking of most profitable weapons. You can filter by period, weapon and type. Profit only counts sales that have a cost set. It also shows a heat map of when you sell and the median online hours until a sale.",
   "help.tourReport": "Watch the Report tour",
   "tour.reporte.title": "Sales report",
   "tour.reporte.1.t": "Filters",

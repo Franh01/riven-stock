@@ -556,7 +556,7 @@ window.LANGS.es = {
   "rp.suggest": "Un riven tarda una mediana de {med} online en venderse. Podrías usar {h} h como tiempo antes de la baja automática (hoy: {cur}).",
   "rp.suggestFew": "Con {n} venta(s) con horas todavía es pronto para sugerir un tiempo de baja; hacen falta al menos 5.",
   "help.9.t": "Reporte de ventas",
-  "help.9.x": "La pestaña «Reporte» resume lo que vendiste: ingresos, ganancia y margen sobre el costo, un gráfico de ganancia en el tiempo y el ranking de armas más rentables. Se puede filtrar por período, arma y tipo. La ganancia solo cuenta las ventas que tienen costo cargado. También muestra un mapa de calor de cuándo vendés y la mediana de horas online hasta vender. En el detalle de cada riven, debajo de «¿Cuánto vale este riven?», aparece «¿Conviene rolear?»: te dice si vale la pena gastar Kuva en rolearlo y por qué, con un ejemplo de la misma arma.",
+  "help.9.x": "La pestaña «Reporte» resume lo que vendiste: ingresos, ganancia y margen sobre el costo, un gráfico de ganancia en el tiempo y el ranking de armas más rentables. Se puede filtrar por período, arma y tipo. La ganancia solo cuenta las ventas que tienen costo cargado. También muestra un mapa de calor de cuándo vendés y la mediana de horas online hasta vender.",
   "help.tourReport": "Ver el recorrido del Reporte",
   "tour.reporte.title": "Reporte de ventas",
   "tour.reporte.1.t": "Filtros",
