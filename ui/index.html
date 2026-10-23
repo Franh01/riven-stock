@@ -152,7 +152,7 @@
   .fb-row { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 13px; cursor: pointer; }
   .fb-row input { width: 15px; height: 15px; margin: 0; padding: 0; accent-color: var(--accent); }
   .fb-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid var(--border, rgba(255,255,255,.12)); }
-  .fb-seg label { cursor: pointer; }
+  .fb-seg label { cursor: pointer; position: relative; min-width: 0; }
   .fb-seg input { position: absolute; opacity: 0; pointer-events: none; }
   .fb-seg span { display: block; text-align: center; padding: 8px 10px; border-radius: 7px; font-size: 13px; color: var(--muted); transition: background .15s, color .15s; }
   .fb-seg input:checked + span { background: var(--accent); color: #fff; font-weight: 600; }
@@ -161,8 +161,10 @@
   #fb-dialog .upd-actions { margin-top: 6px; }
   #fb-dialog .upd-actions button { min-width: 110px; }
   .fb-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border, rgba(255,255,255,.12)); border-radius: 8px; background: rgba(255,255,255,.03); }
-  .fb-opt a { font-size: 12px; white-space: nowrap; }
-  #fb-dialog .dlg-body { gap: 10px; }
+  .fb-opt { flex-wrap: wrap; }
+  .fb-opt a { font-size: 12px; }
+  #fb-dialog .dlg-body { gap: 10px; overflow-x: hidden; min-width: 0; }
+  #fb-dialog .dlg-body > * { min-width: 0; box-sizing: border-box; }
   #fb-dialog textarea, #fb-dialog input[type=text], #fb-dialog #fb-contact { margin-top: 0; }
   .auto-row input { width: 15px; height: 15px; accent-color: var(--accent); }
   .totals { margin-left: 0; }
