@@ -10,7 +10,7 @@ import random
 from pricing import estimate
 
 KUVA_COSTS = [900, 1000, 1200, 1400, 1700, 2000, 2350, 2750, 3150, 3500]   # la tirada nº i (desde 0) cuesta KUVA_COSTS[min(i, 9)]
-MAX_TRIES = 12            # hasta cuántas tiradas seguidas se evalúan
+MAX_TRIES = 6             # hasta cuántas tiradas seguidas se evalúan
 SAMPLES = 400             # rivens al azar por evaluación
 SCALE = 9000              # valor = base de DE x SCALE x disposición x multiplicador x tirada (medido contra el mercado)
 ROLL_LOW, ROLL_HIGH = 0.9, 1.1
@@ -62,6 +62,42 @@ def _percentile(sorted_vals, q):
     return sorted_vals[min(len(sorted_vals) - 1, int(q * len(sorted_vals)))]
 
 
+def _good_stats(market):
+    """Stats positivos que aparecen mucho más en las publicaciones caras que en el resto: {slug: veces en caras}."""
+    priced = sorted((o for o in market if o.get("p")), key=lambda o: o["p"])
+    if len(priced) < MIN_MARKET:
+        return {}
+    cut = len(priced) * 3 // 4
+    rich, rest = priced[cut:], priced[:cut]
+    def freq(group):
+        c = {}
+        for o in group:
+            for s in o["s"]:
+                if s[2]:
+                    c[s[0]] = c.get(s[0], 0) + 1
+        return c
+    fr, fo = freq(rich), freq(rest)
+    return {s: n for s, n in fr.items() if n >= 3 and n / len(rich) >= 1.5 * (fo.get(s, 0) / max(1, len(rest)))}
+
+
+def _example(market, good, mine_slugs):
+    """Una publicación cara del arma con stats buenos que mi riven no tiene (la de precio mediano entre las mejores, para no mostrar un outlier)."""
+    cands = []
+    for o in market:
+        if not o.get("p"):
+            continue
+        hits = [s[0] for s in o["s"] if s[2] and s[0] in good and s[0] not in mine_slugs]
+        if hits:
+            cands.append((len(hits), o["p"], o))
+    if not cands:
+        return None, []
+    top = sorted(cands, key=lambda c: (-c[0], -c[1]))[:7]
+    top.sort(key=lambda c: c[1])
+    o = top[len(top) // 2][2]
+    return {"name": o.get("n"), "price": o["p"], "rolls": o.get("r", 0),
+            "stats": [{"slug": s[0], "value": s[1], "positive": s[2]} for s in o["s"]]}, [s[0] for s in o["s"] if s[2] and s[0] in good]
+
+
 def evaluate(view, market, rtype, weapon, disposition, attrs, bases, kuva_plat):
     """view: auction_view de mi riven. market: publicaciones slim del arma. attrs: catálogo de stats de
     warframe.market. bases: riven_bases.json[rtype]. kuva_plat: platinum que vale 1000 Kuva.
@@ -106,6 +142,10 @@ def evaluate(view, market, rtype, weapon, disposition, attrs, bases, kuva_plat):
         if net > best_net:
             best_net, best_n = net, k
     first = curve[0]
+    good = _good_stats(market)
+    mine_slugs = {s["slug"] for s in view.get("stats", [])}
+    my_good = [s["slug"] for s in view.get("stats", []) if s.get("positive") and s["slug"] in good]
+    example, example_good = _example(market, good, mine_slugs)
     p_better = sum(1 for v in vals if v > current * 1.1) / n
     verdict = "rolear" if best_n and best_net >= MIN_GAIN else "no"
     return {
@@ -115,4 +155,5 @@ def evaluate(view, market, rtype, weapon, disposition, attrs, bases, kuva_plat):
         "next_kuva": KUVA_COSTS[min(rolls, len(KUVA_COSTS) - 1)], "first_net": first["net"],
         "p_better": round(p_better * 100), "typical": round(_percentile(vals, 0.5)), "top": round(_percentile(vals, 0.9)),
         "no_ref": round(no_ref / SAMPLES * 100), "rolls": rolls, "kuva_plat": kuva_plat,
+        "my_good": my_good, "example": example, "example_good": example_good,
     }

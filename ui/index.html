@@ -1760,10 +1760,19 @@ document.addEventListener('mousedown', (e) => {
     if (r.error) return head + `<div class="state error">${esc(r.error)}</div>`;
     if (!r.advice) return head + `<div class="hint">${tr(r.none === "market" ? "rp.rollNoMarket" : "rp.rollNoData")}</div>`;
     const x = r.advice, kv = (n) => `${n.toLocaleString()} Kuva`;
-    const verdict = x.verdict === "rolear"
-      ? `<div class="state"><b>${tr("rp.rollYes", { n: x.tries })}</b> · ${kv(x.kuva)}<br>${tr("rp.rollWhy", { now: x.current, exp: x.expected, net: x.net })}</div>`
-      : `<div class="state"><b>${tr("rp.rollNo")}</b><br>${tr("rp.rollWhyNo", { now: x.current, k: kv(x.next_kuva), p: x.p_better })}</div>`;
-    return head + verdict + `<div class="hint" style="margin-top:6px">${tr("rp.rollHow")}</div>`;
+    const ex = x.example;
+    const exHtml = ex ? `<div class="hint" style="margin-top:8px">${tr("rp.rollExample", { p: ex.price })}</div>
+      <div class="stats" style="margin-top:4px">${ex.stats.map((s) => formatStat(s)).join("")}</div>` : "";
+    const names = (xs) => xs.map((s) => statBySlug[s]?.name ?? s).join(", ");
+    let body;
+    if (x.verdict === "rolear") {
+      const why = x.my_good.length ? tr("rp.rollWhyYesGood", { g: names(x.my_good), now: x.current }) : tr("rp.rollWhyYesLow", { now: x.current });
+      const good = x.example_good.length ? ` ${tr("rp.rollGoodStats", { g: names(x.example_good) })}` : "";
+      body = `<b>${tr("rp.rollYes")}</b><br>${why} ${tr("rp.rollCheap", { k: kv(x.next_kuva) })}${good} ${tr("rp.rollUp", { exp: x.expected })}${exHtml}`;
+    } else {
+      body = `<b>${tr("rp.rollNo")}</b><br>${tr("rp.rollWhyNo", { now: x.current, k: kv(x.next_kuva), p: x.p_better })}${exHtml}`;
+    }
+    return head + `<div class="state">${body}</div><div class="hint" style="margin-top:6px">${tr("rp.rollHow")}</div>`;
   }
   async function loadReroll(f) {
     const box = $("#reroll-box"); box.innerHTML = skelRows(1);
