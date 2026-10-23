@@ -49,6 +49,7 @@ import websocket
 import webview
 
 import cloud_backup
+import loophealth
 import feedback
 import store
 import opportunities
@@ -267,10 +268,10 @@ class Api:
             return {"wait": feedback.wait_left(conn)}
 
     def feedback_logs(self):
-        return feedback.read_log(LOG_FILE)
+        return loophealth.report() + feedback.read_log(LOG_FILE)
 
     def feedback_send(self, kind, text, contact, with_logs, shots):
-        logs = feedback.read_log(LOG_FILE) if with_logs else ""
+        logs = loophealth.report() + feedback.read_log(LOG_FILE) if with_logs else ""
         with store.connect() as conn:
             r = feedback.send(conn, updater.version_actual(), kind, text, contact, logs, shots)
         logging.info("feedback %s -> %s", kind, r.get("error") or "ok")
@@ -455,7 +456,9 @@ class Api:
                 due = not last or (datetime.now(timezone.utc) - datetime.fromisoformat(last.replace("Z", "+00:00"))).total_seconds() > self.CLOUD_EVERY_S
                 if st.get("cloud_code") and st.get("cloud_auto", True) and due:
                     self.cloud_upload()
-            except Exception:
+                loophealth.beat("nube", 1800)
+            except Exception as e:
+                loophealth.beat("nube", 1800, e)
                 logging.info("Copia en la nube: se reintenta más tarde", exc_info=True)
             if self._stop.wait(1800):
                 return
@@ -527,7 +530,9 @@ class Api:
                         store.add_riven_seconds(conn, [i for i, a in list(self._seen.items()) if a.get("visible", True)], elapsed)
                     if left < self.RENEW_BEFORE_S:   # el servidor corta a las 4 h: renovar mientras la app esté abierta
                         st, st_at = self.client.set_status(st["status"], 240 * 60), now
-            except Exception:
+                loophealth.beat("contador", self.TICK_S)
+            except Exception as e:
+                loophealth.beat("contador", self.TICK_S, e)
                 st = None   # sin red o error de la API: no suma ese minuto y reintenta
 
     # ---- Caché de órdenes y baja automática ---------------------------------
@@ -562,6 +567,7 @@ class Api:
     def _snapshot_loop(self):
         """Una foto diaria por arma (stock y favoritas), solo en idle y por la cola central."""
         while not self._stop.wait(self.SNAPSHOT_PASS_S):
+            loophealth.beat("fotos", self.SNAPSHOT_PASS_S)
             if not self._cache.idle() or QUEUE.busy():
                 continue
             try:
@@ -572,7 +578,8 @@ class Api:
                         continue
                     e = self._cache.get(todo[0], self.VIEW_MAX_AGE_S) or self._cache.load(todo[0])
                     store.save_snapshot(conn, todo[0], e.get("market", []))
-            except Exception:
+            except Exception as e:
+                loophealth.beat("fotos", self.SNAPSHOT_PASS_S, e)
                 self._stop.wait(60)
 
     OPP_PASS_S = 90
@@ -581,13 +588,15 @@ class Api:
         """Mira el caché de las armas vigiladas (lo llena el caché en idle) y avisa de las publicaciones
         muy por debajo de su estimado. No hace pedidos propios."""
         while not self._stop.wait(self.OPP_PASS_S):
+            loophealth.beat("oportunidades", self.OPP_PASS_S)
             try:
                 with store.connect() as conn:
                     cfg = store.settings(conn)
                 if not cfg.get("opp_enabled"):
                     continue
                 self.scan_opportunities(cfg)
-            except Exception:
+            except Exception as e:
+                loophealth.beat("oportunidades", self.OPP_PASS_S, e)
                 logging.info("Alertas de oportunidad: se reintenta", exc_info=True)
 
     def scan_opportunities(self, cfg=None):
@@ -895,7 +904,9 @@ class Api:
             try:
                 r = self.autodrop_pass() if self._online else "offline"
                 self._log_pass(r)
-            except Exception:
+                loophealth.beat("bajas", self.DROP_PASS_S)
+            except Exception as e:
+                loophealth.beat("bajas", self.DROP_PASS_S, e)
                 self._log_pass(traceback.format_exc())
 
     def _log_pass(self, result):

@@ -5,6 +5,7 @@ import os
 import threading
 import time
 
+import loophealth
 from pricing import slim
 from ratelimit import QUEUE
 
@@ -133,6 +134,7 @@ class OrderCache:
 
     def _loop(self):
         while not self._stop.wait(self.PAUSE_S):
+            loophealth.beat("cache", self.PAUSE_S)
             if not self.idle() or QUEUE.busy():   # nunca le roba turno a lo que pidió el usuario
                 continue
             try:
@@ -140,6 +142,7 @@ class OrderCache:
                 if todo:
                     self.load(todo[0])
                 self._fails = 0
-            except Exception:
+            except Exception as e:
+                loophealth.beat("cache", self.PAUSE_S, e)
                 self._fails += 1                  # 429, sin red, etc.: esperar (creciente) y seguir
                 self._stop.wait(min(self.BACKOFF_S * 2 ** (self._fails - 1), self.BACKOFF_MAX_S))

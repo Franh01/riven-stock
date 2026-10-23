@@ -103,5 +103,17 @@ class Invertido(unittest.TestCase):
             self.assertEqual(store.invested(conn), 100 + 20 + 30)
 
 
+class LoopHealth(unittest.TestCase):
+    def test_report(self):
+        import loophealth
+        loophealth.beat("t_ok", 10)
+        loophealth.beat("t_mal", 10, ValueError("boom"))
+        r = loophealth.report()
+        self.assertIn("t_ok: último ciclo OK hace", r)
+        self.assertIn("t_mal: último ciclo OK nunca | último error hace", r)
+        self.assertIn("boom", r)
+        self.assertNotIn("t_ok: último ciclo OK hace 0s ATRASADO", r)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Mejorado: los reportes con logs ahora incluyen la salud de los procesos de fondo (último ciclo correcto y último error de cada uno), para detectar si alguno se trabó.
+
+#### English
+- Improved: reports with logs now include the health of the background processes (last good cycle and last error of each), to spot any that got stuck.
+
 ## [0.13.10] - 2026-10-23
 
 #### Español
