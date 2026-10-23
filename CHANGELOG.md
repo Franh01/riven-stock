@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Corregido: al recuperar el borrador de un riven nuevo, el aviso quedaba detrás de la ventana y se abría solo la lista de armas tapando los stats. Ahora el aviso se ve arriba y el arma queda elegida sin desplegar la lista.
+
+#### English
+- Fixed: when restoring a new riven draft, the notice showed behind the window and the weapon list opened by itself, covering the stats. The notice now shows on top and the weapon stays selected without opening the list.
+
 ## [0.13.9] - 2026-10-23
 
 #### Español

@@ -1078,13 +1078,13 @@ document.addEventListener('mousedown', (e) => {
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const typeName = (t) => { const k = "type." + t; const v = tr(k); return v === k ? cap(t) : v; };
 
-  function toast(msg, isError = false, ms = 0) {
+  function toast(msg, isError = false) {
     const t = $("#toast");
     clearTimeout(t._timer); clearTimeout(t._hide);
     if (t.matches(":popover-open")) t.hidePopover();   // se vuelve a abrir para quedar por encima de cualquier modal abierto
     t.textContent = msg; t.classList.toggle("error", isError);
     t.showPopover(); void t.offsetWidth; t.classList.add("show");   // popover: capa superior, por delante de los diálogos
-    t._timer = setTimeout(() => { t.classList.remove("show"); t._hide = setTimeout(() => t.matches(":popover-open") && t.hidePopover(), 250); }, ms || (isError ? 6000 : 2500));
+    t._timer = setTimeout(() => { t.classList.remove("show"); t._hide = setTimeout(() => t.matches(":popover-open") && t.hidePopover(), 250); }, isError ? 6000 : 2500);
   }
 
   const weaponName = (slug) => weaponBySlug[slug]?.name ?? slug.replace(/_/g, " ");
@@ -2384,7 +2384,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     d.stats.forEach(([slug, v], i) => { statCombos[i].set(slug); slotEls[i].querySelector(".slot-value").value = v; });
     if (!d.nameAuto) { $("#f-name").value = d.name; nameAuto = false; }
     $("#f-price").value = d.price; $("#f-cost").value = d.cost; $("#f-note").value = d.note; $("#f-visible").checked = d.visible;
-    toast(tr("rd.draftBack"), false, DRAFT_MS);
+    
   }
 
   // openRiven({}) = nuevo · openRiven({lotId}) = nuevo desde un lote · openRiven({existing}) = editar
@@ -2422,7 +2422,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       $("#f-cost").value = Math.round(lot.unit_cost * 100) / 100;
     }
     refreshSlots();
-    if (!existing && draft && Date.now() - draft.t < DRAFT_MS && draft.lotId === (lotId || "")) restoreDraft(draft);
+    const restored = !existing && draft && Date.now() - draft.t < DRAFT_MS && draft.lotId === (lotId || "");
+    if (restored) restoreDraft(draft);
     draft = null;
     $("#rd-auto").hidden = !existing;
     if (existing) {
@@ -2439,7 +2440,9 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     $("#riven-dialog").showModal();
     uiLog("riven-dialog abierto" + (existing ? " (editar)" : ""));
     if (existing && existing.id === "demo") demoReference();
-    else if (existing) runEstimate(); else $("#f-weapon").focus();
+    else if (existing) runEstimate();
+    else if (restored) toast(tr("rd.draftBack"));   // despues de showModal para quedar por encima del dialogo; sin foco, que no abra la lista de armas
+    else $("#f-weapon").focus();
   }
 
   function demoReference() {   // referencia de mentira para el tutorial: sin red, y el dialogo no cambia de tamaño
