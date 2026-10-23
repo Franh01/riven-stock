@@ -115,5 +115,25 @@ class LoopHealth(unittest.TestCase):
         self.assertNotIn("t_ok: último ciclo OK hace 0s ATRASADO", r)
 
 
+class Crashes(unittest.TestCase):
+    def test_lock_y_crash(self):
+        import os
+        import crashes
+        d = Path(tempfile.mkdtemp())
+        crashes.begin(d, d / "x.log", "1.0")
+        lock = d / "crashes" / "running.lock"
+        self.assertTrue(lock.exists())
+        crashes.end()
+        self.assertFalse(lock.exists())
+        # lock de un proceso muerto = crash; de un proceso vivo (otra instancia) = no
+        lock.write_text('{"v": "0.9", "pid": 4000000}')
+        crashes.begin(d, d / "x.log", "1.0")
+        self.assertEqual(len(crashes.pending()), 1)
+        lock.write_text('{"v": "0.9", "pid": %d}' % os.getppid())
+        crashes.begin(d, d / "x.log", "1.0")
+        self.assertEqual(len(list((d / "crashes").glob("crash-*.txt"))), 1)   # sin cambios; esta instancia queda sin _dir
+        self.assertEqual(crashes.pending(), [])
+
+
 if __name__ == "__main__":
     unittest.main()

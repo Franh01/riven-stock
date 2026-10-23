@@ -23,7 +23,8 @@ try:
     try:
         from updater import version_actual as _va
         import store as _st
-        crashes.begin(_st.DATA_DIR, LOG_FILE, _va())   # antes de que el log se pise
+        if __name__ == "__main__":   # importar app (tests, herramientas) no es una sesión: dejaba lock y falsos crashes
+            crashes.begin(_st.DATA_DIR, LOG_FILE, _va())   # antes de que el log se pise
     except Exception:
         pass
     # El log rota en vez de pisarse en cada arranque: si la app se reinicia, los pedidos y errores de la sesión anterior siguen ahí.

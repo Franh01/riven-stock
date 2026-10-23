@@ -2,7 +2,9 @@
 
 Carpeta `crashes/` en los datos: crash-<fecha>.txt (pendientes de enviar), running.lock (la sesión sigue o murió)
 y health.json (última versión sana y cuántos arranques seguidos fallaron por versión)."""
+import ctypes
 import json
+import os
 import shutil
 import threading
 import time
@@ -31,6 +33,18 @@ def _write(p, data):
         pass
 
 
+def _alive(pid):
+    """¿Sigue vivo ese proceso? (Windows). Ante la duda, no."""
+    try:
+        h = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))   # QUERY_LIMITED_INFORMATION
+        if not h:
+            return False
+        ctypes.windll.kernel32.CloseHandle(h)
+        return True
+    except Exception:
+        return False
+
+
 def begin(data_dir, log_file, version):
     """Llamar antes de que el log se pise. Si la sesión anterior no cerró limpia, la guarda como crash pendiente."""
     global _dir, _version
@@ -41,8 +55,12 @@ def begin(data_dir, log_file, version):
         _dir = None
         return
     lock = _dir / "running.lock"
-    if lock.exists():
-        prev = _read(lock, {}).get("v", "?")
+    old = _read(lock, {}) if lock.exists() else None
+    if old is not None and old.get("pid") != os.getpid() and old.get("pid") and _alive(old["pid"]):
+        _dir = None   # otra instancia sigue abierta: no es un crash, y esta no toca su lock ni lo borra al cerrar
+        return
+    if old is not None:
+        prev = old.get("v", "?")
         h = _read(_dir / "health.json", {})
         h.setdefault("streak", {})[prev] = h.get("streak", {}).get(prev, 0) + 1
         _write(_dir / "health.json", h)
@@ -51,7 +69,7 @@ def begin(data_dir, log_file, version):
         except OSError:
             tail = ""
         _save("La sesión anterior terminó sin cerrar bien (se cerró de golpe o falló).", tail, prev)
-    _write(lock, {"v": version, "t": time.time()})
+    _write(lock, {"v": version, "t": time.time(), "pid": os.getpid()})
     threading.Timer(GOOD_AFTER_S, _mark_good).start()
 
 
