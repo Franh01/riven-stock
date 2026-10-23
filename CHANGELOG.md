@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Arreglado el scroll horizontal que aparecía en el diálogo de sugerencias y bugs; los botones Cancelar y Enviar ahora miden lo mismo.
+
+#### English
+- Fixed the horizontal scrollbar in the suggestions/bugs dialog; Cancel and Send buttons now have the same size.
+
 ## [0.12.3] - 2026-10-22
 
 #### Español

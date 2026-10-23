@@ -159,7 +159,8 @@
   .fb-seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
   .fb-att { display: flex; align-items: center; gap: 10px; margin: 0; }
   #fb-dialog .upd-actions { margin-top: 6px; }
-  #fb-dialog .upd-actions button { min-width: 110px; }
+  #fb-dialog .upd-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  #fb-dialog .upd-actions button { width: 100%; height: 40px; padding: 0; }
   .fb-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border, rgba(255,255,255,.12)); border-radius: 8px; background: rgba(255,255,255,.03); }
   .fb-opt { flex-wrap: wrap; }
   .fb-opt a { font-size: 12px; }
