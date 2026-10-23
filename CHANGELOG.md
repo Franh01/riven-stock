@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Mejorado: el panel de Alertas tiene los botones del encabezado iguales (tamaño, color e íconos centrados), el tacho de cada alerta centrado y sin cambio de borde al pasar el mouse.
+- Nuevo: botón para borrar una alerta individual, con animación, y "Borrar leídas" con confirmación.
+- Mejorado: el panel abierto se actualiza solo con las alertas nuevas y mantiene un alto fijo.
+
+#### English
+- Improved: the Alerts panel now has uniform header buttons (size, color and centered icons), a centered trash button on each alert, and no border change on hover.
+- New: button to delete a single alert, with animation, and "Delete read" with confirmation.
+- Improved: the open panel updates itself with new alerts and keeps a fixed height.
+
 ## [0.13.4] - 2026-10-23
 
 #### Español
