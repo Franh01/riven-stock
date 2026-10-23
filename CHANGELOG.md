@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- El reporte de bugs y sugerencias ahora trae el log tildado por defecto y tiene un diseño más prolijo (selector de tipo y opciones agrupadas).
+
+#### English
+- The bug/suggestion dialog now has the log checked by default and a cleaner layout (type selector and grouped options).
+
 ## [0.12.2] - 2026-10-22
 
 #### Español
