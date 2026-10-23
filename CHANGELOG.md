@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Mejorado: si cerrás el editor de un riven nuevo sin querer (clic afuera, Esc o la X) y lo reabrís en menos de 10 segundos, se recupera lo que habías cargado y aparece un aviso. No se guarda en disco: al cerrar la app se pierde.
+
+#### English
+- Improved: if you close the new riven editor by accident (click outside, Esc or the X) and reopen it within 10 seconds, what you had entered is restored and a notice appears. It is not saved to disk: closing the app discards it.
+
 ## [0.13.8] - 2026-10-23
 
 #### Español

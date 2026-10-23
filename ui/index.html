@@ -1078,13 +1078,13 @@ document.addEventListener('mousedown', (e) => {
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const typeName = (t) => { const k = "type." + t; const v = tr(k); return v === k ? cap(t) : v; };
 
-  function toast(msg, isError = false) {
+  function toast(msg, isError = false, ms = 0) {
     const t = $("#toast");
     clearTimeout(t._timer); clearTimeout(t._hide);
     if (t.matches(":popover-open")) t.hidePopover();   // se vuelve a abrir para quedar por encima de cualquier modal abierto
     t.textContent = msg; t.classList.toggle("error", isError);
     t.showPopover(); void t.offsetWidth; t.classList.add("show");   // popover: capa superior, por delante de los diálogos
-    t._timer = setTimeout(() => { t.classList.remove("show"); t._hide = setTimeout(() => t.matches(":popover-open") && t.hidePopover(), 250); }, isError ? 6000 : 2500);
+    t._timer = setTimeout(() => { t.classList.remove("show"); t._hide = setTimeout(() => t.matches(":popover-open") && t.hidePopover(), 250); }, ms || (isError ? 6000 : 2500));
   }
 
   const weaponName = (slug) => weaponBySlug[slug]?.name ?? slug.replace(/_/g, " ");
@@ -2365,6 +2365,28 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     $("#f-visible").checked = true;
   }
 
+  // Borrador del alta nueva: solo en memoria (no sobrevive a un reinicio); se recupera si se reabre en menos de 10 s.
+  const DRAFT_MS = 10000;
+  let draft = null, skipDraft = false;
+  $("#riven-dialog").addEventListener("close", () => {
+    const keep = !editing && !skipDraft;
+    skipDraft = false; draft = null;
+    const w = weaponCombo.value, stats = statCombos.map((c, i) => [c.value, slotEls[i].querySelector(".slot-value").value]);
+    if (!keep || !(w || $("#f-price").value || stats.some(([s]) => s))) return;
+    draft = { t: Date.now(), lotId: $("#f-origin").value, w, stats, nameAuto, name: $("#f-name").value, pol: $("#f-polarity").value,
+      mr: $("#f-mr").value, rank: $("#f-rank").value, rolls: $("#f-rolls").value, price: $("#f-price").value, cost: $("#f-cost").value,
+      note: $("#f-note").value, visible: $("#f-visible").checked };
+  });
+  function restoreDraft(d) {
+    weaponCombo.set(d.w); setPolarity(d.pol);
+    $("#f-mr").value = d.mr; $("#f-rank").value = d.rank; $("#f-rolls").value = d.rolls;
+    refreshSlots();
+    d.stats.forEach(([slug, v], i) => { statCombos[i].set(slug); slotEls[i].querySelector(".slot-value").value = v; });
+    if (!d.nameAuto) { $("#f-name").value = d.name; nameAuto = false; }
+    $("#f-price").value = d.price; $("#f-cost").value = d.cost; $("#f-note").value = d.note; $("#f-visible").checked = d.visible;
+    toast(tr("rd.draftBack"), false, DRAFT_MS);
+  }
+
   // openRiven({}) = nuevo · openRiven({lotId}) = nuevo desde un lote · openRiven({existing}) = editar
   function openRiven({ existing = null, lotId = "" } = {}) {
     editing = existing; if (!existing) editFromSum = null; $("#publish-cancel").hidden = !existing;
@@ -2400,6 +2422,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       $("#f-cost").value = Math.round(lot.unit_cost * 100) / 100;
     }
     refreshSlots();
+    if (!existing && draft && Date.now() - draft.t < DRAFT_MS && draft.lotId === (lotId || "")) restoreDraft(draft);
+    draft = null;
     $("#rd-auto").hidden = !existing;
     if (existing) {
       const h = hours[existing.id];
@@ -2675,6 +2699,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         applyLocal(res);
         renderAll();
         toast(tr("pub.done", { n: weaponName(res.auction.weapon) + " " + res.auction.name, p: price }));
+        skipDraft = true;
         $("#riven-dialog").close();
       }
     } finally {

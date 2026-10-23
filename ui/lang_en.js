@@ -654,6 +654,7 @@ window.LANGS.en = {
   "nm.other": "Other…",
   "rd.edit": "Edit",
   "rd.new": "New riven",
+  "rd.draftBack": "We restored what you were entering.",
   "rd.editContract": "Edit contract",
   "rd.publishDirect": "Publish direct sale",
   "al.manyDropped": "{n} rivens dropped in price",
