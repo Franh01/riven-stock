@@ -129,6 +129,8 @@ window.LANGS.en = {
   "tot.unopened": "{n} unopened",
   "tot.slots": "Slots",
   "tot.slotsTip": "Rivens listed out of {n} slots. Turns red if you exceed it.",
+  "cfg.showSlots": "Show slots counter",
+  "cfg.showSlotsSub": "Shows "Slots N/M" next to your status and above the table.",
   "cfg.slots": "Riven slots",
   "cfg.slotsSub": "Total you own in-game (15 base + packs of 5). Counted against your listings.",
   "tot.stockTip": "Unopened unveiled rivens",

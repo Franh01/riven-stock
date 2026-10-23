@@ -129,6 +129,8 @@ window.LANGS.es = {
   "tot.unopened": "{n} sin abrir",
   "tot.slots": "Slots",
   "tot.slotsTip": "Rivens en venta sobre {n} slots. Pasa a rojo si te pasás.",
+  "cfg.showSlots": "Mostrar contador de slots",
+  "cfg.showSlotsSub": "Muestra "Slots N/M" junto al estado y sobre la tabla.",
   "cfg.slots": "Slots de riven",
   "cfg.slotsSub": "Total que tenés en el juego (15 base + packs de 5). Se cuentan contra tus contratos.",
   "tot.stockTip": "Rivens unveiled sin abrir",
