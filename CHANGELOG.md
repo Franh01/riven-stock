@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.1] - 2026-10-22
+
 #### Español
 - Corregido: al cambiar el precio de un riven (baja automática, manual o revertida) ahora también se actualiza el caché, así el detalle ya no muestra un precio distinto al del historial.
 - Stock unveiled más compacto: los rivens sin abrir del mismo tipo y mismo costo unitario se agrupan en una sola fila, y al abrir uno elegís el grupo sin ver lotes repetidos.
