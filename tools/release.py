@@ -36,6 +36,9 @@ def main():
     if subprocess.run([sys.executable, "tools/check_js.py"], cwd=ROOT).returncode:
         sys.exit("El JS de la interfaz tiene errores de sintaxis; no se publica.")
 
+    if subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests"], cwd=ROOT).returncode:
+        sys.exit("Fallan los tests; no se publica.")
+
     cl = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     m = re.search(r"## \[Sin publicar\]\n(.*?)(?=\n## \[)", cl, re.S)
     notas = m.group(1).strip() if m else ""

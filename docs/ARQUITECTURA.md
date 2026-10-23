@@ -186,13 +186,13 @@ sequenceDiagram
     end
 ```
 
-Publicar: `python tools/release.py X.Y.Z` (git limpio; toma "Sin publicar" del CHANGELOG, corre `tools/check_js.py`, arma zip e instalador, pushea, taggea y publica el release). Diseño en `DISENO_AUTOACTUALIZACION.md`.
+Publicar: `python tools/release.py X.Y.Z` (git limpio; toma "Sin publicar" del CHANGELOG, corre `tools/check_js.py` (sintaxis del JS y claves es/en) y los tests (`python -m unittest discover -s tests`), arma zip e instalador, pushea, taggea y publica el release). Diseño en `DISENO_AUTOACTUALIZACION.md`.
 
 ## 9. Áreas de mejora detectadas
 
 Ordenadas por lo que más conviene atacar. Son hallazgos de leer el código, no bugs confirmados.
 
-1. **Sin tests automáticos.** Solo existe `tools/check_js.py` (sintaxis del JS). La lógica de dinero y decisión (`pricing`, `stockcheck`, `opportunities`, `autodrop_pass`, cálculo de Invertido/Balance en `store`) es pura o casi pura y sería barato de cubrir con unos pocos tests.
+1. **Tests parciales.** `tests/test_core.py` cubre `pricing`, `stockcheck`, `opportunities`, `reroll.kuva_cost` e Invertido; falta `autodrop_pass` (vive en `app.py` y depende de la app, se podrá probar al partirlo) y Balance.
 2. **`app.py` monolítico (unas 1400 líneas, clase `Api` con más de 100 métodos).** Mezcla API para la UI, los cinco bucles, nube, feedback y cierre. Separar los bucles y la nube en módulos propios bajaría el riesgo de tocar uno y romper otro.
 3. **`ui/index.html` de unas 3900 líneas en un solo archivo.** HTML, CSS, JS, ayuda y recorridos juntos. Partir al menos el JS y el CSS en archivos facilita revisar cambios y que `check_js.py` señale mejor los errores.
 4. **Archivos sobrantes en el repo:** `_backup/` (copias viejas de app, store, wfm_client, orders, updater) y `poc.py`. Git ya guarda el historial; son candidatos a borrar (hay que confirmarlo antes).
@@ -201,7 +201,7 @@ Ordenadas por lo que más conviene atacar. Son hallazgos de leer el código, no 
 7. **Autodrop de a uno por pasada (cada 5 min).** Con muchos rivens vencidos a la vez el ciclo completo se estira. Es una decisión consciente; revisar solo si el stock crece mucho.
 8. **Contexto del proyecto desactualizado y sin copia.** `INDEX.md` y `CLAUDE.md` están gitignoreados (sin respaldo en GitHub) y partes de `INDEX.md` describen un estado viejo (por ejemplo "una sola pantalla, sin pestañas", estado del 2026-10-16). Este documento en `docs/` sí está versionado.
 9. **Colector con Lambda de 10 s de timeout y reencadenado (`relaunch`).** Funciona, pero el costo y la cobertura por corrida conviene medirlos (ya hay una tarea de medir Mongo el 30/10).
-10. **Tablas de errores y textos en tres lugares** (ERRS en index.html, lang_es.js, lang_en.js) sin chequeo automático de que cada clave exista en ambos idiomas. Un chequeo en `check_js.py` evitaría claves faltantes.
+10. **Tabla ERRS sin chequeo.** `check_js.py` ya verifica que lang_es.js y lang_en.js tengan las mismas claves y que las usadas existan; la tabla ERRS de index.html (regex -> clave) no se valida.
 
 ## 10. Cómo mantenerlo
 
