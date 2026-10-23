@@ -347,6 +347,8 @@ window.LANGS.es = {
   "trend.none": "Todavía sin datos: se registra una foto por día.",
   "trend.pct": "{p}% en {n} días",
   "trend.legend": "Mediana (violeta fuerte) y mínimo · {a} online de {b}",
+  "al.total": "{n} bajas en total: de {a} a {b} (−{d})",
+  "al.revertTo": "Revertir a {p}",
   "al.drops": "{n} bajas",
   "al.now": "ahora {p} pt",
   "al.view": "Ver Riven",

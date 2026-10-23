@@ -2645,7 +2645,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   };
   const fmtPt = (v) => Number(v).toLocaleString(I18N.locale);
   const changedPrice = (n) => n.current_price != null && n.current_price !== n.new_price;   // lo cambiaste después de la baja
-  const priceLine = (n) => `<div class="al-prices"><span class="old">${fmtPt(n.old_price)}</span><span class="arrow">→</span><span class="new">${fmtPt(n.new_price)} pt</span><span class="diff">−${fmtPt(n.old_price - n.new_price)}</span>${changedPrice(n) ? `<span class="tag">${tr("al.now", { p: fmtPt(n.current_price) })}</span>` : ""}</div>`;
+  const priceLine = (n) => `<div class="al-prices"><span class="old">${fmtPt(n.old_price)}</span><span class="arrow">→</span><span class="new">${fmtPt(n.new_price)} pt</span><span class="diff">−${fmtPt(n.old_price - n.new_price)}</span>${n.all && n.all.length > 1 ? `<span class="when">${tr("al.total", { n: n.all.length, a: fmtPt(n.first_price), b: fmtPt(n.new_price), d: fmtPt(n.first_price - n.new_price) })}</span>` : ""}${changedPrice(n) ? `<span class="tag">${tr("al.now", { p: fmtPt(n.current_price) })}</span>` : ""}</div>`;
   const agoTxt = (iso) => {
     const m = Math.round((Date.now() - new Date(iso)) / 60000);
     return m < 1 ? tr("time.now") : m < 60 ? tr("time.minAgo", { n: m }) : m < 1440 ? tr("time.hAgo", { n: Math.round(m / 60) }) : new Date(iso).toLocaleDateString(I18N.locale);
@@ -2657,7 +2657,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const out = [], byAuc = {};
     for (const n of items) {   // items vienen de la más nueva a la más vieja
       const k = n.drop_id && n.auction_id;
-      if (k && byAuc[k]) { const g = byAuc[k]; g.all.push(n); g.old_price = n.old_price; continue; }
+      if (k && byAuc[k]) { const g = byAuc[k]; g.all.push(n); g.first_price = n.old_price; continue; }
       const g = { ...n, all: [n] }; out.push(g); if (k) byAuc[k] = g;
     }
     return out;
@@ -2677,7 +2677,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         <div class="acts">
           ${op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("opp.open")}</button>` : ""}
           ${n.auction_id && !fake && !op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
-          ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">${tr("al.revert")}</button>` : ""}
+          ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">${tr("al.revertTo", { p: fmtPt(n.old_price) })}</button>` : ""}
         </div></div>`;
     }).join("") : `<div class="state">${tr("al.none")}</div>`;
   }

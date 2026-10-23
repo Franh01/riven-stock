@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Mejorado: las alertas de baja agrupadas ahora muestran la última baja (cuánto bajó esa vez) y, aparte, el total acumulado («3 bajas en total: de 150 a 120»). El botón dice a qué precio revierte («Revertir a 130») y sigue deshaciendo solo la última baja.
+
+#### English
+- Improved: grouped drop alerts now show the latest drop (how much it dropped that time) and, separately, the accumulated total ("3 drops in total: from 150 to 120"). The button says which price it reverts to ("Revert to 130") and still undoes only the last drop.
+
 ## [0.13.2] - 2026-10-23
 
 #### Español
