@@ -947,6 +947,7 @@ class Api:
         if getattr(self, "_closing", False):
             return getattr(self, "_close_ok", False)
         self._closing = True
+        logging.info("Cierre pedido por el usuario")
         self.stop_counter()
         # El evento corre en el hilo de la interfaz: evaluar JS acá se bloquea a sí mismo.
         threading.Thread(target=self._finish_close, daemon=True).start()
@@ -975,6 +976,8 @@ class Api:
         except Exception:
             logging.info("Copia en la nube al cerrar: no se pudo", exc_info=True)
         self._close_ok = True
+        logging.info("Cierre: tareas terminadas, cerrando la ventana")
+        crashes.end()   # el usuario cerró a propósito: no es un crash aunque el proceso tarde en salir
         self._window.destroy()
 
     def search(self, weapon, n=7):
