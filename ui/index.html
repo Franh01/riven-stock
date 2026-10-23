@@ -389,10 +389,13 @@
   .al-card .when { color: var(--muted); font-size: 12px; margin-top: 6px; }
   .al-card.rev .new, .al-card.rev .old, .al-card.rev .al-name { opacity: .5; }
   .al-card .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #e5546b26; color: var(--neg); margin-left: 8px; }
-  .al-btn { display: inline-flex; align-items: center; gap: 7px; }
-  .al-btn .ic, .al-card .al-del .ic { width: 16px; height: 16px; flex: none; }
-  .al-eye { color: #7aa7ff; border-color: #7aa7ff55; }
-  .al-eye:hover { background: #7aa7ff22; }
+  .al-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; width: 172px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; line-height: 1; border-radius: 9px; box-shadow: none; }
+  .al-btn > span { display: block; line-height: 1; }
+  .al-btn .ic, .al-card .al-del .ic { display: block; width: 16px; height: 16px; flex: none; margin: 0; }
+  .al-btn.al-eye { background: #7aa7ff14; border: 1px solid #7aa7ff66; color: #7aa7ff; }
+  .al-btn.al-eye:hover { background: #7aa7ff2e; }
+  .al-btn.danger { background: #e5546b14; border: 1px solid #e5546b88; color: #e5546b; }
+  .al-btn.danger:hover { background: #e5546b2e; }
   .al-card .al-del { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border-radius: 8px; background: transparent; border: 1px solid transparent; color: var(--muted); box-shadow: none; transition: color .15s, background .15s, border-color .15s; }
   .al-card .al-del:hover { color: var(--neg); background: #e5546b22; border-color: #e5546b66; }
   #al-list .state { height: 100%; display: grid; place-items: center; }
@@ -2684,18 +2687,18 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   function renderAlerts() {
     $("#al-list").innerHTML = alerts.items.length ? groupAlerts(alerts.items).map((n) => {
       const fake = String(n.auction_id || "").startsWith("FAKE");
-      const canRevert = n.drop_id && !n.reverted_at && !fake && !changedPrice(n);
+      const canRevert = n.drop_id && !n.reverted_at && !changedPrice(n);
       const d = n.drop_id && n.old_price != null ? dropInfo(n) : null;
       const unread = n.all.some((x) => !x.read_at);
       const ids = n.all.map((x) => x.id).join(",");
       const cnt = n.all.length > 1 ? `<span class="tag" style="background:#a05cf622;color:var(--accent)">${tr("al.drops", { n: n.all.length })}</span>` : "";
       const op = oppInfo(n);
       const head = op ? `<div class="al-name">${esc(oppWeapon(op))}<small>${esc(op.name)}</small><span class="tag" style="background:#3fb95022;color:#3fb950">${tr("opp.tag")}</span></div>${oppLine(op)}` : d ? `<div class="al-name">${esc(d.weapon)}<small>${esc(d.name)}</small>${cnt}${n.reverted_at ? `<span class="tag">${tr("src.revert")}</span>` : ""}</div>${priceLine(n)}` : `<div class="al-name">${esc(n.text)}</div>`;
-      return `<div class="al-card ${unread ? "unread" : ""} ${n.reverted_at ? "rev" : ""}" data-id="${ids}"><span class="bar"></span>
+      return `<div class="al-card ${unread ? "unread" : ""} ${n.reverted_at ? "rev" : ""}" data-id="${ids}" ${fake ? "data-fake=1" : ""}><span class="bar"></span>
         <div>${head}<div class="when">${esc(agoTxt(n.created_at))}</div></div>
         <div class="acts">
           ${op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("opp.open")}</button>` : ""}
-          ${n.auction_id && !fake && !op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
+          ${n.auction_id && !op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
           ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">${tr("al.revertTo", { p: fmtPt(n.old_price) })}</button>` : ""}
         </div><button class="al-del" data-act="del" data-ids="${ids}" title="${tr("al.del")}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg></button></div>`;
     }).join("") : `<div class="state">${tr("al.none")}</div>`;
@@ -3194,6 +3197,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       const [r] = await Promise.all([api().delete_notifications(b.dataset.ids.split(",").map(Number)), leaveCards([b.closest(".al-card")])]);
       alerts = r; renderBell(); renderAlerts(); return;
     }
+    if ((b.dataset.aid || "").startsWith("FAKE") || (b.dataset.drop && b.closest(".al-card").dataset.fake)) { toast("Alerta de prueba: este botón no hace nada", true); return; }
     if (b.dataset.act === "web") api().open_url("https://warframe.market/auction/" + b.dataset.aid);
     if (b.dataset.act === "open") { $("#alerts-dialog").close(); openSummary(b.dataset.aid); }
     if (b.dataset.act === "revert") {
