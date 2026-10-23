@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.12.2] - 2026-10-22
+
 #### Español
 - Los errores 401/403 de warframe.market ahora guardan en el log qué endpoint falló y qué respondió, y el mensaje ya no afirma que el token venció.
 
