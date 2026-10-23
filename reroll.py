@@ -17,6 +17,7 @@ ROLL_LOW, ROLL_HIGH = 0.9, 1.1
 # (positivos, tiene negativo) -> multiplicador de los positivos; el del negativo según cuántos positivos hay
 POS_MULT = {(2, False): 0.99, (2, True): 1.2375, (3, False): 0.75, (3, True): 0.9375}
 NEG_MULT = {2: 0.47, 3: 0.70}
+KUVA_PLAT = 10            # exigencia interna: platinum de ganancia por cada 1000 Kuva
 MIN_GAIN = 15             # ganancia neta mínima (platinum) para recomendar rolear
 MIN_MARKET = 8            # publicaciones mínimas del arma para opinar
 MAX_NO_REF = 0.8          # si más de esta fracción de rivens simulados no tiene comparables, no hay datos

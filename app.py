@@ -642,50 +642,29 @@ class Api:
                 out[aid] = pos
         return out
 
-    def reroll_advice(self):
-        """¿Conviene rolear cada riven publicado? Se calcula en segundo plano con el caché (tarda ~1 s por riven)
-        y se reutiliza mientras no cambien el mercado, el riven ni el valor del Kuva."""
-        with store.connect() as conn:
-            kuva_plat = float(store.settings(conn).get("kuva_plat") or 10)
-        if not hasattr(self, "_reroll"):
-            self._reroll = {}
-        todo, out = [], {}
-        for aid, a in list(self._seen.items()):
-            if not a.get("visible", True):
-                continue
-            w = a["item"]["weapon_url_name"]
-            e = self._cache.get(w, self.CACHE_MAX_AGE_S)
-            if not e or not e.get("market"):
-                continue
-            v = auction_view(a)
-            sig = (e["at"], v["rolls"], kuva_plat, tuple((s["slug"], s["value"]) for s in v["stats"]))
-            hit = self._reroll.get(aid)
-            if hit and hit[0] == sig:
-                out[aid] = hit[1]
-            else:
-                todo.append((aid, sig, v, e["market"], w))
-        if todo and not getattr(self, "_rerolling", False):
-            self._rerolling = True
-            threading.Thread(target=self._compute_reroll, args=(todo, kuva_plat), daemon=True).start()
-        return {"items": out, "pending": bool(todo), "kuva_plat": kuva_plat}
-
-    def _compute_reroll(self, todo, kuva_plat):
+    def reroll_draft(self, item, exclude_id=None):
+        """¿Conviene rolear este riven? Usa el mismo borrador que el estimado y el mercado del caché (~1 s)."""
         try:
+            a = {"id": "draft", "buyout_price": 0, "item": dict(item)}
+            a["item"]["attributes"] = [{"url_name": x["url_name"], "positive": bool(x["positive"]),
+                                        "value": float(x["value"])} for x in item["attributes"]]
+            a["item"]["re_rolls"] = int(item.get("re_rolls") or 0)
+            a["item"]["mod_rank"] = int(item.get("mod_rank") or 0)
+            a["item"]["mastery_level"] = int(item.get("mastery_level") or 8)
+            w = a["item"]["weapon_url_name"]
+            view = auction_view(a)
+            view["id"] = exclude_id or "draft"
+            e = self._cache.get(w, self.CACHE_MAX_AGE_S) or self._cache.load(w)
+            market = (e or {}).get("market") or []
+            if len(market) < reroll.MIN_MARKET:
+                return {"none": "market", "n": len(market)}
             bases = json.loads(BASES.read_text(encoding="utf-8")) if BASES.exists() else {}
-            attrs = self.client.riven_attributes()
-            disp = {w["slug"]: (w.get("disposition"), w.get("rivenType")) for w in self.client.riven_weapons()}
-            for aid, sig, view, market, w in todo:
-                d, rtype = disp.get(w, (None, None))
-                try:
-                    adv = reroll.evaluate(view, market, rtype, w, d, attrs, bases.get(rtype) or {}, kuva_plat)
-                except Exception:
-                    logging.exception("reroll.evaluate falló para %s", w)
-                    adv = None
-                self._reroll[aid] = (sig, adv)
-        except Exception:
-            logging.exception("calculo de rolear falló")
-        finally:
-            self._rerolling = False
+            disp = {x["slug"]: (x.get("disposition"), x.get("rivenType")) for x in self.client.riven_weapons()}
+            d, rtype = disp.get(w, (None, None))
+            adv = reroll.evaluate(view, market, rtype, w, d, self.client.riven_attributes(), bases.get(rtype) or {}, reroll.KUVA_PLAT)
+            return {"advice": adv} if adv else {"none": "estimate"}
+        except (WFMError, requests.RequestException, KeyError, ValueError) as e:
+            return {"error": str(e)}
 
     def market_trend(self, weapon, days=90):
         """Tendencia del arma: primero la nube (historial central de todas las armas); la foto local

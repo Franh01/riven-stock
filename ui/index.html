@@ -800,6 +800,7 @@
       <div class="est-info" id="est-info" hidden></div>
       <div class="summary" id="est-summary"></div>
       <div id="est-results"></div>
+      <div id="reroll-box"></div>
     </section>
 
     <section id="ref-section" hidden>
@@ -1235,7 +1236,7 @@ document.addEventListener('mousedown', (e) => {
       closed = [];
       applyLocal(data);
       renderAll();
-      loadPosition(); loadReroll();
+      loadPosition();
     } finally {
       $("#reload").disabled = false;
     }
@@ -1483,7 +1484,7 @@ document.addEventListener('mousedown', (e) => {
     posFilter = c.dataset.pos || null;
     renderMine();
   });
-  setInterval(() => { if (mine.length && !document.hidden) { loadPosition(); loadReroll(); } }, 300000);
+  setInterval(() => { if (mine.length && !document.hidden) { loadPosition(); } }, 300000);
 
   $("#mine").addEventListener("click", (e) => {
     const th = e.target.closest("th[data-sort]");
@@ -1753,32 +1754,21 @@ document.addEventListener('mousedown', (e) => {
       <table class="rp-rank">${th(tr("common.weapon"), tr("rp.sales"), tr("rp.medianH"))}<tbody>${wRows}</tbody></table></div>${sugg}`;
   }
 
-  // ¿Conviene rolear (gastar Kuva)? Una fila por riven publicado, ordenadas por la ganancia neta esperada.
-  let reroll = { items: {}, pending: false, kuva_plat: 10 };
-  async function loadReroll() {
-    try { reroll = (await api().reroll_advice()) || reroll; } catch {}
-    renderReport();
-    if (reroll.pending) setTimeout(loadReroll, 8000);
-  }
-  function reportRolling() {
+  // ¿Conviene rolear? Va en el detalle del riven, debajo del estimado.
+  function rerollHtml(r) {
     const head = `<h3 style="margin:16px 0 4px;font-size:.95rem">${tr("rp.roll")}</h3>`;
-    const how = `<div class="hint" style="margin:0 0 6px">${tr("rp.rollHow")}</div>`;
-    const rows = mine.filter((a) => a.visible).map((a) => ({ a, adv: reroll.items[a.id] }));
-    if (!rows.length) return head + `<div class="hint">${tr("rp.rollNone")}</div>`;
-    const done = rows.filter((r) => r.adv).sort((x, y) => y.adv.net - x.adv.net);
-    const rest = rows.filter((r) => !r.adv).length;
-    const sign = (n) => `<span class="${n >= 0 ? "pos-txt" : "neg-txt"}">${n > 0 ? "+" : ""}${fmtP(Math.round(n))}</span>`;
-    const body = done.map(({ a, adv }) => `<tr>
-      <td>${esc(weaponName(a.weapon))}<div class="muted">${esc(a.name)}</div></td>
-      <td>${fmtP(adv.current)}</td>
-      <td>${adv.verdict === "rolear" ? `<b class="pos-txt">${tr("rp.rollYes", { n: adv.tries })}</b>` : `<span class="muted">${tr("rp.rollNo")}</span>`}</td>
-      <td class="nowrap">${adv.verdict === "rolear" ? `${adv.kuva.toLocaleString()} Kuva` : `${adv.next_kuva.toLocaleString()} Kuva`}</td>
-      <td>${fmtP(adv.expected)}</td>
-      <td class="nowrap">${adv.verdict === "rolear" ? sign(adv.net) : `<span class="muted">—</span>`}</td>
-      <td>${adv.p_better}%</td></tr>`).join("");
-    const note = reroll.pending ? `<div class="hint">${tr("rp.rollCalc")}</div>` : (rest ? `<div class="hint">${tr("rp.rollSkipped", { n: rest })}</div>` : "");
-    return head + how + (done.length ? `<table class="rp-rank rp-roll"><thead><tr><th>${tr("common.weapon")}</th><th>${tr("rp.rollNow")}</th><th>${tr("rp.rollVerdict")}</th><th>${tr("rp.rollCost")}</th><th>${tr("rp.rollExpected")}</th><th>${tr("rp.profit")}</th><th>${tr("rp.rollBetter")}</th></tr></thead><tbody>${body}</tbody></table>` : "") +
-      note + `<div class="hint" style="margin-top:6px">${tr("rp.rollNote")}</div>`;
+    if (r.error) return head + `<div class="state error">${esc(r.error)}</div>`;
+    if (!r.advice) return head + `<div class="hint">${tr(r.none === "market" ? "rp.rollNoMarket" : "rp.rollNoData")}</div>`;
+    const x = r.advice, kv = (n) => `${n.toLocaleString()} Kuva`;
+    const verdict = x.verdict === "rolear"
+      ? `<div class="state"><b>${tr("rp.rollYes", { n: x.tries })}</b> · ${kv(x.kuva)}<br>${tr("rp.rollWhy", { now: x.current, exp: x.expected, net: x.net })}</div>`
+      : `<div class="state"><b>${tr("rp.rollNo")}</b><br>${tr("rp.rollWhyNo", { now: x.current, k: kv(x.next_kuva), p: x.p_better })}</div>`;
+    return head + verdict + `<div class="hint" style="margin-top:6px">${tr("rp.rollHow")}</div>`;
+  }
+  async function loadReroll(f) {
+    const box = $("#reroll-box"); box.innerHTML = skelRows(1);
+    try { box.innerHTML = rerollHtml(await api().reroll_draft(f.item, editing ? editing.id : null)); }
+    catch { box.innerHTML = ""; }
   }
 
   function renderReport() {
@@ -1840,7 +1830,7 @@ document.addEventListener('mousedown', (e) => {
         <td class="bar-cell">${r.known && r.profit > 0 ? `<div class="rbar" style="width:${(r.profit / rmax) * 100}%"></div>` : ""}</td></tr>`).join("")}
       </tbody></table>`;
 
-    $("#report").innerHTML = filters + exportBar + kpis + chart + ranking + reportRolling() + reportTiming(sales);
+    $("#report").innerHTML = filters + exportBar + kpis + chart + ranking + reportTiming(sales);
   }
   $("#report").addEventListener("change", (e) => {
     const f = e.target.dataset?.f; if (!f) return;
@@ -2423,7 +2413,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   async function runEstimate() {
     if (editing && editing.id === "demo") return demoEstimate();
     const btn = $("#est-go"); btn.disabled = true; btn.textContent = tr("rd.estRunning");
-    $("#est-section").hidden = false; $("#est-summary").innerHTML = ""; $("#est-results").innerHTML = skelRows(4);
+    $("#est-section").hidden = false; $("#est-summary").innerHTML = ""; $("#est-results").innerHTML = skelRows(4); $("#reroll-box").innerHTML = "";
     try {
       const f = readForm();
       if (!f.item || f.attributes.filter((x) => x.positive).length < 2) {
@@ -2438,6 +2428,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       if (r.error) { $("#est-results").innerHTML = `<div class="state error">${esc(r.error)}</div>`; return; }
       if (!es) { $("#est-results").innerHTML = `<div class="state">${tr("rd.estNone")}</div>`; return; }
       renderEstimate(es);
+      loadReroll(f);
     } finally {
       btn.disabled = false; btn.textContent = tr("rd.estGo");
     }
@@ -3303,7 +3294,6 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       { el: "#report .rp-kpis", t: "tour.reporte.2.t", x: "tour.reporte.2.x" },
       { el: "#report .rp-chart", t: "tour.reporte.3.t", x: "tour.reporte.3.x" },
       { el: "#report .rp-rank", t: "tour.reporte.4.t", x: "tour.reporte.4.x" },
-      { el: "#report .rp-roll", t: "tour.reporte.5.t", x: "tour.reporte.5.x" },
     ] },
     stock: { title: "tour.stock.title", steps: [
       { el: "#stock-card .card-head", t: "tour.stock.1.t", x: "tour.stock.1.x" },
