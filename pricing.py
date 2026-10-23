@@ -72,6 +72,22 @@ def _config_bonus(npos, has_neg):
     return CONFIG_BONUS.get((npos, bool(has_neg)), 1.0)
 
 
+# Cuánto se parecen en precio dos configuraciones (positivos, con negativo). Medido con ventas inferidas de Mongo
+# (2026-10-23, 118k ventas, cocientes de medianas por arma y por tramo de rolls). La misma configuración va primero.
+CONFIG_PENALTY = {
+    frozenset([(2, True), (3, True)]): 0.6,    # 3n/2n ~1.7x
+    frozenset([(2, False), (3, False)]): 0.75,  # 3/2 ~1.3x
+    frozenset([(2, False), (2, True)]): 0.75,   # 2/2n ~0.7x
+    frozenset([(3, False), (3, True)]): 0.55,   # 3/3n ~0.5x
+    frozenset([(2, True), (3, False)]): 0.95,   # 3/2n ~1.0x: casi igual
+    frozenset([(2, False), (3, True)]): 0.45,   # 3n/2 ~2.2x
+}
+
+
+def _config_penalty(a, b):
+    return 1.0 if a == b else CONFIG_PENALTY.get(frozenset([a, b]), 0.5)
+
+
 def similarity(pos, neg, rolls, other, rtype=None, rank=None):
     f_mine = _max_rank_factor(rank)
     f_other = _max_rank_factor(other.get("k")) if rank is not None else 1.0
@@ -94,11 +110,9 @@ def similarity(pos, neg, rolls, other, rtype=None, rank=None):
     # cubrir MIS stats pesa mas que que el otro tenga extras
     mine = sum(_w(s, rtype) for s in pos)
     sim = (got / sum(_w(s, rtype) for s in union)) ** 0.4 * (got / mine) ** 0.6
-    if neg != oneg:
-        # sin negativo vale más que con uno; un negativo distinto cambia poco
-        sim *= 0.9 if (neg and oneg) else 0.8
-    if len(pos) != len(opos):
-        sim *= 0.6   # 2 y 3 positivos no se venden igual: la misma configuración tiene que ir primero
+    if neg and oneg and neg != oneg:
+        sim *= 0.9   # un negativo distinto cambia poco
+    sim *= _config_penalty((len(pos), bool(neg)), (len(opos), bool(oneg)))
     sim *= 1.0 - min(abs(rolls - other["r"]), 20) * 0.004
     return max(sim, 0.0)
 
