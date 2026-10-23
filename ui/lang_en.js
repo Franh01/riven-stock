@@ -201,7 +201,7 @@ window.LANGS.en = {
   "rd.demoNote": "Sample data from the tutorial.",
   "common.pickWeapon": "Pick a weapon from the list",
   "common.searching": "Searching…",
-  "rd.refTitle": "Reference · {w} · the 7 cheapest from in-game sellers",
+  "rd.refTitle": "Reference · {w} · the 7 cheapest from in-game or online sellers",
   "rd.maybeIncomplete": "Some may be missing: the search hit warframe.market's result limit.",
   "rd.noSales": "There are no direct sales of this weapon from in-game sellers right now.",
   "rd.min": "Minimum",

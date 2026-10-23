@@ -5,10 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
+- Mejorado: la tabla de referencia ahora incluye también a los vendedores online (antes solo en juego) y muestra su estado.
 - Corregido: tras cambiar el precio de un riven propio, la tabla de las más baratas seguía mostrando el precio viejo. Ahora se actualiza y tu orden lleva la etiqueta "Tu orden".
 - Nuevo: en las tablas de comparables y de referencia al cargar un riven, cada vendedor lleva un punto de estado (en juego, online u offline) y una leyenda aclara que los offline pesan la mitad en el estimado.
 
 #### English
+- Improved: the reference table now also includes online sellers (previously in-game only) and shows their status.
 - Fixed: after changing the price of one of your own rivens, the cheapest-orders table kept showing the old price. It now updates and your order carries a "Your order" tag.
 - New: in the comparables and reference tables when loading a riven, each seller has a status dot (in game, online or offline) and a note explains that offline sellers weigh half in the estimate.
 

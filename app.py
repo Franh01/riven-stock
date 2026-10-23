@@ -979,7 +979,7 @@ class Api:
 
     def search(self, weapon, n=7):
         """Precio de referencia: las `n` ventas directas más baratas del arma (cualquier stat)
-        de vendedores en juego."""
+        de vendedores en juego u online."""
         try:
             found = self.client.search_direct(weapon)
         except (WFMError, requests.RequestException) as e:
@@ -987,11 +987,11 @@ class Api:
         top = cheapest_ingame(found, n)
         return {
             "results": [
-                {**auction_view(a), "seller": a["owner"]["ingame_name"],
+                {**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"].get("status"),
                  "reputation": a["owner"].get("reputation")}
                 for a in top
             ],
-            # Si la búsqueda llegó al corte y no hubo `n` in game, puede haber más fuera del corte.
+            # Si la búsqueda llegó al corte y no hubo `n` en juego u online, puede haber más fuera del corte.
             "maybe_incomplete": len(found) >= SEARCH_CAP - 10 and len(top) < n,
         }
 

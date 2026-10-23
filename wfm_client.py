@@ -325,10 +325,10 @@ class WFMClient:
 
 
 def cheapest_ingame(auctions, n=7):
-    """Las `n` más baratas de vendedores `ingame` dentro de una búsqueda."""
+    """Las `n` más baratas de vendedores `ingame` u `online` dentro de una búsqueda."""
     ingame = [
         a for a in auctions
-        if a["owner"].get("status") == "ingame"
+        if a["owner"].get("status") in ("ingame", "online")
         and a.get("visible", True) and not a.get("closed") and not a.get("private")
     ]
     ingame.sort(key=lambda a: a["buyout_price"])
