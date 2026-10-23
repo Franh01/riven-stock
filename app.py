@@ -286,6 +286,11 @@ class Api:
             prev = feedback.sanitize(files[-1].read_text(encoding="utf-8", errors="replace"))[:1500]
         return {"n": len(files), "auto": auto, "preview": prev, "rollback": crashes.rollback_target()}
 
+    def log_ui(self, msg):
+        """Evento de la interfaz (abrir/cerrar paneles, etc.) al log, para diagnosticar."""
+        logging.info("UI evento: %s", str(msg)[:300])
+        return {"ok": True}
+
     def crash_ui_error(self, msg):
         """Error de JavaScript no capturado (la interfaz lo manda; se ignoran repetidos)."""
         msg = str(msg)[:3000]
@@ -1340,7 +1345,7 @@ _QUIET_API = {"queue_status", "request_log", "status", "notifications", "stock_p
               "feedback_state", "crash_state", "token_status", "get_version", "cloud_info", "backup_info",
               "online_hours", "activity", "local", "get_changelog"}
 # Sus argumentos son secretos o texto libre del usuario: no se anotan.
-_NO_ARGS_API = {"token_save", "cloud_restore", "feedback_send", "crash_ui_error", "import_backup", "save_text_file"}
+_NO_ARGS_API = {"log_ui", "token_save", "cloud_restore", "feedback_send", "crash_ui_error", "import_backup", "save_text_file"}
 _SLOW_API_S = 3
 
 
