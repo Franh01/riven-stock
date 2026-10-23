@@ -10,6 +10,7 @@ Si la API contesta 429, la cola entera se frena (enfriamiento con espera crecien
 Retry-After del servidor) y ese mismo pedido se reintenta primero, sin perder su lugar.
 """
 
+import logging
 import socket
 import threading
 import time
@@ -17,6 +18,8 @@ from collections import deque
 
 import requests
 import websocket
+
+log = logging.getLogger(__name__)
 
 MAX_PER_WINDOW = 3
 WINDOW_S = 1.1        # 3 pedidos por 1.1 s (~2.7/s): margen para el jitter de red
@@ -118,6 +121,19 @@ class RequestQueue:
         job.event.set()
 
     def _run(self):
+        # Si algo inesperado rompe una vuelta, se registra y el hilo sigue: si moría, todo pedido quedaba colgado para siempre.
+        while True:
+            try:
+                self._loop()
+            except BaseException:
+                log.exception("Falla inesperada en la cola de pedidos; se reinicia el hilo")
+                with self._cond:
+                    job, self._active = self._active, None
+                if job is not None:
+                    self._finish(job, error=RuntimeError("falla interna de la cola de pedidos"))
+                time.sleep(1)
+
+    def _loop(self):
         while True:
             with self._cond:
                 while not self._q:
@@ -134,6 +150,7 @@ class RequestQueue:
                 if job.tries < NET_RETRIES:
                     self._cooldown_until = self._clock() + NET_WAIT_S * (2 ** job.tries)
                     self._reason = "net"
+                    log.info("Sin respuesta en %s (%s): reintento %d de %d", job.label, type(e).__name__, job.tries + 1, NET_RETRIES)
                     job.tries += 1
                     with self._cond:
                         self._q.appendleft(job)
@@ -149,6 +166,7 @@ class RequestQueue:
                 wait = retry_after if retry_after is not None else COOLDOWN_S * (2 ** job.tries)
                 self._cooldown_until = self._clock() + min(wait, COOLDOWN_MAX_S)
                 self._reason = "limit"
+                log.info("429 en %s: espera %.0f s (reintento %d de %d)", job.label, min(wait, COOLDOWN_MAX_S), job.tries + 1, MAX_RETRIES)
                 job.tries += 1
                 with self._cond:
                     self._q.appendleft(job)   # conserva su lugar: sigue siendo el primero
