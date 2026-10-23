@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.7] - 2026-10-23
+
 #### Español
 - Mejorado: el log ahora anota cuándo se abre y se cierra el editor de rivens y el panel de "¿Cuánto vale este riven?", para encontrar por qué ese panel desaparece al instante (reporte de Fran).
 
