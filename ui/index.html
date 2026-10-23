@@ -1762,7 +1762,7 @@ document.addEventListener('mousedown', (e) => {
   }
   function reportRolling() {
     const head = `<h3 style="margin:16px 0 4px;font-size:.95rem">${tr("rp.roll")}</h3>`;
-    const kuvaBox = `<div class="hint" style="margin:0 0 6px">${tr("rp.rollKuva")} <input type="number" min="0" step="1" value="${reroll.kuva_plat}" data-kuva style="width:70px"> ${tr("rp.rollKuvaUnit")}</div>`;
+    const how = `<div class="hint" style="margin:0 0 6px">${tr("rp.rollHow")}</div>`;
     const rows = mine.filter((a) => a.visible).map((a) => ({ a, adv: reroll.items[a.id] }));
     if (!rows.length) return head + `<div class="hint">${tr("rp.rollNone")}</div>`;
     const done = rows.filter((r) => r.adv).sort((x, y) => y.adv.net - x.adv.net);
@@ -1777,7 +1777,7 @@ document.addEventListener('mousedown', (e) => {
       <td class="nowrap">${adv.verdict === "rolear" ? sign(adv.net) : `<span class="muted">—</span>`}</td>
       <td>${adv.p_better}%</td></tr>`).join("");
     const note = reroll.pending ? `<div class="hint">${tr("rp.rollCalc")}</div>` : (rest ? `<div class="hint">${tr("rp.rollSkipped", { n: rest })}</div>` : "");
-    return head + kuvaBox + (done.length ? `<table class="rp-rank rp-roll"><thead><tr><th>${tr("common.weapon")}</th><th>${tr("rp.rollNow")}</th><th>${tr("rp.rollVerdict")}</th><th>${tr("rp.rollCost")}</th><th>${tr("rp.rollExpected")}</th><th>${tr("rp.profit")}</th><th>${tr("rp.rollBetter")}</th></tr></thead><tbody>${body}</tbody></table>` : "") +
+    return head + how + (done.length ? `<table class="rp-rank rp-roll"><thead><tr><th>${tr("common.weapon")}</th><th>${tr("rp.rollNow")}</th><th>${tr("rp.rollVerdict")}</th><th>${tr("rp.rollCost")}</th><th>${tr("rp.rollExpected")}</th><th>${tr("rp.profit")}</th><th>${tr("rp.rollBetter")}</th></tr></thead><tbody>${body}</tbody></table>` : "") +
       note + `<div class="hint" style="margin-top:6px">${tr("rp.rollNote")}</div>`;
   }
 
@@ -1843,11 +1843,6 @@ document.addEventListener('mousedown', (e) => {
     $("#report").innerHTML = filters + exportBar + kpis + chart + ranking + reportRolling() + reportTiming(sales);
   }
   $("#report").addEventListener("change", (e) => {
-    if (e.target.dataset?.kuva !== undefined) {
-      const v = Math.max(1, Number(e.target.value) || 10);
-      settings.kuva_plat = v; api().set_setting("kuva_plat", v);
-      reroll.items = {}; reroll.kuva_plat = v; loadReroll(); return;
-    }
     const f = e.target.dataset?.f; if (!f) return;
     rep[f] = e.target.value; renderReport();
   });
