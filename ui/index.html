@@ -2645,7 +2645,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   };
   const fmtPt = (v) => Number(v).toLocaleString(I18N.locale);
   const changedPrice = (n) => n.current_price != null && n.current_price !== n.new_price;   // lo cambiaste después de la baja
-  const priceLine = (n) => `<div class="al-prices"><span class="old">${fmtPt(n.old_price)}</span><span class="arrow">→</span><span class="new">${fmtPt(n.new_price)} pt</span><span class="diff">−${fmtPt(n.old_price - n.new_price)}</span>${changedPrice(n) ? `<span class="tag">${tr("al.now", { p: fmtPt(n.current_price) })}</span>` : ""}</div>`;
+  const priceLine = (n) => `<div class="al-prices"><span class="old">${fmtPt(n.old_price)}</span><span class="arrow">→</span><span class="new">${fmtPt(n.new_price)} pt</span><span class="diff">−${fmtPt(n.old_price - n.new_price)}</span>${n.all && n.all.length > 1 ? `<span class="when">${[...n.all].reverse().map((x) => fmtPt(x.old_price)).concat(fmtPt(n.new_price)).join(" → ")}</span>` : ""}${changedPrice(n) ? `<span class="tag">${tr("al.now", { p: fmtPt(n.current_price) })}</span>` : ""}</div>`;
   const agoTxt = (iso) => {
     const m = Math.round((Date.now() - new Date(iso)) / 60000);
     return m < 1 ? tr("time.now") : m < 60 ? tr("time.minAgo", { n: m }) : m < 1440 ? tr("time.hAgo", { n: Math.round(m / 60) }) : new Date(iso).toLocaleDateString(I18N.locale);
@@ -2677,7 +2677,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         <div class="acts">
           ${op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("opp.open")}</button>` : ""}
           ${n.auction_id && !fake && !op ? `<button class="ghost" data-act="open" data-aid="${esc(n.auction_id)}">${tr("al.view")}</button>` : ""}
-          ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.drop_id}">${tr("al.revert")}</button>` : ""}
+          ${canRevert ? `<button class="ghost" data-act="revert" data-drop="${n.all.filter((x) => x.drop_id && !x.reverted_at).map((x) => x.drop_id).join(",")}">${tr("al.revert")}</button>` : ""}
         </div></div>`;
     }).join("") : `<div class="state">${tr("al.none")}</div>`;
   }
@@ -3157,7 +3157,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     if (b.dataset.act === "open") { $("#alerts-dialog").close(); openSummary(b.dataset.aid); }
     if (b.dataset.act === "revert") {
       if (!await askConfirm(tr("al.revTitle"), tr("al.revText"), tr("al.revert"))) return;
-      const r = await api().revert_drop(Number(b.dataset.drop));
+      const r = await api().revert_drop(b.dataset.drop.split(",").map(Number));
       if (r.error) { toast(r.error, true); return; }
       alerts = r; renderBell(); renderAlerts(); toast(tr("al.reverted"));
       loadMine();

@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Corregido: en una alerta agrupada («3 bajas») el botón Revertir volvía solo a la última baja, mientras la tarjeta mostraba el precio original. Ahora revierte toda la cadena, y la tarjeta muestra el recorrido (150 → 140 → 130 → 120).
+
+#### English
+- Fixed: on a grouped alert ("3 drops") the Revert button only undid the last drop while the card showed the original price. It now reverts the whole chain, and the card shows the path (150 → 140 → 130 → 120).
+
 ## [0.13.2] - 2026-10-23
 
 #### Español

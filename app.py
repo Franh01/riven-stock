@@ -738,9 +738,15 @@ class Api:
             m["buyout_price"] = m["starting_price"] = int(price)
 
     def revert_drop(self, drop_id):
-        """Vuelve al precio anterior a la baja y apaga la baja automática de ese riven."""
+        """Vuelve al precio anterior a la baja y apaga la baja automática de ese riven.
+        Con una lista de bajas del mismo riven (alerta agrupada) vuelve al precio previo a la primera."""
+        ids = sorted(int(x) for x in (drop_id if isinstance(drop_id, (list, tuple)) else [drop_id]))
         with store.connect() as conn:
-            d = store.get_drop(conn, drop_id)
+            drops = [store.get_drop(conn, i) for i in ids]
+        if not drops or any(not x or x["reverted_at"] for x in drops) or len({x["auction_id"] for x in drops}) != 1:
+            return {"error": "Esa baja ya no se puede revertir."}
+        d = drops[0]   # la más vieja: su precio anterior es el de antes de toda la cadena
+        drop_id = d["id"]
         if not d or d["reverted_at"]:
             return {"error": "Esa baja ya no se puede revertir."}
         aid = d["auction_id"]
@@ -755,7 +761,8 @@ class Api:
         with store.connect() as conn:
             store.log_event(conn, new, "update")
             store.add_price(conn, aid, new["buyout_price"], "revert")
-            store.mark_reverted(conn, drop_id, aid)
+            for x in drops:
+                store.mark_reverted(conn, x["id"], aid)
         self._price_changed(aid, new["buyout_price"])
         return {"auction": auction_view(new), **self.notifications()}
 
