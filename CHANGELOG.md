@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.2] - 2026-10-23
+
 #### Español
 - Corregido: al editar un riven (se publica uno nuevo y se cierra el viejo) se borraban el interruptor de ajuste automático y los ajustes propios de todos los demás rivens, y por eso bajaba precios con el interruptor apagado. Ahora no se toca a los demás.
 - Corregido: al editar un riven, sus horas, interruptor, ajustes, historial de precios y alertas pasan a la publicación nueva. Antes la alerta quedaba apuntando al contrato viejo (abría un detalle sin engranaje y con el precio anterior).
