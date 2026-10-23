@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.5] - 2026-10-23
+
 #### Español
 - Mejorado: el panel de Alertas tiene los botones del encabezado iguales (tamaño, color e íconos centrados), el tacho de cada alerta centrado y sin cambio de borde al pasar el mouse.
 - Nuevo: botón para borrar una alerta individual, con animación, y "Borrar leídas" con confirmación.
