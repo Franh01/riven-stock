@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
+- Nuevo: en las tablas de comparables y de referencia al cargar un riven, cada vendedor lleva un punto de estado (en juego, online u offline) y una leyenda aclara que los offline pesan la mitad en el estimado.
+
+#### English
+- New: in the comparables and reference tables when loading a riven, each seller has a status dot (in game, online or offline) and a note explains that offline sellers weigh half in the estimate.
+
+#### Español
 - Mejorado: las alertas de baja agrupadas ahora muestran la última baja (cuánto bajó esa vez) y, aparte, el precio original («Original 150 pt»). El botón dice a qué precio revierte («Revertir a 130») y sigue deshaciendo solo la última baja.
 
 #### English

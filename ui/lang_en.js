@@ -247,6 +247,7 @@ window.LANGS.en = {
   "cfg.secCloud": "Cloud",
   "rd.range": "Range",
   "rd.partial": "Incomplete: warframe.market throttled the requests. Try again in a minute.",
+  "rd.stLegend": "Green dot: in game; blue: online; hollow: offline. Offline sellers weigh half in the estimate, so an offline comparable may not be buyable right now.",
   "rd.seeComps": "See the {n} comparables",
   "rd.similar": "{p}% similar",
   "pub.curStats": "the current ones",

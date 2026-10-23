@@ -136,6 +136,8 @@
   .st-ingame .dot { background: #5fd497; box-shadow: 0 0 8px #5fd497aa; }
   .st-online .dot { background: #6fb7ff; box-shadow: 0 0 8px #6fb7ffaa; }
   .st-invisible .dot { background: #8c80a8; }
+  .st-badge { display: inline-flex; vertical-align: middle; margin-right: 4px; }
+  .st-offline .dot { background: transparent; border: 2px solid #8c80a8; box-sizing: border-box; }
   .status-menu {
     position: absolute; z-index: 40; top: calc(100% + 6px); left: 0; padding: 8px; min-width: 330px;
     background: #1b0e33; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 40px #000c;
@@ -2412,10 +2414,11 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         <td><a class="riven-name" style="font-size:13px" href="https://warframe.market/auction/${esc(r.id)}" target="_blank">${esc(r.name)}</a></td>
         <td><div class="stats">${r.stats.map(formatStat).join("")}</div></td>
         <td class="muted">${esc(r.rolls)} ${tr("rd.rolls").toLowerCase()} · MR${esc(r.mr)}</td>
-        <td>${esc(r.seller)} <span class="muted">· ${tr("rd.rep")} ${esc(r.reputation)}</span></td>
+        <td>${stBadge(r.status)} ${esc(r.seller)} <span class="muted">· ${tr("rd.rep")} ${esc(r.reputation)}</span></td>
       </tr>`).join("")}</tbody></table></details>`;
   }
 
+  const stBadge = (st) => st ? `<span class="st-${esc(st)} st-badge" title="${esc(tr("st." + st))}"><span class="dot"></span></span>` : "";   // punto de color: en juego / online / offline
   function usePrice(v) {   // pone el precio, baja hasta el campo y lo hace parpadear
     const inp = $("#f-price"), box = inp.closest("label");
     inp.value = v;
@@ -2475,11 +2478,11 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       $("#est-summary").innerHTML = `<button class="chip" data-price="${es.low}" title="${tr("rd.useTip")}"><b>${es.low}p</b><span>${tr("rd.fast")} · ${tr("rd.use")}</span></button><button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
         `<button class="chip" data-price="${es.high}" title="${tr("rd.useTip")}"><b>${es.high}p</b><span>${tr("rd.high")} · ${tr("rd.use")}</span></button><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>` +
         (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + sellSpeedHtml(es);
-      $("#est-results").innerHTML = `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
+      $("#est-results").innerHTML = `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><div class="muted" style="font-size:12px;margin:6px 0">${tr("rd.stLegend")}</div><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
         <td class="price">${x.price}p</td>
         <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
         <td class="muted">${x.rank == null ? "" : (x.rank >= 8 ? tr("sum.rankMax") : tr("sum.rank", { k: x.rank })) + " · "}${esc(x.rolls ?? "?")} ${tr("rd.rolls").toLowerCase()} · ${tr("rd.similar", { p: Math.round(x.sim * 100) })}</td>
-        <td>${esc(x.seller)}</td></tr>`).join("")}</tbody></table></details>`;
+        <td>${stBadge(x.status)} ${esc(x.seller)}</td></tr>`).join("")}</tbody></table></details>`;
     }
   }
   function demoEstimate() {   // estimado de mentira para el tutorial, sin red

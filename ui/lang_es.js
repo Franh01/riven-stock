@@ -247,6 +247,7 @@ window.LANGS.es = {
   "cfg.secCloud": "Nube",
   "rd.range": "Rango",
   "rd.partial": "Incompleto: warframe.market limitó los pedidos. Probá de nuevo en un minuto.",
+  "rd.stLegend": "Punto verde: en juego; azul: online; hueco: offline. Los vendedores offline pesan la mitad en el estimado, así que un comparable offline puede no ser comprable ahora.",
   "rd.seeComps": "Ver los {n} comparables",
   "rd.similar": "{p}% parecido",
   "pub.curStats": "los actuales",
