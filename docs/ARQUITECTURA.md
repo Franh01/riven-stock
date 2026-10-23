@@ -196,12 +196,11 @@ Ordenadas por lo que más conviene atacar. Son hallazgos de leer el código, no 
 2. **`app.py` monolítico (unas 1400 líneas, clase `Api` con más de 100 métodos).** Mezcla API para la UI, los cinco bucles, nube, feedback y cierre. Separar los bucles y la nube en módulos propios bajaría el riesgo de tocar uno y romper otro.
 3. **`ui/index.html` de unas 3900 líneas en un solo archivo.** HTML, CSS, JS, ayuda y recorridos juntos. Partir al menos el JS y el CSS en archivos facilita revisar cambios y que `check_js.py` señale mejor los errores.
 4. **Archivos sobrantes en el repo:** `_backup/` (copias viejas de app, store, wfm_client, orders, updater) y `poc.py`. Git ya guarda el historial; son candidatos a borrar (hay que confirmarlo antes).
-5. **`_wanted_weapons()` se recalcula varias veces** (snapshots, carga de caché, chequeo de caché completa) y cada vez consulta la base. Calcularlo una vez por pasada o cachearlo unos segundos.
-6. **Los bucles no exponen su salud.** Si un hilo muere por una excepción no prevista, nada lo muestra (sin verificar si cada bucle captura todo). Un registro de "último ciclo OK" por bucle, visible en el diagnóstico, lo haría detectable.
-7. **Autodrop de a uno por pasada (cada 5 min).** Con muchos rivens vencidos a la vez el ciclo completo se estira. Es una decisión consciente; revisar solo si el stock crece mucho.
-8. **Contexto del proyecto desactualizado y sin copia.** `INDEX.md` y `CLAUDE.md` están gitignoreados (sin respaldo en GitHub) y partes de `INDEX.md` describen un estado viejo (por ejemplo "una sola pantalla, sin pestañas", estado del 2026-10-16). Este documento en `docs/` sí está versionado.
-9. **Colector con Lambda de 10 s de timeout y reencadenado (`relaunch`).** Funciona, pero el costo y la cobertura por corrida conviene medirlos (ya hay una tarea de medir Mongo el 30/10).
-10. **Tabla ERRS sin chequeo.** `check_js.py` ya verifica que lang_es.js y lang_en.js tengan las mismas claves y que las usadas existan; la tabla ERRS de index.html (regex -> clave) no se valida.
+5. **Los bucles no exponen su salud.** Si un hilo muere por una excepción no prevista, nada lo muestra (sin verificar si cada bucle captura todo). Un registro de "último ciclo OK" por bucle, visible en el diagnóstico, lo haría detectable.
+6. **Autodrop de a uno por pasada (cada 5 min).** Con muchos rivens vencidos a la vez el ciclo completo se estira. Es una decisión consciente; revisar solo si el stock crece mucho.
+7. **Contexto del proyecto desactualizado y sin copia.** `INDEX.md` y `CLAUDE.md` están gitignoreados (sin respaldo en GitHub) y partes de `INDEX.md` describen un estado viejo (por ejemplo "una sola pantalla, sin pestañas", estado del 2026-10-16). Este documento en `docs/` sí está versionado.
+8. **Colector con Lambda de 10 s de timeout y reencadenado (`relaunch`).** Funciona, pero el costo y la cobertura por corrida conviene medirlos (ya hay una tarea de medir Mongo el 30/10).
+9. **Tabla ERRS sin chequeo.** `check_js.py` ya verifica que lang_es.js y lang_en.js tengan las mismas claves y que las usadas existan; la tabla ERRS de index.html (regex -> clave) no se valida.
 
 ## 10. Cómo mantenerlo
 
