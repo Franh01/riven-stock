@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Si dos partes de la app piden a la vez las órdenes de la misma arma (detalle, Mercado, precio de referencia, carga de fondo), sale un solo pedido a warframe.market y comparten el resultado: menos riesgo de topar el límite de pedidos.
+- Interno: tras publicar, cambiar precio o republicar, la tabla se vuelve a leer del estado central de la app (sin red) en vez de quedarse con su propia copia.
+
+#### English
+- When two parts of the app ask for the same weapon's orders at once (detail, Market, reference price, background load), a single request goes out to warframe.market and they share the result: less risk of hitting the request limit.
+- Internal: after publishing, changing a price or republishing, the table is re-read from the app's central state (no network) instead of keeping its own copy.
+
 ## [0.15.0] - 2026-10-24
 
 #### Español

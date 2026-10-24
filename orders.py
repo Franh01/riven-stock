@@ -36,6 +36,7 @@ class OrderCache:
         self._targeted = {}             # (arma, stats) -> (epoch, [slim]); consultas filtradas por stats
         self._data = {}                 # arma -> {"at": epoch, "orders": [contratos crudos]}
         self._lock = threading.Lock()
+        self._flying = {}               # clave -> [Event, resultado, error]: pedidos en vuelo (un solo pedido por arma)
         self._active = time.monotonic()
         self._stop = threading.Event()
         self._fails = 0                 # errores seguidos de la carga de fondo
@@ -126,8 +127,37 @@ class OrderCache:
             return e
         return None
 
+    def _single(self, key, fn):
+        """Si ya hay un pedido en vuelo para `key`, espera ese resultado en vez de repetirlo."""
+        with self._lock:
+            slot = self._flying.get(key)
+            leader = slot is None
+            if leader:
+                slot = self._flying[key] = [threading.Event(), None, None]
+        if not leader:
+            slot[0].wait()
+            if slot[2]:
+                raise slot[2]
+            return slot[1]
+        try:
+            slot[1] = fn()
+            return slot[1]
+        except Exception as e:
+            slot[2] = e
+            raise
+        finally:
+            with self._lock:
+                self._flying.pop(key, None)
+            slot[0].set()
+
+    def search(self, weapon, stats=()):
+        """Ventas directas crudas del arma (con esos stats). Único punto que le pide al mercado:
+        la carga de fondo, el detalle, la pestaña Mercado y el precio de referencia comparten el pedido en vuelo."""
+        stats = sorted(s for s in stats if s)
+        return self._single((weapon, tuple(stats)), lambda: self.client.search_direct(weapon, stats))
+
     def load(self, weapon):
-        found = self.client.search_direct(weapon)
+        found = self.search(weapon)
         market = [slim(a) for a in found
                   if a.get("visible", True) and not a.get("closed") and not a.get("private")]
         e = {"at": time.time(), "orders": cheapest_online(found), "market": market}
@@ -143,7 +173,7 @@ class OrderCache:
         hit = self._targeted.get(key)
         if hit and time.time() - hit[0] <= self.TTL_S:
             return hit[1]
-        found = self.client.search_direct(weapon, list(stats))
+        found = self.search(weapon, stats)
         rows = [slim(a) for a in found if a.get("visible", True) and not a.get("closed") and not a.get("private")]
         self._targeted[key] = (time.time(), rows)
         return rows
