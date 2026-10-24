@@ -2861,6 +2861,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   const stTxt = (s) => tr(s === "ingame" || s === "online" ? "st." + s : "st.offline");
   let mkRows = [];
   let mkSort = { k: "price", d: 1 };
+  let mkPage = 0, mkSize = 25;   // paginación local; el tamaño no persiste (pywebview no guarda localStorage)
   const stRank = { ingame: 0, online: 1, offline: 2 };
   function renderMarket() {
     const st = $("#mkf-status").value, mp = +$("#mkf-price").value, mr = $("#mkf-rolls").value, ng = $("#mkf-neg").value;
@@ -2868,15 +2869,20 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       && (!mp || a.price <= mp) && (mr === "" || (a.rolls ?? 0) <= +mr)
       && (ng === "any" || (ng === "has") === a.stats.some((x) => !x.positive)));
     rows.sort((a, b) => mkSort.d * (mkSort.k === "status" ? (stRank[a.status] ?? 3) - (stRank[b.status] ?? 3) || a.price - b.price : mkSort.k === "created" ? String(a.created || "").localeCompare(String(b.created || "")) : a.price - b.price));
+    const pages = Math.max(1, Math.ceil(rows.length / mkSize)); mkPage = Math.min(mkPage, pages - 1);
+    const shown = rows.slice(mkPage * mkSize, (mkPage + 1) * mkSize);
+    const pager = rows.length <= 10 ? "" : `<div class="mk-pager" style="display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px">
+      <small class="muted">${tr("mkt.perPage")}</small><select id="mk-size">${[10, 25, 50, 100, 250, 500].map((n) => `<option ${n === mkSize ? "selected" : ""}>${n}</option>`).join("")}</select>
+      <button class="ghost" data-pg="-1" ${mkPage ? "" : "disabled"}>‹</button><small class="muted">${tr("mkt.page", { p: mkPage + 1, t: pages })}</small><button class="ghost" data-pg="1" ${mkPage < pages - 1 ? "" : "disabled"}>›</button></div>`;
     const arrow = (k) => (mkSort.k === k ? (mkSort.d > 0 ? " ▲" : " ▼") : "");
     $("#mk-info").textContent = tr("mkt.info", { n: rows.length, t: mkRows.length });
     $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th class="mk-sort" data-k="status" style="cursor:pointer">${tr("mkt.seller")}${arrow("status")}</th><th class="mk-sort" data-k="created" style="cursor:pointer">${tr("mkt.posted")}${arrow("created")}</th><th class="mk-sort" data-k="price" style="cursor:pointer">${tr("th.price")}${arrow("price")}</th></tr></thead><tbody>${
-      rows.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
+      shown.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
         <td><div class="stats">${a.stats.map((s) => formatStat(s)).join("")}</div></td><td>${a.rolls ?? "—"}</td>
         <td class="seller"><span class="nm">${esc(a.seller)}</span><small><span class="st ${esc(a.status)}">${stTxt(a.status)}</span></small></td>
-        <td title="${esc(fullDate(a.created))}">${ago(a.created) || "—"}</td><td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>`;
+        <td title="${esc(fullDate(a.created))}">${ago(a.created) || "—"}</td><td><b class="accent">${a.price}p</b></td></tr>`).join("")}</tbody></table>${pager}`;
   }
-  ["#mkf-status", "#mkf-price", "#mkf-rolls", "#mkf-neg"].forEach((s) => { $(s).addEventListener("input", renderMarket); $(s).addEventListener("change", renderMarket); });
+  ["#mkf-status", "#mkf-price", "#mkf-rolls", "#mkf-neg"].forEach((s) => { $(s).addEventListener("input", () => { mkPage = 0; renderMarket(); }); $(s).addEventListener("change", () => { mkPage = 0; renderMarket(); }); });
   async function runMarket() {
     if (!mkWeapon.value) { toast(tr("common.pickWeapon"), true); $("#mk-weapon").focus(); return; }
     $("#mk-go").disabled = true; $("#mk-go").textContent = tr("common.searching");
@@ -2885,7 +2891,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       const r = await api().market_search(mkWeapon.value, mkStats.map((c) => c.value).filter(Boolean));
       if (r.error) { $("#mk-results").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
       if (!r.results.length) { $("#mk-post").style.display = "none"; $("#mk-results").innerHTML = `<div class="state">${tr("mkt.none")}</div>`; return; }
-      mkRows = r.results; $("#mk-post").style.display = ""; renderMarket();
+      mkRows = r.results; mkPage = 0; $("#mk-post").style.display = ""; renderMarket();
     } catch (e) {
       $("#mk-results").innerHTML = `<div class="state">${esc(e.message || String(e))}</div>`;
     } finally {
@@ -2915,8 +2921,11 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   });
   $("#mk-results").addEventListener("click", (e) => {
     const h = e.target.closest(".mk-sort");
-    if (h) { mkSort = mkSort.k === h.dataset.k ? { k: mkSort.k, d: -mkSort.d } : { k: h.dataset.k, d: 1 }; renderMarket(); return; }
+    if (h) { mkSort = mkSort.k === h.dataset.k ? { k: mkSort.k, d: -mkSort.d } : { k: h.dataset.k, d: 1 }; mkPage = 0; renderMarket(); return; }
+    const pg = e.target.closest("[data-pg]");
+    if (pg) { mkPage += +pg.dataset.pg; renderMarket(); $("#mk-results").scrollIntoView({ block: "start", behavior: "smooth" }); }
   });
+  $("#mk-results").addEventListener("change", (e) => { if (e.target.id === "mk-size") { mkSize = +e.target.value; mkPage = 0; renderMarket(); } });
   $("#mk-results").addEventListener("click", (e) => { const tr = e.target.closest(".mk-row"); if (tr) openSummary(tr.dataset.id); });
   $("#views").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;

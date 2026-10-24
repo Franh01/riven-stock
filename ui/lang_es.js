@@ -296,6 +296,8 @@ window.LANGS.es = {
   "mkf.maxPrice": "Precio máx.", "mkf.maxRolls": "Rolls máx.", "mkf.neg": "Negativo", "mkf.any": "Cualquiera", "mkf.none": "Sin negativo", "mkf.has": "Con negativo",
   "mkt.none": "No hay ventas directas con esos filtros.",
   "mkt.info": "{n} de {t} publicaciones, de la más barata a la más cara. Tocá una para ver el estimado.",
+  "mkt.perPage": "Por página",
+  "mkt.page": "Página {p} de {t}",
   "mkt.seller": "Vendedor",
   "mkt.go": "Buscar",
   "common.loading": "Cargando…",

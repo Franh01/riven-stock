@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Mercado: la tabla de resultados se pagina (10 a 500 por página, 25 por defecto) y se puede cambiar el tamaño.
+
+#### English
+- Market: the results table is paginated (10 to 500 per page, 25 by default) with a page-size selector.
+
 ## [0.13.13] - 2026-10-24
 
 #### Español
