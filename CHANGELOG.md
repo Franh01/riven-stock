@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.13] - 2026-10-24
+
 #### Español
 - Corregido: después de editar un riven (que se republica con otro id) o de cerrarlo, la tabla de las más baratas seguía mostrando el contrato viejo con su precio anterior. Ahora se descarta y la tabla se vuelve a pedir.
 
