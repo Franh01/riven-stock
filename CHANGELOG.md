@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.13.11] - 2026-10-23
+
 #### Español
 - Mejorado: los reportes con logs ahora incluyen la salud de los procesos de fondo (último ciclo correcto y último error de cada uno), para detectar si alguno se trabó.
 - Corregido: abrir una segunda instancia de la app mientras ya hay una viva ya no se cuenta como un cierre inesperado en los reportes.
