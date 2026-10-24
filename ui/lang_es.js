@@ -356,6 +356,7 @@ window.LANGS.es = {
   "sum.auto": "Ajuste automático de precio",
   "sum.autoSub": "Baja el precio cuando pasan las horas sin vender",
   "sum.ovrTitle": "Ajustes de este riven",
+  "sum.ovHoursTip": "Horas (ej. 2) o minutos (ej. 30m) sin vender antes de bajar el precio",
   "sum.ovDrop": "Baja (p)",
   "sum.ovFloor": "Piso (p)",
   "sum.ovHint": "Vacío = usa el valor global.",

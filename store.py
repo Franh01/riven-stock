@@ -7,6 +7,7 @@
 """
 
 import json
+import re
 import os
 import shutil
 import sqlite3
@@ -558,6 +559,16 @@ def mark_reverted(conn, drop_id, auction_id):
 def set_autodrop(conn, auction_id, on):
     conn.execute("UPDATE riven_online_hours SET autodrop_on = ? WHERE auction_id = ?", (1 if on else 0, auction_id))
     conn.commit()
+
+
+def parse_hours(v):
+    """'2' / '2h' = horas, '30m' / '30 min' = minutos; devuelve horas (float) o None si no vale."""
+    m = re.fullmatch(r"\s*(\d+(?:[.,]\d+)?)\s*(h|m|min)?\s*", str(v).lower())
+    if not m:
+        return None
+    n = float(m.group(1).replace(",", "."))
+    n = n / 60 if m.group(2) in ("m", "min") else n
+    return n if n > 0 else None
 
 
 def set_overrides(conn, auction_id, hours, amount, floor):

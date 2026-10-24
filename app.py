@@ -516,7 +516,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             except (TypeError, ValueError):
                 return None
         with store.connect() as conn:
-            store.set_overrides(conn, auction_id, num(hours, float), num(amount, int), num(floor, int))
+            store.set_overrides(conn, auction_id, store.parse_hours(hours), num(amount, int), num(floor, int))
         return {"ok": True}
 
     def _pool_for(self, weapon, view, base):

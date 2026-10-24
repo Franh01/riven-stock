@@ -53,6 +53,16 @@ class Pricing(unittest.TestCase):
         self.assertEqual(pricing._wquantile([(10, 1), (20, 1), (30, 1)], 0.5), 20)
 
 
+class ParseHours(unittest.TestCase):
+    def test_horas_y_minutos(self):
+        self.assertEqual(store.parse_hours("2"), 2)
+        self.assertEqual(store.parse_hours("1,5h"), 1.5)
+        self.assertEqual(store.parse_hours(" 30m "), 0.5)
+        self.assertEqual(store.parse_hours("1 min"), 1 / 60)
+        for malo in ("", None, "0", "abc", "-3", "5x"):
+            self.assertIsNone(store.parse_hours(malo))
+
+
 class Stock(unittest.TestCase):
     MARKET = [pub(i, 200) for i in range(8)]
 

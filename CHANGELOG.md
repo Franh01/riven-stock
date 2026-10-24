@@ -9,6 +9,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - Mercado: si la búsqueda llega al tope de ~500 de warframe.market, lo avisa (faltan las más caras).
 - El precio acepta como mucho 6 dígitos al escribirlo.
 - Estado: al ponerte En juego/Online por 30 min, 1 h o 2 h, el "hasta" mostraba la hora del estado anterior (hasta 4 h); ahora muestra la pedida.
+- Ajuste automático de un riven: además de horas, el tiempo propio acepta minutos (ej. "30m"); sirve para probarlo sin esperar.
 - Interno: los contratos propios y ajenos viven en un solo lugar (state.py); cambiar un precio, republicar, cerrar o crear actualiza de una vez la tabla, las alertas y el detalle.
 
 #### English
@@ -16,6 +17,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - Market: if the search hits warframe.market's ~500 cap it now says so (the pricier ones are missing).
 - The price field takes at most 6 digits when typing.
 - Status: setting In game/Online for 30 min, 1 h or 2 h showed the "until" time of the previous status (up to 4 h); it now shows the requested one.
+- Auto price drop for a single riven: besides hours, its own time accepts minutes (e.g. "30m"); handy to test it without waiting.
 - Internal: own and other sellers' listings now live in one place (state.py); changing a price, republishing, closing or creating updates the table, alerts and detail view at once.
 
 ## [0.14.0] - 2026-10-24

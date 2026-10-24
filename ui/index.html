@@ -798,7 +798,7 @@
 <dialog id="riven-dialog">
   <div class="dlg-head">
     <h3 id="rd-title">Nuevo riven</h3>
-    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender" data-i18n-title="rd.autoTip"><span data-i18n="common.autoDrop">Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label><span data-i18n="th.hours"></span><input type="number" id="rd-ov-h" min="1" step="1"></label><label><span data-i18n="sum.ovDrop"></span><input type="number" id="rd-ov-a" min="1" step="1"></label><label><span data-i18n="sum.ovFloor"></span><input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar" data-i18n-title="common.close">×</button></span>
+    <span style="display:flex;gap:14px;align-items:center"><span id="rd-auto" class="rd-auto" hidden><label class="switch-row" title="Baja el precio cuando pasan las horas sin vender" data-i18n-title="rd.autoTip"><span data-i18n="common.autoDrop">Ajuste automático de precio</span><span class="switch"><input type="checkbox" id="rd-auto-on"><i></i></span></label><label><span data-i18n="th.hours"></span><input type="text" id="rd-ov-h" inputmode="decimal" data-i18n-title="sum.ovHoursTip"></label><label><span data-i18n="sum.ovDrop"></span><input type="number" id="rd-ov-a" min="1" step="1"></label><label><span data-i18n="sum.ovFloor"></span><input type="number" id="rd-ov-f" min="1" step="1"></label></span><button class="icon" id="rd-x" title="Cerrar" data-i18n-title="common.close">×</button></span>
   </div>
   <div class="dlg-body">
     <section>
@@ -2448,7 +2448,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     if (existing) {
       const h = hours[existing.id];
       $("#rd-auto-on").checked = !!(h && h.autodrop_on);
-      $("#rd-ov-h").value = h && h.hours_override ? h.hours_override : "";
+      $("#rd-ov-h").value = ovHoursText(h && h.hours_override);
       $("#rd-ov-a").value = h && h.amount_override ? h.amount_override : "";
       $("#rd-ov-f").value = h && h.floor_override ? h.floor_override : "";
       $("#rd-ov-h").placeholder = cfgVal("autodrop_hours"); $("#rd-ov-a").placeholder = cfgVal("autodrop_amount"); $("#rd-ov-f").placeholder = cfgVal("autodrop_floor");
@@ -3063,7 +3063,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         ${mk ? "" : `<div class="sum-card" id="sum-auto-card"><label class="switch-row"><span>${tr("sum.auto")}<small>${tr("sum.autoSub")}</small></span>
           <span class="switch"><input type="checkbox" id="sum-auto" ${h && h.autodrop_on ? "checked" : ""}><i></i></span></label></div>
         <div class="sum-card" id="sum-ovr-card"><h4>${tr("sum.ovrTitle")}</h4><div class="ovr">
-          <label>${tr("th.hours")}<input type="number" id="ov-h" min="1" step="1" placeholder="${cfgVal("autodrop_hours")}" value="${h && h.hours_override ? h.hours_override : ""}"></label>
+          <label>${tr("th.hours")}<input type="text" id="ov-h" inputmode="decimal" title="${tr("sum.ovHoursTip")}" placeholder="${cfgVal("autodrop_hours")}" value="${ovHoursText(h && h.hours_override)}"></label>
           <label>${tr("sum.ovDrop")}<input type="number" id="ov-a" min="1" step="1" placeholder="${cfgVal("autodrop_amount")}" value="${h && h.amount_override ? h.amount_override : ""}"></label>
           <label>${tr("sum.ovFloor")}<input type="number" id="ov-f" min="1" step="1" placeholder="${cfgVal("autodrop_floor")}" value="${h && h.floor_override ? h.floor_override : ""}"></label>
         </div><small class="muted">${tr("sum.ovHint")}</small></div>
@@ -3118,6 +3118,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   for (const id of ["#sum-dialog", "#alerts-dialog"]) $(id).addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   // ---- Configuración del ajuste automático de precio ----
   const CFG_DEF = { autodrop_enabled: false, autodrop_hours: 10, autodrop_amount: 5, autodrop_floor: 10, invisible_on_close: true };
+  const ovHoursText = (v) => (!v ? "" : v < 1 ? Math.round(v * 60) + "m" : String(+v.toFixed(2)));   // menos de 1 h se muestra en minutos
   const cfgVal = (k) => (settings[k] === undefined || settings[k] === null ? CFG_DEF[k] : settings[k]);
   const OPP_DEF = { opp_threshold: 30, opp_min_gain: 15 };
   const oppVal = (k) => (settings[k] == null ? OPP_DEF[k] : settings[k]);

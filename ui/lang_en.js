@@ -356,6 +356,7 @@ window.LANGS.en = {
   "sum.auto": "Automatic price adjustment",
   "sum.autoSub": "Lowers the price as hours pass without selling",
   "sum.ovrTitle": "This riven's settings",
+  "sum.ovHoursTip": "Hours (e.g. 2) or minutes (e.g. 30m) unsold before dropping the price",
   "sum.ovDrop": "Drop (p)",
   "sum.ovFloor": "Floor (p)",
   "sum.ovHint": "Empty = uses the global value.",
