@@ -1435,6 +1435,14 @@ document.addEventListener('mousedown', (e) => {
     else { if (okMsg) toast(okMsg); if (changes.price != null) loadPosition(); }
   }
 
+  async function saveOrigin(id, lotId, cost) {
+    const res = await api().assign_lot(id, lotId, cost === "" ? null : cost);
+    if (res.error) { toast(res.error, true); return false; }
+    applyLocal(res);
+    renderTotals(); renderMine(); renderClosed(); renderLots();
+    return true;
+  }
+
   async function saveCost(id, cost) {
     const res = await api().set_cost(id, cost);
     if (res.error) { toast(tr("err.saveCost", { e: res.error }), true); return false; }
@@ -2244,7 +2252,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   }
   $("#f-origin").addEventListener("change", () => {
     const lot = currentLot();
-    $("#f-cost").value = lot ? Math.round(lot.unit_cost * 100) / 100 : "";
+    $("#f-cost").value = lot ? Math.round(lot.unit_cost * 100) / 100 : (editing ? costs[editing.id]?.cost ?? "" : "");
+    if (editing) { $("#confirm").hidden = true; return; }   // al editar no se filtra el arma por el tipo del lote
     refreshWeapons();
     refreshSlots();
   });
@@ -2402,7 +2411,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     $("#rd-title").innerHTML = existing ? `${tr("rd.edit")} · ${rivenLabel(existing)}${existing.id === "demo" ? ` <span class="muted" style="font-weight:400;font-size:12px">· ${tr("rd.demoNote")}</span>` : ""}` : tr("rd.new");
     $("#publish-title").textContent = tr(existing ? "rd.editContract" : "rd.publishDirect");
     $("#publish-go").textContent = existing ? tr("rd.saveChanges") : tr("rd.publish");
-    $("#origin-row").hidden = !!existing;
+    $("#origin-row").hidden = !!existing && !!costs[existing.id]?.lot_id;   // editando: solo si todavía no tiene origen
     // Todo es editable: cambiar los datos del riven republica el contrato por detrás (ver republish).
     document.querySelectorAll(".grid-riven input, .grid-riven select, .slot-stat, .slot-value, .pol-btn")
       .forEach((el) => (el.disabled = false));
@@ -2618,7 +2627,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const costRaw = $("#f-cost").value.trim();
     const oldCost = costs[editing.id]?.cost;
     const costChanged = costRaw === "" ? oldCost !== undefined : Number(costRaw) !== oldCost;
-    return { changes, costChanged, costRaw };
+    const lotId = !$("#origin-row").hidden ? currentLot()?.id ?? null : null;   // origen recién elegido
+    return { changes, costChanged, costRaw, lotId };
   }
 
   // Publicar / guardar: primer click muestra el resumen, el segundo confirma.
@@ -2627,10 +2637,11 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     if (!price || price < 1) { toast(tr("pub.needPrice"), true); $("#f-price").focus(); return; }
     if (price > 900000) { toast(tr("pub.maxPrice"), true); $("#f-price").focus(); return; }
     if (editing) {
-      const { changes, costChanged, costRaw } = editChanges();
+      const { changes, costChanged, costRaw, lotId } = editChanges();
       if (!Object.keys(changes).length) {
-        // Solo cambió el costo (o nada): es local, no hace falta confirmar.
-        if (costChanged && await saveCost(editing.id, costRaw === "" ? null : costRaw)) toast(tr("cost.savedPlain"));
+        // Solo cambió el costo o el origen (o nada): es local, no hace falta confirmar.
+        if (lotId) { if (await saveOrigin(editing.id, lotId, costRaw)) toast(tr("origin.saved")); }
+        else if (costChanged && await saveCost(editing.id, costRaw === "" ? null : costRaw)) toast(tr("cost.savedPlain"));
         else if (!costChanged) toast(tr("pub.noChanges"));
         $("#riven-dialog").close();
         return;
@@ -2651,6 +2662,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       if ("price" in changes) { const d = changes.price - editing.price; rows.push(row(tr("rd.price"), chg(`${editing.price}p`, `${changes.price}p`) + `<span class="diff ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${Math.abs(d)}p</span>`)); }
       if ("visible" in changes) rows.push(row(tr("pub.visibility"), changes.visible ? `<span class="on">${tr("pub.shown")}</span>` : `<span class="off">${tr("pub.hidden")}</span>`));
       if ("note" in changes) rows.push(row(tr("pub.note"), chg(esc(editing.note || "—"), esc(changes.note || "—"))));
+      if (lotId) rows.push(row(tr("rd.origin"), `<span class="new">${esc(tr("rd.originLot", { t: typeName(currentLot().riven_type), n: currentLot().remaining, c: fmtP(currentLot().unit_cost) }))}</span><span class="arrow">${tr("pub.onlyApp")}</span>`));
       if (costChanged) rows.push(row(tr("th.cost"), `<span class="new">${costRaw === "" ? tr("pub.cleared") : esc(costRaw) + "p"}</span><span class="arrow">${tr("pub.onlyApp")}</span>`));
       $("#confirm-text").innerHTML = `<div class="cf-title">${rivenLabel(editing)}<small>${tr("pub.saveSub")}</small></div><div class="cf-rows">${rows.join("")}</div>`;
     } else {
@@ -2678,12 +2690,13 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       if (editing) {
         // Optimista: se cierra el modal ya y la fila muestra los cambios con spinner.
         const a = mine.find((x) => x.id === editing.id) ?? editing;
-        const { changes, costChanged, costRaw } = editChanges();
+        const { changes, costChanged, costRaw, lotId } = editChanges();
+        const saveLocal = (id) => lotId ? saveOrigin(id, lotId, costRaw) : saveCost(id, costRaw === "" ? null : costRaw);
         if (changes.item) {
           // Cambiar los datos republica el contrato: no puede ser optimista (el id nuevo lo da la API).
           $("#confirm-ok").innerHTML = `${tr("pub.saving")}${spinner}`;
           $("#confirm-back").disabled = true;
-          if (costChanged) await saveCost(a.id, costRaw === "" ? null : costRaw);
+          if (costChanged || lotId) await saveLocal(a.id);
           const res = await api().republish(a.id, changes.item, changes.price ?? null,
             changes.visible ?? null, changes.note ?? null);
           if (res.error) { toast(tr("pub.changeFail", { e: res.error }), true); return; }
@@ -2696,7 +2709,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
           return;
         }
         $("#riven-dialog").close();
-        if (costChanged) saveCost(a.id, costRaw === "" ? null : costRaw);
+        if (costChanged || lotId) saveLocal(a.id);
         runUpdate(a, changes, tr("pub.updated"));
       } else {
         // Publicar no puede ser optimista (el id lo da la API): el botón muestra que está en curso.

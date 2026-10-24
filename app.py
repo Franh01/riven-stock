@@ -746,6 +746,15 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             return {"error": str(e)}
         return self.local()
 
+    def assign_lot(self, auction_id, lot_id, cost=None):
+        """Elegir de qué lote salió un riven ya publicado (cuenta un riven del lote como abierto)."""
+        try:
+            with store.connect() as conn:
+                store.assign_lot(conn, auction_id, int(lot_id), None if cost in (None, "") else float(cost))
+        except (ValueError, TypeError, store.sqlite3.Error) as e:
+            return {"error": str(e)}
+        return self.local()
+
     def discard_from_lot(self, lot_id):
         """Un riven del lote se abrió y no se va a publicar."""
         try:

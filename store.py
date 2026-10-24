@@ -363,6 +363,20 @@ def open_from_lot(conn, lot_id, auction_id=None):
     conn.commit()
 
 
+def assign_lot(conn, auction_id, lot_id, cost=None):
+    """Le asigna un lote de origen a un riven ya publicado que no tenía (se olvidó al crearlo).
+    El costo pasa a contar dentro del lote (cost=None: el costo unitario del lote)."""
+    if conn.execute("SELECT 1 FROM lot_openings WHERE auction_id = ?", (auction_id,)).fetchone():
+        raise ValueError("Ese riven ya tiene un origen")
+    lot = get_lot(conn, lot_id)
+    open_from_lot(conn, lot_id, auction_id)
+    conn.execute(
+        """INSERT INTO riven_costs (auction_id, cost, lot_id, at) VALUES (?, ?, ?, ?)
+           ON CONFLICT (auction_id) DO UPDATE SET cost = excluded.cost, lot_id = excluded.lot_id""",
+        (auction_id, float(lot["unit_cost"] if cost is None else cost), lot_id, now_iso()))
+    conn.commit()
+
+
 def delete_lot(conn, lot_id):
     """Solo se puede borrar un lote del que no se abrió ninguno (para corregir errores de carga)."""
     lot = get_lot(conn, lot_id)

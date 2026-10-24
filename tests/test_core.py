@@ -103,6 +103,23 @@ class Invertido(unittest.TestCase):
             self.assertEqual(store.invested(conn), 100 + 20 + 30)
 
 
+    def test_asignar_origen_a_riven_existente(self):
+        with tempfile.TemporaryDirectory() as d, store.connect(Path(d) / "t.db") as conn:
+            lote = store.add_lot(conn, "rifle", 2, 100)
+            store.set_cost(conn, "x1", 30)                      # suelto: suma 30 aparte
+            self.assertEqual(store.invested(conn), 130)
+            store.assign_lot(conn, "x1", lote, 50)              # pasa al lote: ya no suma suelto
+            self.assertEqual(store.invested(conn), 100)
+            self.assertEqual(store.costs(conn)["x1"], {"cost": 50.0, "lot_id": lote})
+            self.assertEqual(store.get_lot(conn, lote)["remaining"], 1)
+            with self.assertRaises(ValueError):                 # ya tiene origen
+                store.assign_lot(conn, "x1", lote)
+            store.assign_lot(conn, "x2", lote)                  # sin costo: el unitario del lote
+            self.assertEqual(store.costs(conn)["x2"]["cost"], 50.0)
+            with self.assertRaises(ValueError):                 # el lote se quedó sin rivens
+                store.assign_lot(conn, "x3", lote)
+
+
 class LoopHealth(unittest.TestCase):
     def test_report(self):
         import loophealth
