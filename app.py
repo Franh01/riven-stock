@@ -448,7 +448,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
                 self._book.put_other(a)   # para poder abrir su resumen al tocarla
             rows.append((a, bool(mine)))
         seen = {a["id"] for a, _ in rows}
-        rows += [(a, True) for i, a in self._book.own.items()   # propias que el caché no trae (recién publicadas, invisible)
+        rows += [(dict(a, owner={"ingame_name": "", "status": "online"}), True)   # sus contratos traen owner como id, no como dict
+                 for i, a in self._book.own.items()   # propias que el caché no trae (recién publicadas, invisible)
                  if i not in seen and a["item"]["weapon_url_name"] == weapon
                  and a.get("visible", True) and not a.get("closed") and not a.get("private")]
         rows.sort(key=lambda r: r[0]["buyout_price"])

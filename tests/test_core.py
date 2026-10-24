@@ -272,7 +272,7 @@ class BookTest(unittest.TestCase):
             return {"id": i, "buyout_price": price, "starting_price": price, "item": {"weapon_url_name": "detron", "attributes": []},
                     "owner": {"ingame_name": "x", "status": st}}
         self.cache._data["detron"] = {"at": 9e12, "orders": [ord_("otro", 300, "ingame")], "market": [{"c": 1}]}
-        mia = ord_("mia", 1, "offline")   # invisible: el caché no la trae
+        mia = dict(ord_("mia", 1, "offline"), owner="id-de-usuario")   # invisible: el caché no la trae; owner como id
         self.book.put_own(mia)
         self.book.put_own(dict(ord_("oculta", 5, "offline"), visible=False))
         self.book.put_own(dict(ord_("otra-arma", 5, "offline"), item={"weapon_url_name": "braton", "attributes": []}))
