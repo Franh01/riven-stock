@@ -28,15 +28,18 @@ def sanitize(text):
     return _CODE.sub("[codigo]", text)
 
 
-def read_log(path):
-    """Últimos MAX_LOG bytes del log, incluidas las sesiones anteriores que rotaron a `.1` y `.2`."""
+def read_log(path, header=""):
+    """`header` + últimos bytes del log (sesiones rotadas `.1` y `.2` incluidas), todo dentro de MAX_LOG bytes."""
     data = b""
     for suffix in (".2", ".1", ""):
         try:
             data += open(f"{path}{suffix}", "rb").read()
         except OSError:
             pass
-    return sanitize(data[-MAX_LOG:].decode("utf-8", "replace"))
+    text = sanitize(data[-MAX_LOG:].decode("utf-8", "replace"))
+    # el recorte va al final, ya sanitizado y con el encabezado: el servidor rechaza todo lo que pase de MAX_LOG
+    room = MAX_LOG - len(header.encode("utf-8"))
+    return header + text.encode("utf-8")[-room:].decode("utf-8", "ignore")
 
 
 def wait_left(conn):

@@ -175,8 +175,16 @@ class CloudflareTest(unittest.TestCase):
         self.assertIn("Cloudflare es el servicio", str(cm.exception))
 
 
-if __name__ == "__main__":
-    unittest.main()
+
+class FeedbackLog(unittest.TestCase):
+    def test_encabezado_mas_log_no_pasa_el_limite_del_servidor(self):
+        import feedback
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "x.log"
+            p.write_bytes(("linea ñ larga de log\n" * 40000).encode("utf-8"))
+            out = feedback.read_log(str(p), "=== Salud ===\n")
+        self.assertTrue(out.startswith("=== Salud ==="))
+        self.assertLessEqual(len(out.encode("utf-8")), feedback.MAX_LOG)
 
 
 class OrderCacheForgetTest(unittest.TestCase):
@@ -191,3 +199,7 @@ class OrderCacheForgetTest(unittest.TestCase):
         self.assertEqual([o["id"] for o in e["market"]], ["otro"])
         self.assertEqual(c._targeted[("detron", ("x",))][1], [])
         self.assertEqual(e["at"], 0)
+
+
+if __name__ == "__main__":
+    unittest.main()

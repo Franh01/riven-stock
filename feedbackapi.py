@@ -18,10 +18,10 @@ class FeedbackMixin:
             return {"wait": feedback.wait_left(conn)}
 
     def feedback_logs(self):
-        return loophealth.report() + feedback.read_log(self.LOG_FILE)
+        return feedback.read_log(self.LOG_FILE, loophealth.report())
 
     def feedback_send(self, kind, text, contact, with_logs, shots):
-        logs = loophealth.report() + feedback.read_log(self.LOG_FILE) if with_logs else ""
+        logs = feedback.read_log(self.LOG_FILE, loophealth.report()) if with_logs else ""
         with store.connect() as conn:
             r = feedback.send(conn, updater.version_actual(), kind, text, contact, logs, shots)
         logging.info("feedback %s -> %s", kind, r.get("error") or "ok")

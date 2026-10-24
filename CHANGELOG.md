@@ -8,11 +8,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - Ventas anónimas: aviso explícito la primera vez que se abre la app (con opción de desactivar) y el texto de Ajustes aclara que viene activado por defecto.
 - Mercado: la tabla de resultados se pagina (10 a 500 por página, 25 por defecto) y se puede cambiar el tamaño.
 - Si te olvidaste de elegir el origen (lote del stock) al crear un riven, ahora lo podés elegir al editarlo: cuenta un riven del lote como abierto y su costo pasa a contar dentro del lote.
+- Reportar con logs: el encabezado de salud de los bucles hacía que el total superara el límite del servidor y el envío fallaba con "No se pudo enviar"; ahora el recorte incluye el encabezado.
 
 #### English
 - Anonymous sales: explicit notice the first time the app opens (with an option to turn it off), and the Settings text now says it is on by default.
 - Market: the results table is paginated (10 to 500 per page, 25 by default) with a page-size selector.
 - If you forgot to pick the origin (stock lot) when creating a riven, you can now pick it when editing it: it counts one riven of the lot as opened and its cost is counted inside the lot.
+- Report with logs: the loop-health header pushed the total over the server limit, so sending failed with "Could not send now"; the trim now includes the header.
 
 ## [0.13.13] - 2026-10-24
 
