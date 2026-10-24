@@ -359,6 +359,7 @@
   .st.offline { background: #8884; color: var(--muted); }
   .ord { cursor: pointer; border-radius: 8px; transition: background .12s; }
   .ord:hover { background: #ffffff0a; }
+  .ord.current { cursor: default; box-shadow: inset 2px 0 0 var(--accent-2); }
   .comp.ord { align-items: center; }
   .ord .pres { text-align: center; }
   .ord .seller-nm { display: block; margin-top: 6px; font-size: 12px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2517,6 +2518,10 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   }
 
   const stBadge = (st) => st ? `<span class="st-${esc(st)} st-badge" title="${esc(tr("st." + st))}"><span class="dot"></span></span>` : "";   // punto de color: en juego / online / offline
+  ["#f-price", "#sold-price"].forEach((q) => $(q).addEventListener("input", (e) => {   // 6 dígitos como mucho
+    const d = e.target.value.replace(/\D/g, "").slice(0, 6);
+    if (d !== e.target.value) e.target.value = d;
+  }));
   function usePrice(v) {   // pone el precio, baja hasta el campo y lo hace parpadear
     const inp = $("#f-price"), box = inp.closest("label");
     inp.value = v;
@@ -2882,7 +2887,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   const stTxt = (s) => tr(s === "ingame" || s === "online" ? "st." + s : "st.offline");
   let mkRows = [];
   let mkSort = { k: "price", d: 1 };
-  let mkPage = 0, mkSize = 25;   // paginación local; el tamaño no persiste (pywebview no guarda localStorage)
+  let mkPage = 0, mkSize = 25, mkCapped = false;   // paginación local; el tamaño no persiste (pywebview no guarda localStorage)
   const stRank = { ingame: 0, online: 1, offline: 2 };
   function renderMarket() {
     const st = $("#mkf-status").value, mp = +$("#mkf-price").value, mr = $("#mkf-rolls").value, ng = $("#mkf-neg").value;
@@ -2896,7 +2901,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       <small class="muted">${tr("mkt.perPage")}</small><select id="mk-size">${[10, 25, 50, 100, 250, 500].map((n) => `<option ${n === mkSize ? "selected" : ""}>${n}</option>`).join("")}</select>
       <button class="ghost" data-pg="-1" ${mkPage ? "" : "disabled"}><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><small class="muted">${tr("mkt.page")}</small><input id="mk-goto" type="number" min="1" max="${pages}" value="${mkPage + 1}"><small class="muted">/ ${pages}</small><button class="ghost" data-pg="1" ${mkPage < pages - 1 ? "" : "disabled"}><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg></button></div>`;
     const arrow = (k) => (mkSort.k === k ? (mkSort.d > 0 ? " ▲" : " ▼") : "");
-    $("#mk-info").textContent = tr("mkt.info", { n: rows.length, t: mkRows.length });
+    $("#mk-info").textContent = tr("mkt.info", { n: rows.length, t: mkRows.length }) + (mkCapped ? " · " + tr("mkt.capped") : "");
     $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th class="mk-sort" data-k="status" style="cursor:pointer">${tr("mkt.seller")}${arrow("status")}</th><th class="mk-sort" data-k="created" style="cursor:pointer">${tr("mkt.posted")}${arrow("created")}</th><th class="mk-sort" data-k="price" style="cursor:pointer">${tr("th.price")}${arrow("price")}</th></tr></thead><tbody>${
       shown.map((a) => `<tr class="mk-row" data-id="${esc(a.id)}"><td>${esc(a.name)}<small class="muted" style="display:block">MR ${a.mr ?? "?"}</small></td>
         <td><div class="stats">${a.stats.map((s) => formatStat(s)).join("")}</div></td><td>${a.rolls ?? "—"}</td>
@@ -2912,7 +2917,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       const r = await api().market_search(mkWeapon.value, mkStats.map((c) => c.value).filter(Boolean));
       if (r.error) { $("#mk-results").innerHTML = `<div class="state">${esc(r.error)}</div>`; return; }
       if (!r.results.length) { $("#mk-post").style.display = "none"; $("#mk-results").innerHTML = `<div class="state">${tr("mkt.none")}</div>`; return; }
-      mkRows = r.results; mkPage = 0; $("#mk-post").style.display = ""; renderMarket();
+      mkRows = r.results; mkCapped = !!r.capped; mkPage = 0; $("#mk-post").style.display = ""; renderMarket();
     } catch (e) {
       $("#mk-results").innerHTML = `<div class="state">${esc(e.message || String(e))}</div>`;
     } finally {
@@ -3014,7 +3019,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const pubTxt = (iso) => iso ? `<span class="pub" title="${esc(fullDate(iso))}">${tr("sum.published", { t: esc(ago(iso)) })}</span>` : "";
     const presence = (st, seen, name) => `<span class="pres"><span class="st ${esc(st || "offline")}">${stTxt(st)}</span>${st === "offline" || !st ? (seen ? `<span class="seen" title="${esc(fullDate(seen))}">${tr("sum.seen", { t: esc(ago(seen)) })}</span>` : "") : ""}${name ? `<span class="seller-nm" title="${esc(name)}">${esc(name)}</span>` : ""}</span>`;
     const orders = o.error ? `<div class="state">${esc(o.error)}</div>` : `<div class="comps">${
-      o.orders.map((x) => `<div class="comp ord${x.mine ? " mine" : ""}" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><div class="pl"><b>${x.price}p</b>${x.mine ? `<span class="own-tag">${tr("sum.yourOrder")}</span>` : ""}</div><span class="sub">${delta(x.price)} · ${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
+      o.orders.map((x) => `<div class="comp ord${x.mine ? " mine" : ""}${x.current ? " current" : ""}" data-id="${esc(x.id)}" title="${x.current ? tr("sum.thisTip") : tr("sum.openTip")}"><div class="comp-price"><div class="pl"><b>${x.price}p</b>${x.mine ? `<span class="own-tag">${tr("sum.yourOrder")}</span>` : ""}${x.current ? `<span class="own-tag">${tr("sum.thisOne")}</span>` : ""}</div><span class="sub">${delta(x.price)} · ${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
         <div><div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
         <div class="comp-meta">${rankTxt(x.rank)}${pubTxt(x.created)}</div></div>
         ${presence(x.status, x.last_seen, x.seller)}</div>`).join("")}</div>`;
@@ -3066,7 +3071,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       </div>
       <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">${tr("sum.tabOrders")}</button>${es ? `<button data-tab="comps">${tr("sum.tabComps", { n: es.n })}</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">${tr("sum.dataAge", { n: Math.max(0, Math.round(o.age_s / 60)) })}</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
-    document.querySelectorAll(".ord").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
+    document.querySelectorAll(".ord:not(.current)").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
     $("#sum-reroll")?.remove();   // «¿Conviene rolear?» oculto hasta tener el análisis de datos (tarea 014f934c)
     (aid.startsWith("demo") ? Promise.resolve(demoTrend()) : api().market_trend(a.weapon, 90)).then((t) => {
       const c = $("#trend-card"); if (!c) return;

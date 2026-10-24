@@ -429,8 +429,10 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         except (requests.RequestException, ValueError):
             return {"error": True}
 
-    def weapon_orders(self, weapon):
-        """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta)."""
+    def weapon_orders(self, weapon, current_id=None):
+        """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta).
+        Tus órdenes visibles de esa arma entran siempre (aunque estés invisible o el caché sea viejo);
+        `current_id` es la que el usuario ya tiene abierta."""
         try:
             e = self._cache.get(weapon, self.VIEW_MAX_AGE_S)
             if not e or "market" not in e or (e["market"] and "c" not in e["market"][0]):   # caché viejo sin fechas
@@ -445,9 +447,13 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             else:
                 self._book.put_other(a)   # para poder abrir su resumen al tocarla
             rows.append((a, bool(mine)))
+        seen = {a["id"] for a, _ in rows}
+        rows += [(a, True) for i, a in self._book.own.items()   # propias que el caché no trae (recién publicadas, invisible)
+                 if i not in seen and a["item"]["weapon_url_name"] == weapon
+                 and a.get("visible", True) and not a.get("closed") and not a.get("private")]
         rows.sort(key=lambda r: r[0]["buyout_price"])
         return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],
-                            "reputation": a["owner"].get("reputation"), "mine": mine,
+                            "reputation": a["owner"].get("reputation"), "mine": mine, "current": a["id"] == current_id,
                             "created": a.get("created"), "last_seen": a["owner"].get("last_seen")} for a, mine in rows[:7]],
                 "age_s": int(time.time() - e["at"]), "market": e.get("market", [])}
 
@@ -531,7 +537,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
     def _estimate_for(self, a, exclude_id):
         """Vista, órdenes y estimado de un contrato (guardado o borrador)."""
         weapon = a["item"]["weapon_url_name"]
-        orders = self.weapon_orders(weapon)
+        orders = self.weapon_orders(weapon, exclude_id)
         view = auction_view(a)
         pool, failed = self._pool_for(weapon, view, orders.pop("market", []))
         try:
@@ -673,7 +679,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         return {"results": [{**auction_view(a), "seller": a["owner"]["ingame_name"],
                              "status": a["owner"].get("status"), "reputation": a["owner"].get("reputation")}
                             for a in rows],
-                "total": len(found)}
+                "total": len(found), "capped": len(found) >= SEARCH_CAP - 10}   # warframe.market corta en ~500: faltan las más caras
 
     # ---- Mis contratos ----------------------------------------------
 
