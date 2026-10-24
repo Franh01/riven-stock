@@ -2931,6 +2931,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const pg = e.target.closest("[data-pg]");
     if (pg) { mkPage += +pg.dataset.pg; renderMarket(); $("#mk-results").scrollIntoView({ block: "start", behavior: "smooth" }); }
   });
+  document.addEventListener("langchange", () => { if (mkRows.length) renderMarket(); });
   $("#mk-results").addEventListener("change", (e) => { if (e.target.id === "mk-size") { mkSize = +e.target.value; mkPage = 0; renderMarket(); } else if (e.target.id === "mk-goto") { mkPage = Math.max(0, (+e.target.value || 1) - 1); renderMarket(); } });
   $("#mk-results").addEventListener("click", (e) => { const tr = e.target.closest(".mk-row"); if (tr) openSummary(tr.dataset.id); });
   $("#views").addEventListener("click", (e) => {
