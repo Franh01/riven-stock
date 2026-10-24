@@ -178,14 +178,17 @@ class CloudflareTest(unittest.TestCase):
 class SetStatusTest(unittest.TestCase):
     def test_evento_viejo_no_pisa_la_hora_pedida(self):
         import wfm_client
-        from datetime import datetime, timezone
+        from datetime import datetime, timedelta, timezone
         c = wfm_client.WFMClient("eyJ" + "a" * 70 + ".b.c")
-        viejo = {"status": "invisible", "statusUntil": "2000-01-01T07:51:00+00:00"}
-        res = {"status": viejo, "reply": {"route": "@wfm|cmd/status/set:ok", "payload": {"status": "ingame"}}}
-        c._ws_session = lambda *a, **k: res
+        ahora = datetime.now(timezone.utc)
+        viejo = {"status": "ingame", "statusUntil": (ahora + timedelta(hours=4)).isoformat()}   # mismo estado, hora vieja
+        ok = {"status": "ingame", "statusUntil": (ahora + timedelta(minutes=30)).isoformat()}
+        c._ws_session = lambda *a, **k: {"status": viejo, "reply": {"route": "@wfm|cmd/status/set:ok", "payload": ok}}
         st = c.set_status("ingame", 30 * 60)
-        hasta = datetime.fromisoformat(st["statusUntil"])
-        falta = (hasta - datetime.now(timezone.utc)).total_seconds()
+        falta = (datetime.fromisoformat(st["statusUntil"]) - ahora).total_seconds()
+        self.assertTrue(29 * 60 < falta <= 30 * 60 + 5, falta)
+        c._ws_session = lambda *a, **k: {"status": viejo, "reply": {"route": "@wfm|cmd/status/set:ok", "payload": {"status": "ingame"}}}
+        falta = (datetime.fromisoformat(c.set_status("ingame", 30 * 60)["statusUntil"]) - ahora).total_seconds()   # sin hora en la respuesta: la pedida
         self.assertTrue(29 * 60 < falta <= 30 * 60 + 5, falta)
 
 

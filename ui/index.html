@@ -3022,7 +3022,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       o.orders.map((x) => `<div class="comp ord${x.mine ? " mine" : ""}${x.current ? " current" : ""}" data-id="${esc(x.id)}" title="${x.current ? tr("sum.thisTip") : tr("sum.openTip")}"><div class="comp-price"><div class="pl"><b>${x.price}p</b>${x.mine ? `<span class="own-tag">${tr("sum.yourOrder")}</span>` : ""}${x.current ? `<span class="own-tag">${tr("sum.thisOne")}</span>` : ""}</div><span class="sub">${delta(x.price)} · ${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
         <div><div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
         <div class="comp-meta">${rankTxt(x.rank)}${pubTxt(x.created)}</div></div>
-        ${presence(x.status, x.last_seen, x.seller)}</div>`).join("")}</div>`;
+        ${presence(x.mine && myStatus ? (myStatus.status === "invisible" ? "offline" : myStatus.status) : x.status, x.last_seen, x.seller)}</div>`).join("")}</div>`;
     const es = r.estimate;
     const mk = r.market;
     const diff = es ? es.price - a.price : 0;

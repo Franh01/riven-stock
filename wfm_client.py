@@ -289,9 +289,7 @@ class WFMClient:
             raise WFMError("warframe.market no respondió al cambio de estado")
         if not reply.get("route", "").endswith(":ok"):
             raise WFMError(f"No se pudo cambiar el estado: {reply.get('payload')}")
-        st = res["status"] or {}
-        if st.get("status") != status:   # el evento llegó antes que el ok: armar con la respuesta
-            st = dict(reply.get("payload", {}))   # el statusUntil del evento es del estado anterior: no sirve
+        st = dict(reply.get("payload", {}))   # el evento puede ser viejo aunque traiga el mismo estado: manda la respuesta
         if not st.get("statusUntil"):    # el evento no llegó a tiempo: la hora es la pedida
             st["statusUntil"] = (datetime.now(timezone.utc) + timedelta(seconds=duration_s)).isoformat(timespec="seconds")
         return st
