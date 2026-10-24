@@ -228,6 +228,48 @@ class OrderCacheForgetTest(unittest.TestCase):
         self.assertEqual(e["at"], 0)
 
 
+class OrderCacheSingleFlightTest(unittest.TestCase):
+    def test_pedidos_simultaneos_del_arma_comparten_un_solo_pedido(self):
+        import threading
+        import time
+        from orders import OrderCache
+
+        class Client:
+            calls = 0
+
+            def search_direct(self, weapon, stats=None):
+                Client.calls += 1
+                time.sleep(0.2)
+                if weapon == "falla":
+                    raise RuntimeError("429")
+                return []
+
+        c = OrderCache(Client(), lambda: [])
+        out, errs = [], []
+
+        def run(fn):
+            try:
+                out.append(fn())
+            except Exception as e:
+                errs.append(e)
+
+        ts = [threading.Thread(target=run, args=(lambda: c.load("braton"),)) for _ in range(4)]
+        ts += [threading.Thread(target=run, args=(lambda: c.targeted("braton", ["a"]),)) for _ in range(3)]
+        [t.start() for t in ts]
+        [t.join() for t in ts]
+        self.assertEqual(Client.calls, 2)   # uno por load, uno por targeted
+        self.assertEqual(len(out), 7)
+        # un error llega a todos los que esperaban y el siguiente intento vuelve a pedir
+        Client.calls = 0
+        ts = [threading.Thread(target=run, args=(lambda: c.load("falla"),)) for _ in range(3)]
+        [t.start() for t in ts]
+        [t.join() for t in ts]
+        self.assertEqual((Client.calls, len(errs)), (1, 3))
+        with self.assertRaises(RuntimeError):
+            c.load("falla")
+        self.assertEqual(Client.calls, 2)
+
+
 class BookTest(unittest.TestCase):
     """state.Book: un solo lugar donde cambian los contratos; todas las copias quedan iguales."""
 

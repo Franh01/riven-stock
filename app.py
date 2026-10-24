@@ -643,7 +643,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         """Precio de referencia: las `n` ventas directas más baratas del arma (cualquier stat)
         de vendedores en juego u online."""
         try:
-            found = self.client.search_direct(weapon)
+            found = self._cache.search(weapon)
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
         top = cheapest_ingame(found, n)
@@ -670,7 +670,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         más baratas a las más caras (todos los vendedores, con su estado)."""
         stats = [s for s in stats if s]
         try:
-            found = self.client.search_direct(weapon, stats)
+            found = self._cache.search(weapon, stats)
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
         rows = [a for a in found if a.get("visible", True) and not a.get("closed") and not a.get("private")]
@@ -696,6 +696,12 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         self._book.own_fetched(auctions)
         with store.connect() as conn:
             store.sync_rivens(conn, auctions)
+        return {"auctions": [auction_view(a) for a in auctions], **self.local()}
+
+    def own_view(self):
+        """Los mismos contratos abiertos que my_auctions, pero leídos del Book (sin red): la UI se resincroniza
+        con esto después de cada cambio, así tabla, alertas y detalle muestran lo mismo que el Book."""
+        auctions = sorted(self._book.own.values(), key=lambda a: (not a["visible"], a["item"]["weapon_url_name"]))
         return {"auctions": [auction_view(a) for a in auctions], **self.local()}
 
     def local(self):
