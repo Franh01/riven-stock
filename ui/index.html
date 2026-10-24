@@ -76,6 +76,11 @@
   button.small { padding: 6px 12px; font-size: 13px; box-shadow: none; }
   button.ghost { background: var(--panel-2); border: 1px solid var(--line); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
   button.ghost:hover { border-color: var(--accent); }
+  .mk-pager { display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 12px; font-size: 14px; }
+  .mk-pager small { font-size: 14px; white-space: nowrap; }
+  .mk-pager select, .mk-pager input { width: auto; padding: 4px 8px; font-size: 14px; }
+  .mk-pager input { width: 56px; text-align: center; }
+  .mk-pager button { padding: 4px 12px; font-size: 16px; }
   .row-actions button { padding: 10px 20px; font-size: 14px; font-weight: 600; }
   .row-actions .hint { flex-basis: 100%; font-size: 12px; opacity: .75; }
   .row-actions { gap: 12px; }
@@ -2871,9 +2876,9 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     rows.sort((a, b) => mkSort.d * (mkSort.k === "status" ? (stRank[a.status] ?? 3) - (stRank[b.status] ?? 3) || a.price - b.price : mkSort.k === "created" ? String(a.created || "").localeCompare(String(b.created || "")) : a.price - b.price));
     const pages = Math.max(1, Math.ceil(rows.length / mkSize)); mkPage = Math.min(mkPage, pages - 1);
     const shown = rows.slice(mkPage * mkSize, (mkPage + 1) * mkSize);
-    const pager = rows.length <= 10 ? "" : `<div class="mk-pager" style="display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px">
+    const pager = rows.length <= 10 ? "" : `<div class="mk-pager">
       <small class="muted">${tr("mkt.perPage")}</small><select id="mk-size">${[10, 25, 50, 100, 250, 500].map((n) => `<option ${n === mkSize ? "selected" : ""}>${n}</option>`).join("")}</select>
-      <button class="ghost" data-pg="-1" ${mkPage ? "" : "disabled"}>‹</button><small class="muted">${tr("mkt.page", { p: mkPage + 1, t: pages })}</small><button class="ghost" data-pg="1" ${mkPage < pages - 1 ? "" : "disabled"}>›</button></div>`;
+      <button class="ghost" data-pg="-1" ${mkPage ? "" : "disabled"}>‹</button><small class="muted">${tr("mkt.page")}</small><input id="mk-goto" type="number" min="1" max="${pages}" value="${mkPage + 1}"><small class="muted">/ ${pages}</small><button class="ghost" data-pg="1" ${mkPage < pages - 1 ? "" : "disabled"}>›</button></div>`;
     const arrow = (k) => (mkSort.k === k ? (mkSort.d > 0 ? " ▲" : " ▼") : "");
     $("#mk-info").textContent = tr("mkt.info", { n: rows.length, t: mkRows.length });
     $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th class="mk-sort" data-k="status" style="cursor:pointer">${tr("mkt.seller")}${arrow("status")}</th><th class="mk-sort" data-k="created" style="cursor:pointer">${tr("mkt.posted")}${arrow("created")}</th><th class="mk-sort" data-k="price" style="cursor:pointer">${tr("th.price")}${arrow("price")}</th></tr></thead><tbody>${
@@ -2925,7 +2930,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const pg = e.target.closest("[data-pg]");
     if (pg) { mkPage += +pg.dataset.pg; renderMarket(); $("#mk-results").scrollIntoView({ block: "start", behavior: "smooth" }); }
   });
-  $("#mk-results").addEventListener("change", (e) => { if (e.target.id === "mk-size") { mkSize = +e.target.value; mkPage = 0; renderMarket(); } });
+  $("#mk-results").addEventListener("change", (e) => { if (e.target.id === "mk-size") { mkSize = +e.target.value; mkPage = 0; renderMarket(); } else if (e.target.id === "mk-goto") { mkPage = Math.max(0, (+e.target.value || 1) - 1); renderMarket(); } });
   $("#mk-results").addEventListener("click", (e) => { const tr = e.target.closest(".mk-row"); if (tr) openSummary(tr.dataset.id); });
   $("#views").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;

@@ -297,7 +297,7 @@ window.LANGS.en = {
   "mkt.none": "No direct sales match those filters.",
   "mkt.info": "{n} of {t} listings, from cheapest to most expensive. Tap one to see the estimate.",
   "mkt.perPage": "Per page",
-  "mkt.page": "Page {p} of {t}",
+  "mkt.page": "Page",
   "mkt.seller": "Seller",
   "mkt.go": "Search",
   "common.loading": "Loading…",

@@ -297,7 +297,7 @@ window.LANGS.es = {
   "mkt.none": "No hay ventas directas con esos filtros.",
   "mkt.info": "{n} de {t} publicaciones, de la más barata a la más cara. Tocá una para ver el estimado.",
   "mkt.perPage": "Por página",
-  "mkt.page": "Página {p} de {t}",
+  "mkt.page": "Página",
   "mkt.seller": "Vendedor",
   "mkt.go": "Buscar",
   "common.loading": "Cargando…",
