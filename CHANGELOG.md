@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.14.0] - 2026-10-24
+
 #### Español
 - Ventas anónimas: aviso explícito la primera vez que se abre la app (con opción de desactivar) y el texto de Ajustes aclara que viene activado por defecto.
 - Mercado: la tabla de resultados se pagina (10 a 500 por página, 25 por defecto) y se puede cambiar el tamaño.
