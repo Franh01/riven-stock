@@ -59,6 +59,7 @@ from cloudapi import CloudMixin
 from loops import LoopsMixin
 from feedbackapi import FeedbackMixin
 from orders import OrderCache
+from state import Book, slim_to_raw
 from pricing import estimate
 from ratelimit import QUEUE
 from wfm_client import SEARCH_CAP, AuthError, CloudflareError, WFMClient, WFMError, cheapest_ingame
@@ -87,10 +88,9 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         except Exception:
             logging.exception("No se pudo migrar o respaldar la base")
         self.client = WFMClient()
-        self._seen = {}  # id -> último contrato propio leído de la API (crudo)
-        self._market = {}  # id -> contrato ajeno visto en la pestaña Mercado (crudo)
         self._online = False   # lo mantiene el hilo contador
         self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"))
+        self._book = Book(self._cache)   # fuente única de contratos propios y ajenos
 
     def _rtype(self, weapon):
         return next((w.get("rivenType") for w in self.client.riven_weapons() if w["slug"] == weapon), None)
@@ -317,7 +317,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         base = cfg.get("autodrop_hours", 10)
         extra = list(cfg.get("opp_weapons") or []) if cfg.get("opp_enabled") else []
         score = {}
-        for i, a in list(self._seen.items()):
+        for i, a in list(self._book.own.items()):
             if not a.get("visible", True):
                 continue
             h = hours.get(i, {})
@@ -351,7 +351,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             cfg, hours = store.settings(conn), store.riven_hours(conn)
         base = cfg.get("autodrop_hours", 10)
         out = {}
-        for aid, a in list(self._seen.items()):
+        for aid, a in list(self._book.own.items()):
             if not a.get("visible", True):
                 continue
             w = a["item"]["weapon_url_name"]
@@ -387,7 +387,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
     def reroll_for(self, auction_id):
         """Lo mismo para un riven ya guardado o visto en el mercado (detalle del riven)."""
         try:
-            a = self._seen.get(auction_id) or self._market.get(auction_id) or self._from_cache(auction_id)
+            a = self._book.get(auction_id)
             if not a:
                 return {"error": "Riven no encontrado."}
             return self._reroll_view(auction_view(a), a["item"]["weapon_url_name"])
@@ -439,11 +439,11 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             return {"error": str(ex)}
         rows = []
         for a in e["orders"]:
-            mine = self._seen.get(a["id"])
+            mine = self._book.own.get(a["id"])
             if mine:   # orden propia: vale el precio vigente, no el del caché
                 a = dict(a, buyout_price=mine["buyout_price"], starting_price=mine["buyout_price"])
             else:
-                self._market[a["id"]] = a   # para poder abrir su resumen al tocarla
+                self._book.put_other(a)   # para poder abrir su resumen al tocarla
             rows.append((a, bool(mine)))
         rows.sort(key=lambda r: r[0]["buyout_price"])
         return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],
@@ -455,7 +455,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         with store.connect() as conn:
             items = store.notifications(conn)
         for n in items:   # precio vigente: si lo cambiaste después de la baja, el aviso ya no es cierto
-            cur = self._seen.get(n["auction_id"]) if n.get("drop_id") else None
+            cur = self._book.own.get(n["auction_id"]) if n.get("drop_id") else None
             n["current_price"] = cur["buyout_price"] if cur else None
         return {"items": items, "unread": sum(1 for n in items if not n["read_at"])}
 
@@ -474,13 +474,6 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             store.delete_notifications(conn, ids)
         return self.notifications()
 
-    def _price_changed(self, auction_id, price):
-        """Propaga un cambio de precio propio a los caches (órdenes en disco y mercado en memoria)."""
-        self._cache.patch_price(auction_id, price)
-        m = self._market.get(auction_id)
-        if m:
-            m["buyout_price"] = m["starting_price"] = int(price)
-
     def revert_drop(self, drop_id):
         """Vuelve al precio anterior a la baja y apaga la baja automática de ese riven."""
         with store.connect() as conn:
@@ -495,12 +488,11 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
                 minimal_reputation=cur.get("minimal_reputation", 0))
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
-        self._seen[aid] = new
+        self._book.own_updated(new)
         with store.connect() as conn:
             store.log_event(conn, new, "update")
             store.add_price(conn, aid, new["buyout_price"], "revert")
             store.mark_reverted(conn, drop_id, aid)
-        self._price_changed(aid, new["buyout_price"])
         return {"auction": auction_view(new), **self.notifications()}
 
     def set_autodrop(self, auction_id, on):
@@ -550,8 +542,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         if est:   # los comparables también se abren: se reconstruye el contrato desde lo guardado
             for c in est["comps"]:
                 o = pool.get(c["id"])
-                if o and c["id"] not in self._market:
-                    self._market[c["id"]] = slim_to_raw(o, weapon)
+                if o:
+                    self._book.put_other(slim_to_raw(o, weapon), replace=False)
         if est and failed:
             est["partial"] = True
         return view, orders, est
@@ -570,24 +562,12 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         except (WFMError, requests.RequestException, KeyError, ValueError) as e:
             return {"error": str(e)}
 
-    def _from_cache(self, auction_id):
-        """Reconstruye un contrato ajeno desde el caché de órdenes (sobrevive a reinicios)."""
-        for w, e in list(self._cache._data.items()):
-            for o in e.get("market") or []:
-                if o.get("id") == auction_id:
-                    a = slim_to_raw(o, w)
-                    self._market[auction_id] = a
-                    return a
-        return None
-
     def riven_summary(self, auction_id):
         """Resumen de un riven: historial de precios, horas y órdenes online más baratas del caché."""
-        a = self._seen.get(auction_id)
+        a = self._book.own.get(auction_id)
         foreign = a is None
         if foreign:
-            a = self._market.get(auction_id)
-            if not a:   # alerta de oportunidad: sale del caché de mercado del arma
-                a = self._from_cache(auction_id)
+            a = self._book.get(auction_id)   # mercado, comparables o alerta (caché del arma)
         if not a:
             return {"error": "Riven no encontrado."}
         if foreign:
@@ -600,7 +580,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             # manda el último precio que fijamos nosotros, así el detalle no contradice al historial
             if hist and hist[-1]["source"] in ("auto", "manual", "revert") and hist[-1]["price"] != a["buyout_price"]:
                 a = dict(a, buyout_price=hist[-1]["price"], starting_price=hist[-1]["price"])
-                self._seen[auction_id] = a
+                self._book.put_own(a)
         view, orders, est = self._estimate_for(a, auction_id)
         out = {"auction": view, "history": hist, "hours": h, "orders": orders, "estimate": est}
         if foreign:
@@ -689,7 +669,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         rows.sort(key=lambda a: a["buyout_price"])
         rows = rows[:n]
         for a in rows:
-            self._market[a["id"]] = a
+            self._book.put_other(a)
         return {"results": [{**auction_view(a), "seller": a["owner"]["ingame_name"],
                              "status": a["owner"].get("status"), "reputation": a["owner"].get("reputation")}
                             for a in rows],
@@ -705,7 +685,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
         auctions.sort(key=lambda a: (not a["visible"], a["item"]["weapon_url_name"]))
-        self._seen = {a["id"]: a for a in auctions}
+        self._book.own_fetched(auctions)
         with store.connect() as conn:
             store.sync_rivens(conn, auctions)
         return {"auctions": [auction_view(a) for a in auctions], **self.local()}
@@ -773,7 +753,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             return {"error": "Hay que elegir exactamente 4 rivens"}
         if riven_type not in store.RIVEN_TYPES:
             return {"error": "Tipo de riven inválido"}
-        missing = [i for i in ids if i not in self._seen]
+        missing = [i for i in ids if i not in self._book.own]
         if missing:
             return {"error": "Algún riven ya no está en la lista: actualizá y probá de nuevo"}
         with store.connect() as conn:
@@ -804,11 +784,11 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
     def _current(self, auction_id, fresh=True):
         """El contrato tal como está en la API. `fresh=True` lo vuelve a leer (para no pisar
         la nota u otros campos con datos viejos); `False` usa la última lectura si la hay."""
-        if not fresh and auction_id in self._seen:
-            return self._seen[auction_id]
+        if not fresh and auction_id in self._book.own:
+            return self._book.own[auction_id]
         for a in self.client.my_auctions():
             if a["id"] == auction_id:
-                self._seen[auction_id] = a
+                self._book.put_own(a)
                 return a
         raise WFMError("El contrato ya no existe en warframe.market (¿se cerró desde la web?)")
 
@@ -826,11 +806,10 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             )
         except (WFMError, requests.RequestException, ValueError) as e:
             return {"error": str(e)}
-        self._seen[auction_id] = new
+        self._book.own_updated(new)
         with store.connect() as conn:
             store.log_event(conn, new, "update")
             store.add_price(conn, auction_id, new["buyout_price"], "manual")
-        self._price_changed(auction_id, new["buyout_price"])
         return {"auction": auction_view(new)}
 
     def price_history(self, auction_id):
@@ -879,13 +858,11 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             )
         except (WFMError, requests.RequestException, ValueError, KeyError) as e:
             return {"error": str(e)}
-        self._seen[new["id"]] = new
+        self._book.created(new)
         warning = None
         try:
             self.client.close_auction(auction_id)
-            self._seen.pop(auction_id, None)
-            self._cache.forget(auction_id, new["item"]["weapon_url_name"])
-            self._market.pop(auction_id, None)
+            self._book.closed(auction_id, new["item"]["weapon_url_name"])
         except (WFMError, requests.RequestException) as e:
             warning = f"Se publicó la nueva pero no se pudo cerrar la vieja: {e}"
         with store.connect() as conn:
@@ -934,8 +911,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             )
         except (WFMError, requests.RequestException, ValueError, KeyError) as e:
             return {"error": str(e)}
-        self._seen[new["id"]] = new
-        self._cache.forget(new["id"], new["item"]["weapon_url_name"])   # el arma se vuelve a pedir: ahora incluye este contrato
+        self._book.created(new)
         with store.connect() as conn:
             store.log_event(conn, new, "create")
             if lot_id:
@@ -952,9 +928,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             self.client.close_auction(auction_id)
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
-        self._seen.pop(auction_id, None)
-        self._cache.forget(auction_id)
-        self._market.pop(auction_id, None)
+        self._book.closed(auction_id)
         closed_at = store.now_iso()
         with store.connect() as conn:
             store.log_event(conn, {**cur, "closed": True}, "close",
@@ -963,15 +937,6 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             if sold_price and h:
                 store.log_sale_hours(conn, auction_id, h["hours"], at=closed_at)
         return {"closed": auction_id, "closed_at": closed_at}
-
-
-def slim_to_raw(o, weapon):
-    """Contrato mínimo (formato crudo de la API) a partir de un `slim`, para abrir su resumen."""
-    return {"id": o["id"], "buyout_price": o["p"], "created": o.get("c"), "updated": o.get("c"),
-            "item": {"weapon_url_name": weapon, "name": o.get("n") or "", "re_rolls": o["r"], "mod_rank": o.get("k"),
-                     "mastery_level": o.get("m"),
-                     "attributes": [{"url_name": s, "value": v, "positive": p} for s, v, p in o["s"]]},
-            "owner": {"ingame_name": o.get("nm") or "?", "status": o.get("st"), "last_seen": o.get("ls")}}
 
 
 def auction_view(a):

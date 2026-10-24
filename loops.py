@@ -39,7 +39,7 @@ class LoopsMixin:
                     with store.connect() as conn:
                         store.add_online_seconds(conn, elapsed)
                         # solo cuentan los rivens visibles: uno oculto no está a la venta
-                        store.add_riven_seconds(conn, [i for i, a in list(self._seen.items()) if a.get("visible", True)], elapsed)
+                        store.add_riven_seconds(conn, [i for i, a in list(self._book.own.items()) if a.get("visible", True)], elapsed)
                     if left < self.RENEW_BEFORE_S:   # el servidor corta a las 4 h: renovar mientras la app esté abierta
                         st, st_at = self.client.set_status(st["status"], 240 * 60), now
                 loophealth.beat("contador", self.TICK_S)
@@ -91,7 +91,7 @@ class LoopsMixin:
             with store.connect() as conn:
                 cfg = store.settings(conn)
         thr, gain = cfg.get("opp_threshold", 30), cfg.get("opp_min_gain", 15)
-        mine = set(self._seen)
+        mine = set(self._book.own)
         n_new = 0
         for w in cfg.get("opp_weapons") or []:
             e = self._cache.get(w, self.CACHE_MAX_AGE_S)
@@ -131,7 +131,7 @@ class LoopsMixin:
             cfg, hours = store.settings(conn), store.riven_hours(conn)
         if not cfg.get("autodrop_enabled", False):
             return None
-        for aid, a in sorted(self._seen.items(), key=lambda kv: kv[1]["item"]["weapon_url_name"]):
+        for aid, a in sorted(self._book.own.items(), key=lambda kv: kv[1]["item"]["weapon_url_name"]):
             h = hours.get(aid)
             if not a.get("visible", True) or not h or not h["autodrop_on"]:
                 continue
@@ -164,7 +164,7 @@ class LoopsMixin:
                 minimal_reputation=cur.get("minimal_reputation", 0))
         except (WFMError, requests.RequestException):
             return None
-        self._seen[aid] = upd
+        self._book.own_updated(upd)
         item = upd["item"]
         text = f"Bajé {item['weapon_url_name']} {item.get('name', '')} de {old} a {new} pt".replace("  ", " ")
         with store.connect() as conn:
@@ -172,5 +172,4 @@ class LoopsMixin:
             store.add_price(conn, aid, new, "auto")
             store.add_drop(conn, aid, old, new, text)
             store.reset_riven_hours(conn, aid)
-        self._price_changed(aid, new)
         return {"id": aid, "old": old, "new": new}

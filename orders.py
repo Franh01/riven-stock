@@ -105,6 +105,14 @@ class OrderCache:
                 self._data[weapon]["at"] = 0
         self._persist()
 
+    def find(self, auction_id):
+        """(slim, arma) de un contrato ajeno guardado en el caché, o None."""
+        for w, e in list(self._data.items()):
+            for o in e.get("market") or []:
+                if o.get("id") == auction_id:
+                    return o, w
+        return None
+
     def touch(self):
         self._active = time.monotonic()
 

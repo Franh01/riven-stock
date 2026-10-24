@@ -201,5 +201,70 @@ class OrderCacheForgetTest(unittest.TestCase):
         self.assertEqual(e["at"], 0)
 
 
+class BookTest(unittest.TestCase):
+    """state.Book: un solo lugar donde cambian los contratos; todas las copias quedan iguales."""
+
+    def setUp(self):
+        from orders import OrderCache
+        from state import Book
+        self.cache = OrderCache(None, lambda: [])
+        self.book = Book(self.cache)
+
+    def contrato(self, i, price, weapon="detron"):
+        return {"id": i, "buyout_price": price, "starting_price": price, "item": {"weapon_url_name": weapon}}
+
+    def cargar_arma(self):
+        slim = {"id": "otro", "p": 300, "r": 1, "s": [], "nm": "vendedor"}
+        self.cache._data["detron"] = {"at": 100, "orders": [dict(self.contrato("mio", 200))],
+                                      "market": [{"id": "mio", "p": 200, "r": 1, "s": []}, slim]}
+
+    def test_cambio_de_precio_llega_a_todas_las_copias(self):
+        self.cargar_arma()
+        self.book.others["mio"] = self.contrato("mio", 200)
+        self.book.own_updated(self.contrato("mio", 150))
+        self.assertEqual(self.book.own["mio"]["buyout_price"], 150)
+        self.assertEqual(self.book.others["mio"]["buyout_price"], 150)
+        e = self.cache._data["detron"]
+        self.assertEqual(e["orders"][0]["buyout_price"], 150)
+        self.assertEqual(e["market"][0]["p"], 150)
+
+    def test_republicar_cambia_el_id_y_el_viejo_desaparece(self):
+        self.cargar_arma()
+        self.book.put_own(self.contrato("mio", 200))
+        self.book.created(self.contrato("nuevo", 200))
+        self.book.closed("mio", "detron")
+        self.assertEqual(list(self.book.own), ["nuevo"])
+        e = self.cache._data["detron"]
+        self.assertEqual(e["orders"], [])
+        self.assertEqual([o["id"] for o in e["market"]], ["otro"])
+        self.assertEqual(e["at"], 0)   # el arma se vuelve a pedir
+
+    def test_cerrar_saca_de_todos_lados(self):
+        self.cargar_arma()
+        self.book.put_own(self.contrato("mio", 200))
+        self.book.others["mio"] = self.contrato("mio", 200)
+        self.book.closed("mio")
+        self.assertIsNone(self.book.own.get("mio") or self.book.others.get("mio"))
+        self.assertEqual([o["id"] for o in self.cache._data["detron"]["market"]], ["otro"])
+
+    def test_crear_expira_el_arma(self):
+        self.cargar_arma()
+        self.book.created(self.contrato("nuevo", 90))
+        self.assertIn("nuevo", self.book.own)
+        self.assertEqual(self.cache._data["detron"]["at"], 0)
+
+    def test_get_reconstruye_un_ajeno_desde_el_cache(self):
+        self.cargar_arma()
+        a = self.book.get("otro")
+        self.assertEqual((a["buyout_price"], a["item"]["weapon_url_name"]), (300, "detron"))
+        self.assertIn("otro", self.book.others)
+        self.assertIsNone(self.book.get("no-existe"))
+
+    def test_lista_nueva_de_la_api_reemplaza_los_propios(self):
+        self.book.put_own(self.contrato("viejo", 10))
+        self.book.own_fetched([self.contrato("a", 1), self.contrato("b", 2)])
+        self.assertEqual(sorted(self.book.own), ["a", "b"])
+
+
 if __name__ == "__main__":
     unittest.main()

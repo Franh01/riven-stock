@@ -11,7 +11,8 @@ flowchart LR
     subgraph PC["PC del usuario"]
         UI["ui/index.html<br/>lang_es.js / lang_en.js"] -- "pywebview js_api" --> API["app.py · class Api"]
         API --> STORE["store.py<br/>SQLite riven_stock.db"]
-        API --> CACHE["orders.OrderCache<br/>cache/order_cache.json"]
+        API --> BOOK["state.Book<br/>contratos propios y ajenos"]
+        BOOK --> CACHE["orders.OrderCache<br/>cache/order_cache.json"]
         API --> RL["ratelimit.QUEUE<br/>cola FIFO, 3 req/s"]
         CACHE --> RL
         RL --> WFM["wfm_client.py"]
@@ -114,7 +115,7 @@ stateDiagram-v2
 Qué guarda cada paso (todo en `store.py`):
 - `create`: evento `create`; si viene de un lote, `open_from_lot`; costo en `riven_costs`.
 - `assign_lot` (editar un riven sin origen): `open_from_lot` + costo con `lot_id` en `riven_costs`; falla si el riven ya tiene origen.
-- `update` y `republish`: evento e historial de precio, y `_price_changed` propaga el precio nuevo a los cachés (órdenes en disco y mercado en memoria).
+- `update` y `republish`: evento e historial de precio. Los contratos en memoria y los cachés los mueve `state.Book` (`own_updated`, `created`, `closed`, `own_fetched`, `put_other`, `get`): ahí se propaga el precio nuevo o se saca el id viejo de todas las copias; `app.py` y `loops.py` ya no tocan los diccionarios ni el caché a mano.
 - `close`: evento `close` con copia del contrato (después desaparece de la API); si hubo venta, `log_sale_hours` (horas hasta vender, base para el umbral de baja y las ventas anónimas).
 
 El borrador del modal Nuevo riven vive solo en memoria de la UI durante 10 s (`DRAFT_MS`).
@@ -198,6 +199,8 @@ Publicar: `python tools/release.py X.Y.Z` (git limpio; toma "Sin publicar" del C
 ## 9. Áreas de mejora detectadas
 
 Ordenadas por lo que más conviene atacar. Son hallazgos de leer el código, no bugs confirmados.
+
+0. **Fuente única, etapa 1 hecha (rama `refactor/fuente-unica`).** Faltan las etapas siguientes: que la UI lea siempre del `Book` (hoy cada pantalla vuelve a pedir su vista) y deduplicar pedidos simultáneos de la misma arma. El `OrderCache` sigue guardando una copia por arma en disco (`orders`, `market`, `_targeted`); el `Book` solo la mantiene alineada.
 
 1. **Tests parciales.** `tests/test_core.py` cubre `pricing`, `stockcheck`, `opportunities`, `reroll.kuva_cost` e Invertido; falta `autodrop_pass` (vive en `app.py` y depende de la app, se podrá probar al partirlo) y Balance.
 2. **`app.py` monolítico (unas 1070 líneas, clase `Api` con más de 100 métodos).** La nube ya salió a `cloudapi.py` (`CloudMixin`, que `Api` hereda sin cambiar nombres de métodos). Los bucles (contador, fotos, oportunidades, bajas) también salieron a `loops.py` (`LoopsMixin`, mismos nombres de métodos; `start_counter`/`stop_counter` quedan en `app.py`). El feedback y los crashes también salieron a `feedbackapi.py` (`FeedbackMixin`; usa `Api.LOG_FILE`). Con esto `app.py` queda con el arranque, el cierre, el estado y el resto de la API.

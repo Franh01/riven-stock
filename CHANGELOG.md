@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Interno: los contratos propios y ajenos viven en un solo lugar (state.py); cambiar un precio, republicar, cerrar o crear actualiza de una vez la tabla, las alertas y el detalle.
+
+#### English
+- Internal: own and other sellers' listings now live in one place (state.py); changing a price, republishing, closing or creating updates the table, alerts and detail view at once.
+
 ## [0.14.0] - 2026-10-24
 
 #### Español
