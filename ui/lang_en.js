@@ -603,7 +603,7 @@ window.LANGS.en = {
   "cl.last": "Last upload: {d}.",
   "cl.share": "Share my sales anonymously",
   "cl.shareHint": "Enabled by default. When you mark a sale, the weapon, stats, listed price, sold price and dates are sent, without your username. It helps improve estimates. You can turn it off anytime.",
-  "cl.shareNotice": "To improve estimates, when you mark a sale the weapon, stats, listed price, sold price and dates are sent anonymously. Your username is never sent. It is on by default, but you can turn it off now or anytime in Settings, under Cloud backup.",
+  "cl.shareNotice": "To improve estimates, when you mark a sale the weapon, stats, listed price, sold price and dates are sent anonymously. Your username is never sent. It is on by default, but you can turn it off now or anytime in Settings, under Share my sales anonymously.",
   "cl.shareKeep": "Got it",
   "cl.shareOff": "Turn off",
   "cl.auto": "Upload automatically every day and on close",

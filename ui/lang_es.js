@@ -603,7 +603,7 @@ window.LANGS.es = {
   "cl.last": "Última subida: {d}.",
   "cl.share": "Compartir mis ventas de forma anónima",
   "cl.shareHint": "Viene activado por defecto. Al marcar una venta se envía arma, atributos, precio publicado, precio vendido y fechas, sin tu usuario. Sirve para mejorar las estimaciones. Podés apagarlo cuando quieras.",
-  "cl.shareNotice": "Para mejorar las estimaciones, al marcar una venta se envían de forma anónima el arma, los atributos, el precio publicado, el precio vendido y las fechas. Nunca se envía tu usuario. Viene activado, pero podés apagarlo ahora o cuando quieras en Ajustes, en Respaldo en la nube.",
+  "cl.shareNotice": "Para mejorar las estimaciones, al marcar una venta se envían de forma anónima el arma, los atributos, el precio publicado, el precio vendido y las fechas. Nunca se envía tu usuario. Viene activado, pero podés apagarlo ahora o cuando quieras en Ajustes, en Compartir mis ventas de forma anónima.",
   "cl.shareKeep": "Entendido",
   "cl.shareOff": "Desactivar",
   "cl.auto": "Subir automáticamente cada día y al cerrar",

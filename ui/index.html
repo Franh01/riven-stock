@@ -3160,6 +3160,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         <div id="bk-btns" style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="bk-now">${tr("bk.now")}</button><button class="ghost" id="bk-export">${tr("bk.export")}</button><button class="ghost" id="bk-import">${tr("bk.import")}</button><button class="ghost" id="bk-folder">${tr("bk.folder")}</button></div></div>
       <div class="sum-card" id="cl-card"><b>${ic("cloud")}${tr("cl.title")}</b><small style="display:block;margin:2px 0 8px" class="muted">${tr("cl.sub")}</small>
         <div id="cl-body" style="min-height:130px"><span class="skel row"></span><span class="skel row"></span><span class="skel row"></span></div></div>
+      <div class="sum-card" id="share-card"></div>
       <div class="muted" style="font-size:12px">${tr("cfg.total", { h: "<b>" + total.toFixed(1) + " h</b>" })}</div>
       <div class="sum-card"><label class="switch-row"><span><b>${ic("code")}${tr("cfg.showReq")}</b><small>${tr("cfg.showReqSub")}</small></span>${sw("cfg-showreq", cfgVal("show_requests") === true)}</label></div>
     </div></div>`;
@@ -3193,15 +3194,15 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const st = await api().cloud_stats();
     const users = st.active != null ? `<div class="muted" style="font-size:12px;margin-top:8px">${tr("cl.users", { n: st.active })}</div>` : "";
     const restore = `<div style="display:flex;gap:6px;margin-top:8px"><input id="cl-code" placeholder="${tr("cl.codePh")}" style="flex:1"><button class="ghost" id="cl-restore">${tr("cl.restore")}</button></div>`;
-    const share = `<label class="switch-row" style="margin-top:10px"><span>${tr("cl.share")}</span>${sw("cl-share", !!i.share)}</label><div class="muted" style="font-size:12px;margin-top:4px">${tr("cl.shareHint")}</div>`;
-    if (!i.code) { el.innerHTML = `<button class="ghost" id="cl-on">${tr("cl.on")}</button>${restore}${users}${share}`; return; }
+    const sc = $("#share-card"); if (sc) sc.innerHTML = `<label class="switch-row"><span><b>${ic("globe")}${tr("cl.share")}</b><small>${tr("cl.shareHint")}</small></span>${sw("cl-share", !!i.share)}</label>`;
+    if (!i.code) { el.innerHTML = `<button class="ghost" id="cl-on">${tr("cl.on")}</button>${restore}${users}`; return; }
     const last = i.last ? new Date(i.last).toLocaleString(I18N.locale) : "-";
     el.innerHTML = `<div class="muted" style="font-size:12px">${tr("cl.code")}</div>
       <div style="display:flex;gap:6px;margin:4px 0"><input id="cl-shown" readonly value="${i.code}" style="flex:1;font-family:monospace"><button class="ghost" id="cl-copy">${tr("cl.copy")}</button></div>
       ${code ? `<div style="font-size:12px;color:#e8a33d;margin-bottom:6px">${tr("cl.warn")}</div>` : ""}
       <div class="muted" style="font-size:12px;margin-bottom:6px">${tr("cl.last", { d: last })}</div>
       <label class="switch-row" style="margin-bottom:6px"><span>${tr("cl.auto")}</span>${sw("cl-auto", i.auto !== false)}</label>
-      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="cl-now">${tr("cl.now")}</button><button class="ghost" id="cl-off">${tr("cl.off")}</button></div>${restore}${users}${share}`;
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="ghost" id="cl-now">${tr("cl.now")}</button><button class="ghost" id="cl-off">${tr("cl.off")}</button></div>${restore}${users}`;
   }
   for (const box of [$("#cfg-body"), $("#opp-body")]) box.addEventListener("click", async (e) => {
     const id = e.target.closest("button")?.id;
