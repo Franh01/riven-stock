@@ -268,6 +268,7 @@ window.LANGS.es = {
   "pub.needPrice": "Poné un precio",
   "pub.maxPrice": "El precio máximo es 900000p",
   "cost.savedPlain": "Costo guardado",
+  "pub.originShort": "Stock: {t} · {c} c/u",
   "origin.saved": "Origen guardado",
   "pub.noChanges": "No hay cambios",
   "pub.fillAll": "Completá el arma, el nombre y los stats (2 o 3 positivos, máximo 1 negativo, con valores)",

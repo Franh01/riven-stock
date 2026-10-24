@@ -268,6 +268,7 @@ window.LANGS.en = {
   "pub.needPrice": "Enter a price",
   "pub.maxPrice": "The maximum price is 900000p",
   "cost.savedPlain": "Cost saved",
+  "pub.originShort": "Stock: {t} · {c} each",
   "origin.saved": "Origin saved",
   "pub.noChanges": "No changes",
   "pub.fillAll": "Fill in the weapon, the name and the stats (2 or 3 positive, at most 1 negative, with values)",

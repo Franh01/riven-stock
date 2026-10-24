@@ -538,7 +538,7 @@
   .cf-row.cf-warn > span:last-child { color: #ffd2a3; }
   .cf-val { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
   .cf-val .old { color: var(--neg); text-decoration: line-through; text-decoration-thickness: 2px; opacity: .85; }
-  .cf-val .arrow { color: var(--muted); }
+  .cf-val .arrow { color: var(--muted); white-space: nowrap; }
   .cf-val .new { color: var(--pos); font-weight: 800; font-size: 15px; }
   .cf-val .stats-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 12px; }
   .cf-val .old-stats { opacity: .6; }
@@ -2662,7 +2662,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       if ("price" in changes) { const d = changes.price - editing.price; rows.push(row(tr("rd.price"), chg(`${editing.price}p`, `${changes.price}p`) + `<span class="diff ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${Math.abs(d)}p</span>`)); }
       if ("visible" in changes) rows.push(row(tr("pub.visibility"), changes.visible ? `<span class="on">${tr("pub.shown")}</span>` : `<span class="off">${tr("pub.hidden")}</span>`));
       if ("note" in changes) rows.push(row(tr("pub.note"), chg(esc(editing.note || "—"), esc(changes.note || "—"))));
-      if (lotId) rows.push(row(tr("rd.origin"), `<span class="new">${esc(tr("rd.originLot", { t: typeName(currentLot().riven_type), n: currentLot().remaining, c: fmtP(currentLot().unit_cost) }))}</span><span class="arrow">${tr("pub.onlyApp")}</span>`));
+      if (lotId) rows.push(row(tr("rd.origin"), `<span class="new">${esc(tr("pub.originShort", { t: typeName(currentLot().riven_type), c: fmtP(currentLot().unit_cost) }))}</span><span class="arrow">${tr("pub.onlyApp")}</span>`));
       if (costChanged) rows.push(row(tr("th.cost"), `<span class="new">${costRaw === "" ? tr("pub.cleared") : esc(costRaw) + "p"}</span><span class="arrow">${tr("pub.onlyApp")}</span>`));
       $("#confirm-text").innerHTML = `<div class="cf-title">${rivenLabel(editing)}<small>${tr("pub.saveSub")}</small></div><div class="cf-rows">${rows.join("")}</div>`;
     } else {
