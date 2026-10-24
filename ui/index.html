@@ -2911,7 +2911,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   $("#hot-body").addEventListener("click", (e) => {
     const row = e.target.closest(".hot-row"); if (!row) return;
     mkWeapon.set(row.dataset.w);
-    refreshMkStats(); runMarket(); window.scrollTo({ top: 0, behavior: "smooth" });
+    refreshMkStats(); runMarket(); document.querySelector("main").scrollTo({ top: 0, behavior: "smooth" });
   });
   $("#mk-results").addEventListener("click", (e) => {
     const h = e.target.closest(".mk-sort");
