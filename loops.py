@@ -63,6 +63,7 @@ class LoopsMixin:
                         continue
                     e = self._cache.get(todo[0], self.VIEW_MAX_AGE_S) or self._cache.load(todo[0])
                     store.save_snapshot(conn, todo[0], e.get("market", []))
+                logging.info("Bucle fotos: foto de %s (%d pendientes)", todo[0], len(todo))
             except Exception as e:
                 loophealth.beat("fotos", self.SNAPSHOT_PASS_S, e)
                 self._stop.wait(60)
@@ -79,7 +80,8 @@ class LoopsMixin:
                     cfg = store.settings(conn)
                 if not cfg.get("opp_enabled"):
                     continue
-                self.scan_opportunities(cfg)
+                n = self.scan_opportunities(cfg)
+                logging.info("Bucle oportunidades: pasada hecha, %d nuevas", n)
             except Exception as e:
                 loophealth.beat("oportunidades", self.OPP_PASS_S, e)
                 logging.info("Alertas de oportunidad: se reintenta", exc_info=True)
@@ -109,6 +111,7 @@ class LoopsMixin:
             try:
                 r = self.autodrop_pass() if self._online else "offline"
                 self._log_pass(r)
+                logging.info("Bucle bajas: pasada hecha (%s)", r if r is None or isinstance(r, str) else "baja aplicada")
                 loophealth.beat("bajas", self.DROP_PASS_S)
             except Exception as e:
                 loophealth.beat("bajas", self.DROP_PASS_S, e)
