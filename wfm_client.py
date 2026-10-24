@@ -112,6 +112,24 @@ def _check_price(price):
         raise WFMError(f"El precio máximo es {MAX_PRICE}p.")
 
 
+class CloudflareError(WFMError):
+    """Cloudflare (el filtro anti-bots de warframe.market) pidió verificar al usuario."""
+
+
+CLOUDFLARE_MSG = (
+    "Cloudflare está bloqueando el pedido. Cloudflare es el servicio de seguridad que usa "
+    "warframe.market para filtrar robots: a veces lo activa según tu conexión o tu IP, sin que "
+    "hayas hecho nada mal, y no tiene que ver con tu cuenta ni con tu token. "
+    "Probá de nuevo en unos minutos, cambiá de red (por ejemplo, datos del celular) o usá una VPN. "
+    "Si abrís warframe.market en el navegador y resolvés la verificación, a veces se destraba."
+)
+
+
+def is_cloudflare_challenge(res):
+    """True si la respuesta es la pantalla de verificación de Cloudflare (no un rechazo de la API)."""
+    return res.status_code in (403, 503) and res.headers.get("cf-mitigated", "").lower() == "challenge"
+
+
 class AuthError(WFMError):
     """El JWT falta o expiró (401/403): copiar uno nuevo desde el navegador."""
 
@@ -143,6 +161,9 @@ class WFMClient:
                 label=request_name(method, path, kwargs.get("params")))
         except requests.exceptions.RequestException:
             raise WFMError("No se pudo conectar con warframe.market (no responde). Revisá tu conexión y probá de nuevo en un momento.")
+        if is_cloudflare_challenge(res):
+            log.warning("Cloudflare challenge en %s (%s)", path, res.headers.get("cf-ray", "?"))
+            raise CloudflareError(CLOUDFLARE_MSG)
         if res.status_code in (401, 403) and auth:
             body = re.sub(r"\s+", " ", res.text or "")[:300]
             log.warning("%s en %s (%s): %s", res.status_code, path, res.headers.get("server", "?"), body)

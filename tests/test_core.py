@@ -135,5 +135,28 @@ class Crashes(unittest.TestCase):
         self.assertEqual(crashes.pending(), [])
 
 
+class CloudflareTest(unittest.TestCase):
+    def test_detecta_challenge_y_no_confunde_un_403_normal(self):
+        from types import SimpleNamespace as R
+        import wfm_client
+        self.assertTrue(wfm_client.is_cloudflare_challenge(R(status_code=403, headers={"cf-mitigated": "challenge"})))
+        self.assertFalse(wfm_client.is_cloudflare_challenge(R(status_code=403, headers={})))
+        self.assertFalse(wfm_client.is_cloudflare_challenge(R(status_code=200, headers={"cf-mitigated": "challenge"})))
+
+    def test_request_levanta_cloudflare_error_sin_pedir_renovar_el_token(self):
+        from types import SimpleNamespace as R
+        import wfm_client
+        c = wfm_client.WFMClient("eyJ" + "a" * 70 + ".b.c")
+        res = R(status_code=403, headers={"cf-mitigated": "challenge"}, text="Just a moment...", ok=False)
+        orig = wfm_client.QUEUE.submit
+        wfm_client.QUEUE.submit = lambda fn, label=None: res
+        try:
+            with self.assertRaises(wfm_client.CloudflareError) as cm:
+                c.get("/v1/profile/auctions", auth=True)
+        finally:
+            wfm_client.QUEUE.submit = orig
+        self.assertIn("Cloudflare es el servicio", str(cm.exception))
+
+
 if __name__ == "__main__":
     unittest.main()
