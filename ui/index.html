@@ -76,10 +76,11 @@
   button.small { padding: 6px 12px; font-size: 13px; box-shadow: none; }
   button.ghost { background: var(--panel-2); border: 1px solid var(--line); box-shadow: none; padding: 6px 12px; font-weight: 500; font-size: 13px; }
   button.ghost:hover { border-color: var(--accent); }
-  .mk-pager { display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 12px; font-size: 14px; }
+  .mk-pager { display: flex; width: fit-content; max-width: 40%; margin-left: auto; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 12px; font-size: 14px; }
   .mk-pager small { font-size: 14px; white-space: nowrap; }
-  .mk-pager select, .mk-pager input { width: auto; padding: 4px 8px; font-size: 14px; }
-  .mk-pager input { width: 56px; text-align: center; }
+  .mk-pager select, .mk-pager input { flex: 0 0 auto; padding: 2px 4px; font-size: 14px; }
+  .mk-pager select { width: 64px; }
+  .mk-pager input { width: 52px; text-align: center; }
   .mk-pager button { padding: 4px 12px; font-size: 16px; }
   .row-actions button { padding: 10px 20px; font-size: 14px; font-weight: 600; }
   .row-actions .hint { flex-basis: 100%; font-size: 12px; opacity: .75; }
