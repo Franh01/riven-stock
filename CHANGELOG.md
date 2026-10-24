@@ -10,6 +10,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - El precio acepta como mucho 6 dígitos al escribirlo.
 - Estado: al ponerte En juego/Online por 30 min, 1 h o 2 h, el "hasta" mostraba la hora del estado anterior (hasta 4 h); ahora muestra la pedida.
 - Ajuste automático de un riven: además de horas, el tiempo propio acepta minutos (ej. "30m"); sirve para probarlo sin esperar.
+- Si cambiás tu estado con el detalle de un riven abierto, tu fila de la tabla se actualiza sola.
 - Interno: los contratos propios y ajenos viven en un solo lugar (state.py); cambiar un precio, republicar, cerrar o crear actualiza de una vez la tabla, las alertas y el detalle.
 
 #### English
@@ -18,6 +19,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - The price field takes at most 6 digits when typing.
 - Status: setting In game/Online for 30 min, 1 h or 2 h showed the "until" time of the previous status (up to 4 h); it now shows the requested one.
 - Auto price drop for a single riven: besides hours, its own time accepts minutes (e.g. "30m"); handy to test it without waiting.
+- If you change your status while a riven detail is open, your row in the table updates by itself.
 - Internal: own and other sellers' listings now live in one place (state.py); changing a price, republishing, closing or creating updates the table, alerts and detail view at once.
 
 ## [0.14.0] - 2026-10-24

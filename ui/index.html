@@ -1166,6 +1166,12 @@ document.addEventListener('mousedown', (e) => {
     const until = st === "invisible" ? null : myStatus?.statusUntil;
     $("#status-until").innerHTML = statusBusy ? spinner : until ? `· ${tr("status.until", { t: esc(hhmm(until)) })}` : "";
     pill.title = until ? tr("status.pillTip", { t: hhmm(until), r: remaining(until) }) : tr("hdr.statusTip");
+    // el detalle abierto muestra tu fila con este mismo estado: se actualiza sin recargar
+    document.querySelectorAll(".comp.mine .pres > .st").forEach((el) => {
+      const s = st === "invisible" || !st ? "offline" : st;
+      el.className = `st ${s}`;
+      el.textContent = stTxt(s);
+    });
   }
 
   async function loadStatus() {
