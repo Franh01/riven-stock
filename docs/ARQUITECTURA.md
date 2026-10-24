@@ -1,6 +1,6 @@
 # Riven Stock: arquitectura y flujos
 
-Documento vivo. Se revisa en cada release (ver "Cómo mantenerlo" al final). Última revisión: 2026-10-23, sobre la versión 0.13.10.
+Documento vivo. Se revisa en cada release (ver "Cómo mantenerlo" al final). Última revisión: 2026-10-24, sobre la versión 0.14.0.
 
 Los diagramas son Mermaid: se ven en GitHub y en el visor de markdown del chat.
 
@@ -90,7 +90,7 @@ flowchart TB
 
 `touch()` marca actividad de la UI: mientras el usuario opera, el cargador de fondo y los snapshots se frenan para no competir por la cola.
 
-Cada bucle anota en `loophealth.py` su último ciclo y su último error (nube, contador, fotos, oportunidades, bajas y caché). El texto se antepone a los logs de los reportes de bug (`feedback_logs`, `feedback_send`) y marca ATRASADO al que lleva más de 5 períodos sin ciclo.
+Cada bucle anota en `loophealth.py` su último ciclo y su último error (nube, contador, fotos, oportunidades, bajas y caché). El texto se antepone a los logs de los reportes de bug (`feedback_logs`, `feedback_send`; `feedback.read_log(path, header)` recorta encabezado y log juntos a 400 KB, el límite del servidor) y marca ATRASADO al que lleva más de 5 períodos sin ciclo.
 
 ## 4. Ciclo de vida de un riven
 
@@ -113,6 +113,7 @@ stateDiagram-v2
 
 Qué guarda cada paso (todo en `store.py`):
 - `create`: evento `create`; si viene de un lote, `open_from_lot`; costo en `riven_costs`.
+- `assign_lot` (editar un riven sin origen): `open_from_lot` + costo con `lot_id` en `riven_costs`; falla si el riven ya tiene origen.
 - `update` y `republish`: evento e historial de precio, y `_price_changed` propaga el precio nuevo a los cachés (órdenes en disco y mercado en memoria).
 - `close`: evento `close` con copia del contrato (después desaparece de la API); si hubo venta, `log_sale_hours` (horas hasta vender, base para el umbral de baja y las ventas anónimas).
 
