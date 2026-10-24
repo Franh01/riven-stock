@@ -2792,10 +2792,10 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   $("#al-list").addEventListener("mouseout", (e) => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".al-card")) clearTimeout(hoverTimer); });
 
   // Confirmación propia (en vez del confirm() del navegador)
-  function askConfirm(title, text, okLabel = tr("common.accept"), noLabel = tr("common.cancel")) {
+  function askConfirm(title, text, okLabel = tr("common.accept"), noLabel = tr("common.cancel"), yesClass = "danger") {
     return new Promise((resolve) => {
       const dlg = $("#confirm-dialog");
-      $("#cf-title").textContent = title; $("#cf-text").textContent = text; $("#cf-yes").textContent = okLabel; $("#cf-no").textContent = noLabel;
+      $("#cf-title").textContent = title; $("#cf-text").textContent = text; $("#cf-yes").textContent = okLabel; $("#cf-no").textContent = noLabel; $("#cf-yes").className = yesClass;
       const done = (v) => { dlg.onclose = null; dlg.close(); resolve(v); };
       $("#cf-yes").onclick = () => done(true); $("#cf-no").onclick = () => done(false);
       dlg.onclose = () => resolve(null);
@@ -3722,7 +3722,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     await loadMine();
     hideSplash();
     if (!settings.share_notice_seen) {
-      const keep = await askConfirm(tr("cl.share"), tr("cl.shareNotice"), tr("cl.shareKeep"), tr("cl.shareOff"));
+      const keep = await askConfirm(tr("cl.share"), tr("cl.shareNotice"), tr("cl.shareKeep"), tr("cl.shareOff"), "");
       if (keep !== null) { saveCfg("share_notice_seen", true); if (!keep) saveCfg("share_sales", false); }  // Esc: no cuenta, se vuelve a avisar
     }
     { const ts = tourState(); if (!ts.off && !ts.done.inicio) setTimeout(() => startTour("inicio"), 2000); }
