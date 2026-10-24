@@ -875,6 +875,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         try:
             self.client.close_auction(auction_id)
             self._seen.pop(auction_id, None)
+            self._cache.forget(auction_id, new["item"]["weapon_url_name"])
+            self._market.pop(auction_id, None)
         except (WFMError, requests.RequestException) as e:
             warning = f"Se publicó la nueva pero no se pudo cerrar la vieja: {e}"
         with store.connect() as conn:
@@ -924,6 +926,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         except (WFMError, requests.RequestException, ValueError, KeyError) as e:
             return {"error": str(e)}
         self._seen[new["id"]] = new
+        self._cache.forget(new["id"], new["item"]["weapon_url_name"])   # el arma se vuelve a pedir: ahora incluye este contrato
         with store.connect() as conn:
             store.log_event(conn, new, "create")
             if lot_id:
@@ -941,6 +944,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
         self._seen.pop(auction_id, None)
+        self._cache.forget(auction_id)
+        self._market.pop(auction_id, None)
         closed_at = store.now_iso()
         with store.connect() as conn:
             store.log_event(conn, {**cur, "closed": True}, "close",

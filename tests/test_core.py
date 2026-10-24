@@ -160,3 +160,17 @@ class CloudflareTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OrderCacheForgetTest(unittest.TestCase):
+    def test_forget_saca_el_contrato_y_expira_el_arma(self):
+        from orders import OrderCache
+        c = OrderCache(None, lambda: [])
+        c._data["detron"] = {"at": 100, "orders": [{"id": "viejo"}, {"id": "otro"}], "market": [{"id": "viejo"}, {"id": "otro"}]}
+        c._targeted[("detron", ("x",))] = (5, [{"id": "viejo"}])
+        c.forget("viejo", "detron")
+        e = c._data["detron"]
+        self.assertEqual([o["id"] for o in e["orders"]], ["otro"])
+        self.assertEqual([o["id"] for o in e["market"]], ["otro"])
+        self.assertEqual(c._targeted[("detron", ("x",))][1], [])
+        self.assertEqual(e["at"], 0)

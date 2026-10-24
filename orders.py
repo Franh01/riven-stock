@@ -91,6 +91,20 @@ class OrderCache:
         if hit:
             self._persist()
 
+    def forget(self, auction_id, weapon=None):
+        """Un contrato propio que se cerró o se republicó (id nuevo) sale de todos los cachés;
+        con `weapon`, además esa arma se vuelve a pedir (el contrato nuevo todavía no está)."""
+        with self._lock:
+            for e in self._data.values():
+                e["orders"] = [o for o in e.get("orders") or [] if o.get("id") != auction_id]
+                if "market" in e:   # sin la clave = caché viejo, que weapon_orders recarga
+                    e["market"] = [o for o in e["market"] if o.get("id") != auction_id]
+            for k, (at, rows) in list(self._targeted.items()):
+                self._targeted[k] = (at, [o for o in rows if o.get("id") != auction_id])
+            if weapon in self._data:
+                self._data[weapon]["at"] = 0
+        self._persist()
+
     def touch(self):
         self._active = time.monotonic()
 
