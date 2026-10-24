@@ -5,9 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
+- Ventas anónimas: aviso explícito la primera vez que se abre la app (con opción de desactivar) y el texto de Ajustes aclara que viene activado por defecto.
 - Mercado: la tabla de resultados se pagina (10 a 500 por página, 25 por defecto) y se puede cambiar el tamaño.
 
 #### English
+- Anonymous sales: explicit notice the first time the app opens (with an option to turn it off), and the Settings text now says it is on by default.
 - Market: the results table is paginated (10 to 500 per page, 25 by default) with a page-size selector.
 
 ## [0.13.13] - 2026-10-24

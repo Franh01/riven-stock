@@ -2792,13 +2792,13 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   $("#al-list").addEventListener("mouseout", (e) => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".al-card")) clearTimeout(hoverTimer); });
 
   // Confirmación propia (en vez del confirm() del navegador)
-  function askConfirm(title, text, okLabel = tr("common.accept")) {
+  function askConfirm(title, text, okLabel = tr("common.accept"), noLabel = tr("common.cancel")) {
     return new Promise((resolve) => {
       const dlg = $("#confirm-dialog");
-      $("#cf-title").textContent = title; $("#cf-text").textContent = text; $("#cf-yes").textContent = okLabel;
+      $("#cf-title").textContent = title; $("#cf-text").textContent = text; $("#cf-yes").textContent = okLabel; $("#cf-no").textContent = noLabel;
       const done = (v) => { dlg.onclose = null; dlg.close(); resolve(v); };
       $("#cf-yes").onclick = () => done(true); $("#cf-no").onclick = () => done(false);
-      dlg.onclose = () => resolve(false);
+      dlg.onclose = () => resolve(null);
       dlg.showModal();
     });
   }
@@ -3721,6 +3721,10 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     if (settings.lang && settings.lang !== I18N.lang) I18N.setLang(settings.lang); else if (!settings.lang) saveCfg("lang", I18N.lang);
     await loadMine();
     hideSplash();
+    if (!settings.share_notice_seen) {
+      const keep = await askConfirm(tr("cl.share"), tr("cl.shareNotice"), tr("cl.shareKeep"), tr("cl.shareOff"));
+      if (keep !== null) { saveCfg("share_notice_seen", true); if (!keep) saveCfg("share_sales", false); }  // Esc: no cuenta, se vuelve a avisar
+    }
     { const ts = tourState(); if (!ts.off && !ts.done.inicio) setTimeout(() => startTour("inicio"), 2000); }
     loadAlerts();
     checkToken();

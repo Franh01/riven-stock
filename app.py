@@ -118,7 +118,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
 
     SETTING_KEYS = {"cloud_auto", "lang", "tracked_weapons", "auto_ingame", "mine_sort", "invisible_on_close",
                     "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials",
-                    "show_requests", "share_sales", "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain",
+                    "show_requests", "share_sales", "share_notice_seen", "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain",
                     "kuva_plat", "riven_slots", "show_slots"}
 
     # ---- Token de warframe.market ----
