@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.15.0] - 2026-10-24
+
 #### Español
 - Detalle de un riven: la tabla de las más baratas ahora incluye tus órdenes visibles (aunque estés invisible, el caché sea viejo o sean más caras que las 7), marca con "Este" la que tenés abierta y no la vuelve a abrir al tocarla.
 - Mercado: si la búsqueda llega al tope de ~500 de warframe.market, lo avisa (faltan las más caras).
