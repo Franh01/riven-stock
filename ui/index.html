@@ -83,7 +83,7 @@
   .mk-pager .dd-btn { padding: 3px 8px; gap: 6px; font-size: 14px; font-weight: 400; }
   .mk-pager input { font-weight: 400; }
   .mk-pager input { width: 52px; text-align: center; }
-  .mk-pager button { padding: 4px 12px; font-size: 16px; }
+  .mk-pager button { width: 34px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
   .row-actions button { padding: 10px 20px; font-size: 14px; font-weight: 600; }
   .row-actions .hint { flex-basis: 100%; font-size: 12px; opacity: .75; }
   .row-actions { gap: 12px; }
@@ -2881,7 +2881,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const shown = rows.slice(mkPage * mkSize, (mkPage + 1) * mkSize);
     const pager = rows.length <= 10 ? "" : `<div class="mk-pager">
       <small class="muted">${tr("mkt.perPage")}</small><select id="mk-size">${[10, 25, 50, 100, 250, 500].map((n) => `<option ${n === mkSize ? "selected" : ""}>${n}</option>`).join("")}</select>
-      <button class="ghost" data-pg="-1" ${mkPage ? "" : "disabled"}>‹</button><small class="muted">${tr("mkt.page")}</small><input id="mk-goto" type="number" min="1" max="${pages}" value="${mkPage + 1}"><small class="muted">/ ${pages}</small><button class="ghost" data-pg="1" ${mkPage < pages - 1 ? "" : "disabled"}>›</button></div>`;
+      <button class="ghost" data-pg="-1" ${mkPage ? "" : "disabled"}><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 5 8l5 5"/></svg></button><small class="muted">${tr("mkt.page")}</small><input id="mk-goto" type="number" min="1" max="${pages}" value="${mkPage + 1}"><small class="muted">/ ${pages}</small><button class="ghost" data-pg="1" ${mkPage < pages - 1 ? "" : "disabled"}><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg></button></div>`;
     const arrow = (k) => (mkSort.k === k ? (mkSort.d > 0 ? " ▲" : " ▼") : "");
     $("#mk-info").textContent = tr("mkt.info", { n: rows.length, t: mkRows.length });
     $("#mk-results").innerHTML = !rows.length ? `<div class="state">${tr("mkt.none")}</div>` : `<table><thead><tr><th>Riven</th><th>Stats</th><th>Rolls</th><th class="mk-sort" data-k="status" style="cursor:pointer">${tr("mkt.seller")}${arrow("status")}</th><th class="mk-sort" data-k="created" style="cursor:pointer">${tr("mkt.posted")}${arrow("created")}</th><th class="mk-sort" data-k="price" style="cursor:pointer">${tr("th.price")}${arrow("price")}</th></tr></thead><tbody>${
