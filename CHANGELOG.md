@@ -5,15 +5,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ## [Sin publicar]
 
 #### Español
-- Detalle de un riven: la tabla de las más baratas ahora incluye tus órdenes visibles (aunque estés invisible o el caché sea viejo), marca con "Este" la que tenés abierta y no la vuelve a abrir al tocarla.
+- Detalle de un riven: la tabla de las más baratas ahora incluye tus órdenes visibles (aunque estés invisible, el caché sea viejo o sean más caras que las 7), marca con "Este" la que tenés abierta y no la vuelve a abrir al tocarla.
 - Mercado: si la búsqueda llega al tope de ~500 de warframe.market, lo avisa (faltan las más caras).
 - El precio acepta como mucho 6 dígitos al escribirlo.
+- Estado: al ponerte En juego/Online por 30 min, 1 h o 2 h, el "hasta" mostraba la hora del estado anterior (hasta 4 h); ahora muestra la pedida.
 - Interno: los contratos propios y ajenos viven en un solo lugar (state.py); cambiar un precio, republicar, cerrar o crear actualiza de una vez la tabla, las alertas y el detalle.
 
 #### English
-- Riven detail: the cheapest-orders table now includes your visible orders (even when invisible or with a stale cache), tags the one you have open as "This one" and doesn't reopen it on click.
+- Riven detail: the cheapest-orders table now includes your visible orders (even when invisible, with a stale cache or pricier than the 7), tags the one you have open as "This one" and doesn't reopen it on click.
 - Market: if the search hits warframe.market's ~500 cap it now says so (the pricier ones are missing).
 - The price field takes at most 6 digits when typing.
+- Status: setting In game/Online for 30 min, 1 h or 2 h showed the "until" time of the previous status (up to 4 h); it now shows the requested one.
 - Internal: own and other sellers' listings now live in one place (state.py); changing a price, republishing, closing or creating updates the table, alerts and detail view at once.
 
 ## [0.14.0] - 2026-10-24

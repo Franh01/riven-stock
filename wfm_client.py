@@ -291,7 +291,7 @@ class WFMClient:
             raise WFMError(f"No se pudo cambiar el estado: {reply.get('payload')}")
         st = res["status"] or {}
         if st.get("status") != status:   # el evento llegó antes que el ok: armar con la respuesta
-            st = {**reply.get("payload", {}), "statusUntil": st.get("statusUntil")}
+            st = dict(reply.get("payload", {}))   # el statusUntil del evento es del estado anterior: no sirve
         if not st.get("statusUntil"):    # el evento no llegó a tiempo: la hora es la pedida
             st["statusUntil"] = (datetime.now(timezone.utc) + timedelta(seconds=duration_s)).isoformat(timespec="seconds")
         return st

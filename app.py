@@ -431,7 +431,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
 
     def weapon_orders(self, weapon, current_id=None):
         """Las 7 órdenes online más baratas del arma, desde el caché (la pide solo si falta).
-        Tus órdenes visibles de esa arma entran siempre (aunque estés invisible o el caché sea viejo);
+        Tus órdenes visibles de esa arma entran siempre, aunque sean más caras que las 7 (invisible o caché viejo también);
         `current_id` es la que el usuario ya tiene abierta."""
         try:
             e = self._cache.get(weapon, self.VIEW_MAX_AGE_S)
@@ -453,9 +453,10 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
                  if i not in seen and a["item"]["weapon_url_name"] == weapon
                  and a.get("visible", True) and not a.get("closed") and not a.get("private")]
         rows.sort(key=lambda r: r[0]["buyout_price"])
+        rows = rows[:7] + [r for r in rows[7:] if r[1] or r[0]["id"] == current_id]   # las propias y la abierta entran aunque sean caras
         return {"orders": [{**auction_view(a), "seller": a["owner"]["ingame_name"], "status": a["owner"]["status"],
                             "reputation": a["owner"].get("reputation"), "mine": mine, "current": a["id"] == current_id,
-                            "created": a.get("created"), "last_seen": a["owner"].get("last_seen")} for a, mine in rows[:7]],
+                            "created": a.get("created"), "last_seen": a["owner"].get("last_seen")} for a, mine in rows],
                 "age_s": int(time.time() - e["at"]), "market": e.get("market", [])}
 
     def notifications(self):

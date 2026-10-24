@@ -175,6 +175,20 @@ class CloudflareTest(unittest.TestCase):
         self.assertIn("Cloudflare es el servicio", str(cm.exception))
 
 
+class SetStatusTest(unittest.TestCase):
+    def test_evento_viejo_no_pisa_la_hora_pedida(self):
+        import wfm_client
+        from datetime import datetime, timezone
+        c = wfm_client.WFMClient("eyJ" + "a" * 70 + ".b.c")
+        viejo = {"status": "invisible", "statusUntil": "2000-01-01T07:51:00+00:00"}
+        res = {"status": viejo, "reply": {"route": "@wfm|cmd/status/set:ok", "payload": {"status": "ingame"}}}
+        c._ws_session = lambda *a, **k: res
+        st = c.set_status("ingame", 30 * 60)
+        hasta = datetime.fromisoformat(st["statusUntil"])
+        falta = (hasta - datetime.now(timezone.utc)).total_seconds()
+        self.assertTrue(29 * 60 < falta <= 30 * 60 + 5, falta)
+
+
 
 class FeedbackLog(unittest.TestCase):
     def test_encabezado_mas_log_no_pasa_el_limite_del_servidor(self):
@@ -279,6 +293,18 @@ class BookTest(unittest.TestCase):
         yo = SimpleNamespace(_cache=self.cache, _book=self.book, VIEW_MAX_AGE_S=10)
         r = Api.weapon_orders(yo, "detron", current_id="otro")["orders"]
         self.assertEqual([(o["id"], o["mine"], o["current"]) for o in r], [("mia", True, False), ("otro", False, True)])
+
+    def test_tabla_de_ordenes_no_corta_la_propia_cara(self):
+        from types import SimpleNamespace
+        from app import Api
+        def ord_(i, price):
+            return {"id": i, "buyout_price": price, "starting_price": price, "item": {"weapon_url_name": "detron", "attributes": []},
+                    "owner": {"ingame_name": "x", "status": "ingame"}}
+        self.cache._data["detron"] = {"at": 9e12, "orders": [ord_(f"o{n}", n) for n in range(1, 10)], "market": [{"c": 1}]}
+        self.book.put_own(ord_("mia", 10000))
+        yo = SimpleNamespace(_cache=self.cache, _book=self.book, VIEW_MAX_AGE_S=10)
+        ids = [o["id"] for o in Api.weapon_orders(yo, "detron")["orders"]]
+        self.assertEqual(ids, [f"o{n}" for n in range(1, 8)] + ["mia"])
 
 
 if __name__ == "__main__":
