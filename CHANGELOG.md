@@ -6,9 +6,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 #### Español
 - Mejorado: los reportes con logs ahora incluyen la salud de los procesos de fondo (último ciclo correcto y último error de cada uno), para detectar si alguno se trabó.
+- Corregido: abrir una segunda instancia de la app mientras ya hay una viva ya no se cuenta como un cierre inesperado en los reportes.
+- Interno: se reordenó el código (los procesos de fondo y la copia en la nube salen de app.py) y cada proceso de fondo deja una línea de log por ciclo. No cambia lo que ves.
 
 #### English
 - Improved: reports with logs now include the health of the background processes (last good cycle and last error of each), to spot any that got stuck.
+- Fixed: opening a second instance of the app while one is already running is no longer counted as an unexpected shutdown in reports.
+- Internal: code was reorganized (background processes and the cloud copy moved out of app.py) and each background process now logs one line per cycle. Nothing changes in what you see.
 
 ## [0.13.10] - 2026-10-23
 
