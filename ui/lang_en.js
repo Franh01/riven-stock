@@ -703,6 +703,8 @@ window.LANGS.en = {
   "tok.checking": "Checking...",
   "tok.token_format": "That doesn't look like a token: it must start with eyJ and have three parts separated by dots. Copy the full value of the JWT cookie.",
   "tok.token_invalid": "warframe.market didn't accept that token. It may have expired: get a new one.",
+  "e.92": "Cloudflare is blocking the request. Cloudflare is the security service warframe.market uses to filter out bots: it sometimes turns it on based on your connection or IP, even if you did nothing wrong, and it has nothing to do with your account or your token. Try again in a few minutes, switch networks (for example, mobile data) or use a VPN. If you open warframe.market in your browser and complete the check, it sometimes clears up.",
+  "tok.cloudflare": "Cloudflare is blocking the request. Cloudflare is the security service warframe.market uses to filter out bots: it sometimes turns it on based on your connection or IP, even if you did nothing wrong, and it has nothing to do with your account or your token. Try again in a few minutes, switch networks (for example, mobile data) or use a VPN. If you open warframe.market in your browser and complete the check, it sometimes clears up.",
   "tok.token_offline": "Couldn't reach warframe.market. Try again in a bit.",
   "tok.ok": "Account connected: {a}",
   "e.32": "Your account isn't connected: press the key button and paste your warframe.market token.",

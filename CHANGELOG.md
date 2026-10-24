@@ -4,6 +4,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Corregido: cuando Cloudflare (el filtro anti-robots de warframe.market) bloquea tu conexión, la app lo dice y explica qué es y qué probar, en lugar de mostrar "token vencido" o "sin conexión".
+
+#### English
+- Fixed: when Cloudflare (warframe.market's anti-bot filter) blocks your connection, the app now says so and explains what it is and what to try, instead of showing "expired token" or "offline".
+
 ## [0.13.11] - 2026-10-23
 
 #### Español

@@ -689,6 +689,8 @@ window.LANGS.es = {
   "e.25": "warframe.market rechazó el token en el WebSocket ({a})",
   "e.90": "warframe.market rechazó los datos. {a}",
   "e.91": "El precio máximo es {a}p.",
+  "e.92": "Cloudflare está bloqueando el pedido. Cloudflare es el servicio de seguridad que usa warframe.market para filtrar robots: a veces lo activa según tu conexión o tu IP, sin que hayas hecho nada mal, y no tiene que ver con tu cuenta ni con tu token. Probá de nuevo en unos minutos, cambiá de red (por ejemplo, datos del celular) o usá una VPN. Si abrís warframe.market en el navegador y resolvés la verificación, a veces se destraba.",
+  "tok.cloudflare": "Cloudflare está bloqueando el pedido. Cloudflare es el servicio de seguridad que usa warframe.market para filtrar robots: a veces lo activa según tu conexión o tu IP, sin que hayas hecho nada mal, y no tiene que ver con tu cuenta ni con tu token. Probá de nuevo en unos minutos, cambiá de red (por ejemplo, datos del celular) o usá una VPN. Si abrís warframe.market en el navegador y resolvés la verificación, a veces se destraba.",
   "conf.alta": "alta",
   "conf.media": "media",
   "conf.baja": "baja",

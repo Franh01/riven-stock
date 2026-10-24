@@ -61,7 +61,7 @@ from feedbackapi import FeedbackMixin
 from orders import OrderCache
 from pricing import estimate
 from ratelimit import QUEUE
-from wfm_client import SEARCH_CAP, AuthError, WFMClient, WFMError, cheapest_ingame
+from wfm_client import SEARCH_CAP, AuthError, CloudflareError, WFMClient, WFMError, cheapest_ingame
 
 # API de lectura de tendencias (Lambda en AWS, pública y solo de lectura); ver cloud/
 CLOUD_API_URL = "https://2gxvgmytrqarivabthxybzfsn40iuyyw.lambda-url.us-east-1.on.aws/"
@@ -138,6 +138,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             me = WFMClient(t).me()
         except AuthError:
             return {"error": "token_invalid"}
+        except CloudflareError:
+            return {"error": "cloudflare"}
         except Exception:
             return {"error": "token_offline"}
         from wfm_client import ENV_FILE
