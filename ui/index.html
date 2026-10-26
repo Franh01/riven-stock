@@ -3628,7 +3628,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       history: [{ at: iso(60 * 24 * 3), price: 130, source: "manual" }, { at: iso(60 * 24), price: 115, source: "auto" }, { at: iso(60 * 5), price: 100, source: "auto" }] };
   }
   function demoTrend() {
-    return { points: [92, 95, 90, 98, 104, 101, 108, 110].map((m, i) => ({ median: m, min_price: Math.round(m * 0.6), n_online: 20 + i, n_orders: 60 + i })) };
+    return { points: [92, 95, 90, 98, 104, 101, 108, 110].map((m, i) => ({ day: new Date(Date.now() - (7 - i) * 864e5).toISOString().slice(0, 10), median: m, min_price: Math.round(m * 0.6), n_online: 20 + i, n_orders: 60 + i })) };
   }
   function uiLog(m) { try { api().log_ui(m); } catch (e) {} }
   $("#riven-dialog").addEventListener("close", () => uiLog("riven-dialog cerrado\n" + (new Error().stack || "").split("\n").slice(1, 6).join(" | ")));
