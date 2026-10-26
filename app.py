@@ -76,6 +76,13 @@ BASES = ROOT / "data" / "riven_bases.json"  # lo genera tools/derive_riven_bases
 TITLE = "Riven Stock"
 
 
+GONE_MSG = "El contrato ya no existe en warframe.market (¿se cerró o borró desde la web?): lo saqué de la lista."
+
+
+class GoneError(WFMError):
+    """El contrato propio ya no está en warframe.market."""
+
+
 class Api(CloudMixin, LoopsMixin, FeedbackMixin):
     LOG_FILE = LOG_FILE   # lo usa FeedbackMixin
     """Métodos que la interfaz llama con window.pywebview.api.<método>()."""
@@ -494,6 +501,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             new = self.client.update_auction(
                 aid, price=d["old_price"], visible=cur["visible"], note=cur.get("note_raw", ""),
                 minimal_reputation=cur.get("minimal_reputation", 0))
+        except GoneError as e:
+            return {"error": str(e), "gone": True}
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
         self._book.own_updated(new)
@@ -710,7 +719,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             sh = store.sale_hours(conn)
             return {
                 "closed": [{**auction_view(c["auction"]), "sold_price": c["sold_price"],
-                            "closed_at": c["closed_at"], "hours_online": sh.get(c["auction"]["id"])}
+                            "closed_at": c["closed_at"], "hours_online": sh.get(c["auction"]["id"]),
+                            "transmuted": bool(c["auction"].get("transmuted"))}
                            for c in store.closed_auctions(conn)],
                 "costs": store.costs(conn),
                 "lots": store.lots(conn),
@@ -725,6 +735,43 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             with store.connect() as conn:
                 store.set_cost(conn, auction_id, None if cost in (None, "") else float(cost))
         except (ValueError, store.sqlite3.Error) as e:
+            return {"error": str(e)}
+        return self.local()
+
+    # ---- Contratos cerrados (solo local) --------------------------------
+
+    def _closed_entry(self, conn, auction_id):
+        return next((c for c in store.closed_auctions(conn) if c["auction"]["id"] == auction_id), None)
+
+    def set_sold(self, auction_id, price):
+        """Marca un cerrado como vendido, le cambia el precio o lo vuelve a "no vendido" (price vacío)."""
+        try:
+            price = None if price in (None, "") else int(float(price))
+            if price is not None and price < 0:
+                raise ValueError("El precio no puede ser negativo")
+            with store.connect() as conn:
+                c = self._closed_entry(conn, auction_id)
+                if c is None or auction_id in self._book.own:
+                    return {"error": "Ese contrato no está entre los cerrados"}
+                if c["auction"].get("transmuted"):
+                    return {"error": "Ese riven ya se usó en una transmutación"}
+                store.set_sold_price(conn, auction_id, price)
+                h = store.riven_hours(conn).get(auction_id)
+                if price and h and auction_id not in store.sale_hours(conn):
+                    store.log_sale_hours(conn, auction_id, h["hours"], at=c["closed_at"])
+        except (ValueError, TypeError, store.sqlite3.Error) as e:
+            return {"error": str(e)}
+        return self.local()
+
+    def delete_closed(self, auction_id):
+        """Saca un contrato cerrado del historial (y del balance)."""
+        if auction_id in self._book.own:
+            return {"error": "Ese contrato no está entre los cerrados"}
+        try:
+            with store.connect() as conn:
+                if not store.delete_closed(conn, auction_id):
+                    return {"error": "Ese contrato no está entre los cerrados"}
+        except store.sqlite3.Error as e:
             return {"error": str(e)}
         return self.local()
 
@@ -759,29 +806,32 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         return self.local()
 
     def transmute(self, auction_ids, riven_type):
-        """Transmutación del juego: 4 rivens publicados se cierran (sin venta) y entra al stock
-        unveiled 1 riven sin abrir del tipo que salió, con el costo de los 4 sumado. Ese costo ya
-        está en "invertido" por los rivens sacrificados, así que el lote no lo suma otra vez."""
+        """Transmutación del juego: 4 rivens se sacrifican y entra al stock unveiled 1 riven sin abrir
+        del tipo que salió, con el costo de los 4 sumado. Pueden ser publicados (se cierran sin venta)
+        o ya cerrados sin vender (se marcan para no usarlos dos veces). Ese costo ya está en "invertido"
+        por los rivens sacrificados, así que el lote no lo suma otra vez."""
         ids = list(dict.fromkeys(auction_ids or []))
         if len(ids) != 4:
             return {"error": "Hay que elegir exactamente 4 rivens"}
         if riven_type not in store.RIVEN_TYPES:
             return {"error": "Tipo de riven inválido"}
-        missing = [i for i in ids if i not in self._book.own]
-        if missing:
-            return {"error": "Algún riven ya no está en la lista: actualizá y probá de nuevo"}
         with store.connect() as conn:
             known = store.costs(conn)
+            unsold = {c["auction"]["id"] for c in store.closed_auctions(conn)
+                      if c["sold_price"] is None and not c["auction"].get("transmuted")}
+        if any(i not in self._book.own and i not in unsold for i in ids):
+            return {"error": "Algún riven ya no está en la lista: actualizá y probá de nuevo"}
         total_cost = sum(known.get(i, {}).get("cost", 0) for i in ids)
         closed = []
-        for auction_id in ids:
-            res = self.close(auction_id)
+        for auction_id in (i for i in ids if i in self._book.own):
+            res = self.close(auction_id, transmuted=True)
             if "error" in res:
                 note = f" Ya se cerraron {len(closed)} antes del error." if closed else ""
                 return {"error": res["error"] + note, "transmuted": closed}
             closed.append(auction_id)
         try:
             with store.connect() as conn:
+                store.mark_transmuted(conn, [i for i in ids if i not in closed])
                 store.add_lot(conn, riven_type, 1, total_cost, "Transmutación de 4 rivens", from_transmute=True)
         except store.sqlite3.Error as e:
             return {"error": f"Se cerraron los 4 pero no se pudo cargar el stock: {e}", "transmuted": closed}
@@ -804,7 +854,16 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             if a["id"] == auction_id:
                 self._book.put_own(a)
                 return a
-        raise WFMError("El contrato ya no existe en warframe.market (¿se cerró desde la web?)")
+        self._book.closed(auction_id)   # se borró desde la web: que no quede colgado en la lista
+        raise GoneError(GONE_MSG)
+
+    def _gone(self, auction_id):
+        """True si el contrato ya no está entre los propios (se cerró o borró desde la web).
+        Si no se puede leer la lista, False: ante la duda no se da por cerrado."""
+        try:
+            return auction_id not in {a["id"] for a in self.client.my_auctions()}
+        except (WFMError, requests.RequestException):
+            return False
 
     def update(self, auction_id, price=None, visible=None, note=None):
         """Cambia precio, visibilidad y/o nota; lo que venga en None queda como está.
@@ -818,6 +877,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
                 note=note if note is not None else cur.get("note_raw", ""),
                 minimal_reputation=cur.get("minimal_reputation", 0),
             )
+        except GoneError as e:
+            return {"error": str(e), "gone": True}
         except (WFMError, requests.RequestException, ValueError) as e:
             return {"error": str(e)}
         self._book.own_updated(new)
@@ -934,23 +995,35 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
                 store.set_cost(conn, new["id"], float(cost), int(lot_id) if lot_id else None)
         return {"auction": auction_view(new), **self.local()}
 
-    def close(self, auction_id, sold_price=None):
+    def close(self, auction_id, sold_price=None, transmuted=False):
         """Cierra el contrato y guarda una copia local (después desaparece de la API).
-        La copia sale de la última lectura (un pedido menos): para el historial alcanza."""
+        La copia sale de la última lectura (un pedido menos): para el historial alcanza.
+        Si warframe.market rechaza el cierre porque el contrato ya no existe (se borró desde
+        la web), el cierre local se hace igual: el usuario quería sacarlo de la lista."""
+        gone = False
         try:
             cur = self._current(auction_id, fresh=False)
-            self.client.close_auction(auction_id)
+        except GoneError as e:
+            return {"error": str(e), "gone": True}
         except (WFMError, requests.RequestException) as e:
             return {"error": str(e)}
+        try:
+            self.client.close_auction(auction_id)
+        except CloudflareError as e:
+            return {"error": str(e)}
+        except (WFMError, requests.RequestException) as e:
+            if not self._gone(auction_id):
+                return {"error": str(e)}
+            gone = True
         self._book.closed(auction_id)
         closed_at = store.now_iso()
+        snap = {**cur, "closed": True, **({"transmuted": True} if transmuted else {})}
         with store.connect() as conn:
-            store.log_event(conn, {**cur, "closed": True}, "close",
-                            sold_price=int(sold_price) if sold_price else None, at=closed_at)
+            store.log_event(conn, snap, "close", sold_price=int(sold_price) if sold_price else None, at=closed_at)
             h = store.riven_hours(conn).get(auction_id)
             if sold_price and h:
                 store.log_sale_hours(conn, auction_id, h["hours"], at=closed_at)
-        return {"closed": auction_id, "closed_at": closed_at}
+        return {"closed": auction_id, "closed_at": closed_at, **({"gone": True} if gone else {})}
 
 
 def auction_view(a):

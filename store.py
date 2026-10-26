@@ -304,6 +304,39 @@ def closed_auctions(conn):
             for r in rows]
 
 
+def _last_close(auction_id):
+    return ("(SELECT MAX(id) FROM auction_events WHERE auction_id = ? AND action = 'close')", (auction_id,))
+
+
+def set_sold_price(conn, auction_id, price):
+    """Cambia el precio de venta de un contrato ya cerrado (None = no se vendió). Devuelve si existía."""
+    sub, args = _last_close(auction_id)
+    n = conn.execute(f"UPDATE auction_events SET sold_price = ? WHERE id = {sub}", (price, *args)).rowcount
+    if price is None:
+        conn.execute("DELETE FROM sale_hours WHERE auction_id = ?", (auction_id,))
+    conn.commit()
+    return n > 0
+
+
+def mark_transmuted(conn, auction_ids):
+    """Marca contratos cerrados como usados en una transmutación (no se pueden usar otra vez)."""
+    for auction_id in auction_ids:
+        sub, args = _last_close(auction_id)
+        conn.execute(f"UPDATE auction_events SET snapshot = json_set(snapshot, '$.transmuted', json('true')) "
+                     f"WHERE id = {sub}", args)
+    conn.commit()
+
+
+def delete_closed(conn, auction_id):
+    """Borra un contrato cerrado del historial: sus eventos, sus horas de venta y su costo suelto
+    (deja de contar en invertido). Si salió de un lote, el lote queda como está."""
+    n = conn.execute("DELETE FROM auction_events WHERE auction_id = ?", (auction_id,)).rowcount
+    conn.execute("DELETE FROM sale_hours WHERE auction_id = ?", (auction_id,))
+    conn.execute("DELETE FROM riven_costs WHERE auction_id = ? AND lot_id IS NULL", (auction_id,))
+    conn.commit()
+    return n > 0
+
+
 # ---- Costos ----------------------------------------------------------------
 
 def set_cost(conn, auction_id, cost, lot_id=None):

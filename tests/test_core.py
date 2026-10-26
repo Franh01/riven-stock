@@ -362,5 +362,169 @@ class BookTest(unittest.TestCase):
         self.assertEqual(ids, [f"o{n}" for n in range(1, 8)] + ["mia"])
 
 
+
+def riven(i, price=100, weapon="soma"):
+    """Contrato propio crudo, como lo devuelve la API."""
+    return {"id": i, "buyout_price": price, "starting_price": price, "visible": True,
+            "item": {"weapon_url_name": weapon, "name": "Riven", "attributes": []}}
+
+
+class ClosedStoreTest(unittest.TestCase):
+    """Editar, borrar y transmutar contratos cerrados (feedback de testers)."""
+
+    def test_set_sold_price(self):
+        with tempfile.TemporaryDirectory() as d, store.connect(Path(d) / "t.db") as conn:
+            store.log_event(conn, riven("c1"), "close")
+            store.log_sale_hours(conn, "c1", 5)
+            self.assertTrue(store.set_sold_price(conn, "c1", 150))
+            self.assertEqual(store.closed_auctions(conn)[0]["sold_price"], 150)
+            self.assertTrue(store.set_sold_price(conn, "c1", None))
+            self.assertIsNone(store.closed_auctions(conn)[0]["sold_price"])
+            self.assertNotIn("c1", store.sale_hours(conn))
+            self.assertFalse(store.set_sold_price(conn, "nada", 10))
+
+    def test_delete_closed_saca_el_costo_suelto_pero_no_el_lote(self):
+        with tempfile.TemporaryDirectory() as d, store.connect(Path(d) / "t.db") as conn:
+            store.add_lot(conn, "rifle", 2, 40)
+            lot = store.lots(conn)[0]["id"]
+            store.log_event(conn, riven("suelto"), "close")
+            store.set_cost(conn, "suelto", 30)
+            store.log_event(conn, riven("delote"), "close")
+            store.assign_lot(conn, "delote", lot, 20)
+            self.assertEqual(store.invested(conn), 70)
+            self.assertTrue(store.delete_closed(conn, "suelto"))
+            self.assertTrue(store.delete_closed(conn, "delote"))
+            self.assertEqual(store.closed_auctions(conn), [])
+            self.assertEqual(store.invested(conn), 40)
+            self.assertFalse(store.delete_closed(conn, "suelto"))
+
+    def test_mark_transmuted(self):
+        with tempfile.TemporaryDirectory() as d, store.connect(Path(d) / "t.db") as conn:
+            store.log_event(conn, riven("c1"), "close")
+            store.log_event(conn, riven("c2"), "close")
+            store.mark_transmuted(conn, ["c1"])
+            t = {c["auction"]["id"]: bool(c["auction"].get("transmuted")) for c in store.closed_auctions(conn)}
+            self.assertEqual(t, {"c1": True, "c2": False})
+
+
+class ClosedApiTest(unittest.TestCase):
+    """Api.set_sold / delete_closed / transmute / close contra una base temporal y un cliente falso."""
+
+    def setUp(self):
+        from unittest import mock
+        from app import Api
+        from orders import OrderCache
+        from state import Book
+        from wfm_client import WFMError
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        db = Path(self.tmp.name) / "t.db"
+        orig = store.connect
+        p = mock.patch.object(store, "connect", lambda *a, **k: orig(db))
+        p.start()
+        self.addCleanup(p.stop)
+        self.web = {}          # contratos que "existen" en warframe.market
+        self.closed_web = []
+        test = self
+
+        class Client:
+            def my_auctions(self):
+                return list(test.web.values())
+
+            def close_auction(self, auction_id):
+                if auction_id not in test.web:
+                    raise WFMError("Not found")
+                test.web.pop(auction_id)
+                test.closed_web.append(auction_id)
+
+        self.api = Api.__new__(Api)
+        self.api._book = Book(OrderCache(None, lambda: []))
+        self.api.client = Client()
+
+    def publish(self, i):
+        self.web[i] = riven(i)
+        self.api._book.put_own(self.web[i])
+
+    def closed_row(self, i):
+        return next(c for c in self.api.local()["closed"] if c["id"] == i)
+
+    def test_set_sold(self):
+        with store.connect() as conn:
+            store.log_event(conn, riven("c1"), "close")
+        self.assertIsNone(self.closed_row("c1")["sold_price"])
+        self.assertEqual(self.api.set_sold("c1", "120")["closed"][0]["sold_price"], 120)
+        self.assertIsNone(self.api.set_sold("c1", "")["closed"][0]["sold_price"])
+        self.assertIn("negativo", self.api.set_sold("c1", -5)["error"])
+        self.assertIn("cerrados", self.api.set_sold("nada", 10)["error"])
+        self.assertIn("error", self.api.set_sold("c1", "abc"))
+
+    def test_set_sold_rechaza_publicados_y_transmutados(self):
+        self.publish("p1")
+        with store.connect() as conn:
+            store.log_event(conn, riven("p1"), "close")   # cerrado viejo con el mismo id, pero sigue publicado
+            store.log_event(conn, riven("t1"), "close")
+            store.mark_transmuted(conn, ["t1"])
+        self.assertIn("cerrados", self.api.set_sold("p1", 10)["error"])
+        self.assertIn("transmutación", self.api.set_sold("t1", 10)["error"])
+
+    def test_delete_closed(self):
+        with store.connect() as conn:
+            store.log_event(conn, riven("c1"), "close")
+            store.set_cost(conn, "c1", 25)
+        res = self.api.delete_closed("c1")
+        self.assertEqual(res["closed"], [])
+        self.assertEqual(res["invested"], 0)
+        self.assertIn("error", self.api.delete_closed("c1"))
+        self.publish("p1")
+        self.assertIn("error", self.api.delete_closed("p1"))
+
+    def test_close_contrato_borrado_desde_la_web(self):
+        """Si el riven se borra desde warframe.market, la publicación no tiene que quedar colgada."""
+        self.publish("x")
+        self.web.pop("x")                      # lo borró desde la web
+        res = self.api.close("x")
+        self.assertTrue(res.get("gone"))
+        self.assertNotIn("error", res)
+        self.assertNotIn("x", self.api._book.own)
+        self.assertEqual(self.closed_row("x")["id"], "x")
+
+    def test_current_contrato_borrado_lo_saca_del_book(self):
+        from app import GoneError
+        self.publish("x")
+        self.web.pop("x")
+        with self.assertRaises(GoneError):
+            self.api._current("x")
+        self.assertNotIn("x", self.api._book.own)
+        self.assertTrue(self.api.close("x").get("gone"))
+
+    def test_close_normal_no_marca_gone(self):
+        self.publish("ok")
+        res = self.api.close("ok", sold_price=90)
+        self.assertNotIn("gone", res)
+        self.assertEqual(self.closed_web, ["ok"])
+        self.assertEqual(self.closed_row("ok")["sold_price"], 90)
+
+    def test_transmute_con_publicados_y_cerrados_sin_vender(self):
+        for i in ("p1", "p2"):
+            self.publish(i)
+        with store.connect() as conn:
+            store.log_event(conn, riven("c1"), "close")
+            store.log_event(conn, riven("c2"), "close")
+            store.log_event(conn, riven("v1"), "close", sold_price=50)
+            for i, cost in (("p1", 10), ("p2", 10), ("c1", 5), ("c2", 5)):
+                store.set_cost(conn, i, cost)
+        self.assertIn("error", self.api.transmute(["p1", "p2", "c1", "v1"], "rifle"))   # el vendido no vale
+        res = self.api.transmute(["p1", "p2", "c1", "c2"], "rifle")
+        self.assertNotIn("error", res)
+        self.assertEqual(sorted(res["transmuted"]), ["p1", "p2"])
+        self.assertEqual(sorted(self.closed_web), ["p1", "p2"])
+        rows = {c["id"]: c["transmuted"] for c in res["closed"]}
+        self.assertEqual(rows, {"p1": True, "p2": True, "c1": True, "c2": True, "v1": False})
+        lot = res["lots"][0]
+        self.assertEqual((lot["riven_type"], lot["total_cost"]), ("rifle", 30))
+        self.assertEqual(res["invested"], 30)
+        # ya usados: no se pueden transmutar de nuevo
+        self.assertIn("error", self.api.transmute(["c1", "c2", "p1", "p2"], "rifle"))
+
 if __name__ == "__main__":
     unittest.main()

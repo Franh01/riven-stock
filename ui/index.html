@@ -413,6 +413,9 @@
   .al-btn.danger:hover { background: #e5546b2e; border-color: #e5546b88; }
   .al-card .al-del { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border-radius: 8px; background: transparent; border: 1px solid transparent; color: var(--muted); box-shadow: none; transition: color .15s, background .15s, border-color .15s; }
   .al-card .al-del:hover { color: var(--neg); background: #e5546b22; border-color: #e5546b66; }
+  #closed .cl-del { width: 30px; height: 30px; padding: 0; display: grid; place-items: center; border-radius: 8px; background: transparent; border: 1px solid transparent; color: var(--muted); box-shadow: none; }
+  #closed .cl-del:hover { color: var(--neg); background: #e5546b22; border-color: #e5546b66; }
+  #closed .cl-del .ic { display: block; width: 16px; height: 16px; }
   #al-list .state { height: 100%; display: grid; place-items: center; }
   .al-card { overflow: hidden; }
   .al-card.leaving { transition: transform .28s cubic-bezier(.4,0,.8,.4), opacity .22s ease-in, height .26s ease .08s, padding .26s ease .08s, border-width .26s ease .08s; transform: translateX(70px); opacity: 0; height: 0 !important; padding-top: 0; padding-bottom: 0; border-bottom-width: 0; }
@@ -1033,6 +1036,9 @@ document.addEventListener('mousedown', (e) => {
     [/^(\d+) en (\S+): el JWT no sirve o expiró/, "e.3"],
     [/^warframe\.market está limitando/, "e.4"],
     [/^Cloudflare está bloqueando/, "e.92"],
+    [/^Ese contrato no está entre los cerrados/, "e.93"],
+    [/^Ese riven ya se usó en una transmutación/, "e.94"],
+    [/^El precio no puede ser negativo/, "e.95"],
     [/^warframe\.market no responde\. Se reintenta/, "e.5"],
     [/^Esa baja ya no se puede revertir/, "e.6"],
     [/^Riven no encontrado/, "e.7"],
@@ -1266,7 +1272,7 @@ document.addEventListener('mousedown', (e) => {
     const finish = (save) => {
       if (done) return; done = true;
       const v = Math.round(Number(input.value));
-      if (save && v >= 1) { rivenSlots = v; saveCfg("riven_slots", v); }
+      if (save && v >= 1 && v !== rivenSlots) { rivenSlots = v; saveCfg("riven_slots", v); toast(tr("cfg.slotsSaved", { n: v })); }
       renderSlots();
     };
     input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") finish(true); if (ev.key === "Escape") finish(false); });
@@ -1297,7 +1303,9 @@ document.addEventListener('mousedown', (e) => {
   let posFilter = null;  // null | caro | barato | estancado
   // El orden se guarda en la base local (pywebview corre en modo privado: localStorage no persiste).
 
+  let mineLoadedAt = 0;
   async function loadMine() {
+    mineLoadedAt = Date.now();
     $("#reload").disabled = true;
     try {
       const data = await api().my_auctions();
@@ -1336,6 +1344,7 @@ document.addEventListener('mousedown', (e) => {
   }
 
   const DOTS = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="13" cy="8" r="1.6" fill="currentColor"/></svg>`;
+  const TRASH = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg>`;
 
   // ---- Buscador: filtro local por arma, nombre, stats y nota -----------------
   // Todas las palabras tienen que aparecer (en cualquier orden); sin mayúsculas ni acentos.
@@ -1445,6 +1454,7 @@ document.addEventListener('mousedown', (e) => {
     renderMine(); renderTotals();
     const res = await api().update(a.id, changes.price ?? null, changes.visible ?? null, changes.note ?? null);
     pending.delete(a.id);
+    if (res.gone) { toast(res.error, true); syncMine(); return; }
     mine = mine.map((x) => (x.id === a.id ? (res.error ? before : res.auction) : x));
     renderMine(); renderTotals();
     if (res.error) toast(tr("err.save", { e: res.error }), true);
@@ -1475,6 +1485,11 @@ document.addEventListener('mousedown', (e) => {
     closed = [entry, ...closed];
     renderAll();
     const res = await api().close(a.id, soldPrice);
+    if (res.gone && res.error) {   // ya no estaba en warframe.market: el backend la sacó de la lista
+      closed = closed.filter((x) => x !== entry);
+      toast(res.error, true); syncMine();
+      return;
+    }
     if (res.error) {
       closed = closed.filter((x) => x !== entry);
       mine.splice(index, 0, a);
@@ -1489,14 +1504,14 @@ document.addEventListener('mousedown', (e) => {
   }
 
   // Edición en la celda (precio y costo): Enter guarda, Esc o salir del campo cancela.
-  function inlineEdit(span, initial, onSave) {
+  function inlineEdit(span, initial, onSave, onCancel = renderMine) {
     span.outerHTML = `<input type="number" min="0" step="any" value="${initial ?? ""}" class="inline-input" id="inline-edit">`;
     const input = $("#inline-edit");
     input.focus(); input.select();
     let done = false;
     const finish = (save) => {
       if (done) return; done = true;
-      if (save) onSave(input.value.trim()); else renderMine();
+      if (save) onSave(input.value.trim()); else onCancel();
     };
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
     input.addEventListener("blur", () => finish(false));
@@ -1606,6 +1621,13 @@ document.addEventListener('mousedown', (e) => {
     });
   });
   $("#reload").addEventListener("click", () => { loadMine(); loadStatus(); });
+  // Al volver a la ventana (por ejemplo, después de cerrar o borrar un contrato desde la web) se relee la lista,
+  // como mucho una vez por minuto y sin pisar un recorrido, un diálogo abierto o una edición en curso.
+  window.addEventListener("focus", () => {
+    if (Date.now() - mineLoadedAt < 60000 || tour || demoRowOn || pending.size) return;
+    if (document.querySelector("dialog[open]") || document.activeElement?.matches("input, textarea, select")) return;
+    loadMine();
+  });
 
   // ---- Stock unveiled -------------------------------------------------------
 
@@ -1665,6 +1687,8 @@ document.addEventListener('mousedown', (e) => {
   $("#tm-type").innerHTML = RIVEN_TYPES.map((t) => `<option value="${t}">${cap(t)}</option>`).join("");
   let tmPicked = new Set(), tmSort = { key: "price", dir: -1 };
   const tmChecked = () => [...tmPicked];
+  // Entran los publicados y los cerrados sin vender (por ejemplo, rivens que se sacaron del mercado para cambiar su balance).
+  const tmCandidates = () => [...mine, ...closed.filter((c) => !c.pending && !c.sold_price && !c.transmuted)];
   function tmRefresh() {
     const n = tmPicked.size;
     $("#tm-count").textContent = tr("tm.picked", { n });
@@ -1674,7 +1698,7 @@ document.addEventListener('mousedown', (e) => {
   }
   function tmRender() {
     const val = (a) => tmSort.key === "price" ? a.price : tmSort.key === "cost" ? (costs[a.id]?.cost ?? -1) : new Date(a.updated || 0).getTime();
-    const rows = [...mine].sort((a, b) => (val(a) - val(b)) * tmSort.dir);
+    const rows = tmCandidates().sort((a, b) => (val(a) - val(b)) * tmSort.dir);
     const th = (key, label, cls = "") => {
       const on = tmSort.key === key;
       return `<th class="sortable ${on ? "sorted" : ""} ${cls}" data-sort="${key}">${label}<span class="arrow">${on ? (tmSort.dir > 0 ? "↑" : "↓") : ""}</span></th>`;
@@ -1683,14 +1707,14 @@ document.addEventListener('mousedown', (e) => {
       rows.map((a) => {
         const c = costs[a.id]?.cost;
         return `<tr data-id="${esc(a.id)}"><td><input type="checkbox" value="${esc(a.id)}"></td>
-          <td>${rivenLabel(a)}${a.visible ? "" : ` <span class="muted">(${tr("tm.hiddenTag")})</span>`}</td>
+          <td>${rivenLabel(a)}${a.closed_at ? ` <span class="muted">(${tr("tm.closedTag")})</span>` : a.visible ? "" : ` <span class="muted">(${tr("tm.hiddenTag")})</span>`}</td>
           <td class="num">${c == null ? "—" : c + "p"}</td><td class="num">${a.price}p</td>
           <td class="num muted">${a.updated ? new Date(a.updated).toLocaleDateString(I18N.locale) : "—"}</td></tr>`;
       }).join("") + `</tbody></table>`;
     tmRefresh();
   }
   $("#tm-open").addEventListener("click", () => {
-    if (mine.length < 4) return toast(tr("tm.need4"), true);
+    if (tmCandidates().length < 4) return toast(tr("tm.need4"), true);
     tmPicked = new Set();
     tmRender();
     const dlg = $("#tm-dialog");
@@ -1748,22 +1772,49 @@ document.addEventListener('mousedown', (e) => {
     $("#closed-title").textContent = tr("closed.title") + (queryTokens.length ? ` · ${tr("closed.matches", { n: rows.length, t: closed.length })}` : "");
     if (!rows.length) { $("#closed").innerHTML = `<div class="state">${tr("closed.noMatch")}</div>`; return; }
     $("#closed").innerHTML = `<table>
-      <thead><tr><th>Riven</th><th>Stats</th><th>${tr("closed.lastPrice")}</th><th>${tr("tot.sold")}</th><th>${tr("th.cost")}</th><th>${tr("closed.profit")}</th><th>${tr("closed.closedAt")}</th></tr></thead>
+      <thead><tr><th>Riven</th><th>Stats</th><th>${tr("closed.lastPrice")}</th><th>${tr("tot.sold")}</th><th>${tr("th.cost")}</th><th>${tr("closed.profit")}</th><th>${tr("closed.closedAt")}</th><th></th></tr></thead>
       <tbody>${rows.map((a) => {
         const cost = costs[a.id]?.cost;
         const profit = a.sold_price && cost !== undefined ? a.sold_price - cost : null;
-        return `<tr class="${a.pending ? "busy" : ""}">
+        const sold = a.transmuted ? `<span class="muted">${tr("closed.transmuted")}</span>`
+          : a.sold_price ? `<b class="pos-txt">${a.sold_price}p</b>` : `<span class="muted">${tr("common.no")}</span>`;
+        const soldCell = a.transmuted || a.pending ? sold : `<span class="editable" data-act="edit-sold" title="${tr("closed.soldTip")}">${sold}</span>`;
+        return `<tr class="${a.pending ? "busy" : ""}" data-id="${esc(a.id)}">
         <td><div class="riven-weapon">${hl(weaponName(a.weapon))}</div><div class="riven-name">${hl(a.name)}</div></td>
         <td><div class="stats">${a.stats.map(formatStatHl).join("")}</div></td>
         <td>${a.price}p</td>
-        <td>${a.sold_price ? `<b class="pos-txt">${a.sold_price}p</b>` : `<span class="muted">${tr("common.no")}</span>`}</td>
+        <td class="nowrap">${soldCell}</td>
         <td class="nowrap">${cost === undefined ? `<span class="muted">—</span>` : fmtP(cost)}</td>
         <td class="nowrap">${profit === null ? `<span class="muted">—</span>` : `<b class="${profit >= 0 ? "pos-txt" : "neg-txt"}">${profit > 0 ? "+" : ""}${fmtP(profit)}</b>`}</td>
         <td class="muted nowrap">${a.pending ? `${spinner} ${tr("closed.closing")}` : esc(fullDate(a.closed_at))}</td>
+        <td class="actions">${a.pending ? "" : `<button class="cl-del" data-act="del-closed" title="${tr("closed.del")}">${TRASH}</button>`}</td>
       </tr>`;
       }).join("")}</tbody></table>`;
   }
 
+
+  // Corregir un cerrado: marcarlo vendido o no (campo vacío), cambiar el precio de venta, o eliminarlo del historial.
+  $("#closed").addEventListener("click", async (e) => {
+    const el = e.target.closest("[data-act]");
+    if (!el) return;
+    const a = closed.find((x) => x.id === el.closest("tr[data-id]")?.dataset.id);
+    if (!a || a.pending) return;
+    if (el.dataset.act === "edit-sold") inlineEdit(el, a.sold_price || "", async (v) => {
+      const price = v === "" ? null : parseInt(v, 10);
+      if (price === (a.sold_price || null) || Number.isNaN(price)) return renderClosed();
+      const res = await api().set_sold(a.id, price);
+      if (res.error) { toast(res.error, true); return renderClosed(); }
+      applyLocal(res); renderAll();
+      toast(price ? tr("closed.soldSaved", { p: fmtP(price) }) : tr("closed.unsoldSaved"));
+    }, renderClosed);
+    if (el.dataset.act === "del-closed") {
+      if (!await askConfirm(tr("closed.delTitle"), tr("closed.delText", { r: `${weaponName(a.weapon)} ${a.name}` }), tr("closed.del"))) return;
+      const res = await api().delete_closed(a.id);
+      if (res.error) { toast(res.error, true); return; }
+      applyLocal(res); renderAll();
+      toast(tr("closed.deleted"));
+    }
+  });
 
   // ---- Reporte de ventas ------------------------------------------------------
 
@@ -3288,7 +3339,10 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     else if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "cfg.on" : "cfg.off")); }
     else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
-    else if (t.id === "cfg-slots") { const v = Math.max(1, Math.round(Number(t.value) || 15)); t.value = v; rivenSlots = v; saveCfg("riven_slots", v); renderSlots(); }
+    else if (t.id === "cfg-slots") {
+      const v = Math.max(1, Math.round(Number(t.value) || 15)); t.value = v;
+      if (v !== rivenSlots) { rivenSlots = v; saveCfg("riven_slots", v); renderSlots(); toast(tr("cfg.slotsSaved", { n: v })); }
+    }
     else if (t.id === "cfg-floor") { const v = Math.max(1, Math.round(Number(t.value) || 10)); t.value = v; saveCfg("autodrop_floor", v); }
     else if (t.id === "opp-enabled") { saveCfg("opp_enabled", t.checked); $("#opp-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "opp.on" : "opp.off")); }
     else if (t.id === "opp-thr") { const v = Math.min(90, Math.max(5, Math.round(Number(t.value) || 30))); t.value = v; saveCfg("opp_threshold", v); }
@@ -3876,7 +3930,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     const s = await api().token_status(); tokHelpUrl = s.help_url;
     if (!s.has) openToken();
   }
-  const HELP_N = 17;
+  const HELP_N = 18;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><div class="tour-pick"><select id="tour-sel">${["inicio", "stock", "reporte", "backup", "opp"].map((k) => `<option value="${k}">${tr("tour.name." + k)}</option>`).join("")}</select><button class="ghost tour-btn" id="tour-go">${tr("help.tourGo")}</button></div>`;

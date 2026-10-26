@@ -4,6 +4,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+- Si cerrás o borrás un contrato desde warframe.market, la app ya no se queda trabada al cambiarle el precio o cerrarlo: avisa que ya no existe y lo saca de la lista. Además, la lista se vuelve a leer sola al volver a la ventana (como mucho una vez por minuto).
+- Cerrados: tocando la columna Vendido podés marcar un riven como vendido, corregir el precio o dejarlo como no vendido; el tacho lo borra del historial (deja de contar en ventas, ganancias y lo invertido).
+- Transmutar acepta también rivens cerrados sin vender (por ejemplo, los que sacaste del mercado para cambiarles el balance).
+- Al cambiar los slots de riven aparece un aviso de confirmación.
+
+#### English
+- If you close or delete a contract on warframe.market, the app no longer gets stuck when changing its price or closing it: it says it no longer exists and drops it from the list. The list is also re-read when you come back to the window (at most once a minute).
+- Closed: clicking the Sold column lets you mark a riven as sold, fix the price or set it as not sold; the trash can removes it from the history (it stops counting toward sales, profit and money invested).
+- Transmute also accepts unsold closed rivens (for example, ones you pulled from the market to change their disposition).
+- Changing your riven slots now shows a confirmation notice.
+
 ## [0.15.1] - 2026-10-24
 
 #### Español

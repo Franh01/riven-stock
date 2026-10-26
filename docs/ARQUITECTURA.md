@@ -108,8 +108,14 @@ stateDiagram-v2
     Publicado --> Publicado: autodrop baja el precio
     Publicado --> Vendido: close(sold_price)
     Publicado --> CerradoSinVenta: close(sin precio)
+    Publicado --> CerradoSinVenta: borrado desde la web (GoneError)
+    CerradoSinVenta --> Vendido: set_sold(precio)
+    Vendido --> CerradoSinVenta: set_sold(vacío)
+    Publicado --> Transmutado: transmute()
+    CerradoSinVenta --> Transmutado: transmute()
     Vendido --> [*]
-    CerradoSinVenta --> [*]
+    CerradoSinVenta --> [*]: delete_closed
+    Transmutado --> [*]
 ```
 
 Qué guarda cada paso (todo en `store.py`):
@@ -117,6 +123,9 @@ Qué guarda cada paso (todo en `store.py`):
 - `assign_lot` (editar un riven sin origen): `open_from_lot` + costo con `lot_id` en `riven_costs`; falla si el riven ya tiene origen.
 - `update` y `republish`: evento e historial de precio. Los contratos en memoria y los cachés los mueve `state.Book` (`own_updated`, `created`, `closed`, `own_fetched`, `put_other`, `get`): ahí se propaga el precio nuevo o se saca el id viejo de todas las copias; `app.py` y `loops.py` ya no tocan los diccionarios ni el caché a mano.
 - `close`: evento `close` con copia del contrato (después desaparece de la API); si hubo venta, `log_sale_hours` (horas hasta vender, base para el umbral de baja y las ventas anónimas).
+- Contrato borrado desde warframe.market: `_current` no lo encuentra, lo saca del `Book` y lanza `GoneError` (la UI recibe `gone: true` y lo quita de la lista). Si `close_auction` falla y `_gone()` confirma que ya no está, el cierre local se hace igual.
+- Cerrados: `set_sold` cambia el precio de venta del último evento `close` (vacío = no vendido, borra `sale_hours`); `delete_closed` borra sus eventos, horas y costo suelto (deja de contar en invertido; el lote no cambia).
+- `transmute`: 4 rivens entre publicados (se cierran con `transmuted` en la copia) y cerrados sin vender (`mark_transmuted`); entra un lote `from_transmute` con el costo sumado. Un transmutado no se puede editar ni volver a usar.
 
 El borrador del modal Nuevo riven vive solo en memoria de la UI durante 10 s (`DRAFT_MS`).
 
