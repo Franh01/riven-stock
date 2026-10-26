@@ -8,8 +8,13 @@ const PAUSE_MS = 350;   // separación entre inicios de pedido (~2.9 por segundo
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+let lastStart = 0;
 async function get(path, retries = 3) {
   for (let i = 0; ; i++) {
+    // Cada pedido respeta la separación (también los reintentos y los varios pedidos de una misma arma).
+    const wait = lastStart + PAUSE_MS - Date.now();
+    lastStart = Math.max(Date.now(), lastStart + PAUSE_MS);
+    if (wait > 0) await sleep(wait);
     const res = await fetch(BASE + path, { headers: HEADERS, signal: AbortSignal.timeout(20000) });
     if (res.status === 429 && i < retries) { await sleep(5000 * (i + 1)); continue; }
     if (!res.ok) throw new Error(`${res.status} en ${path}`);
@@ -31,6 +36,7 @@ function summarize(auctions) {
 }
 
 const CUT = 100;           // la búsqueda de warframe.market devuelve como máximo 100 (hasta el 23/10/2026 eran ~500)
+const POLARITIES = ["madurai", "vazarin", "naramon"];   // las únicas de los rivens; el filtro polarity sí lo respeta la API (offset/page no)
 const MARGIN_MS = 60000;   // tiempo que se deja para cerrar y relanzarse
 const MAX_CHAIN = 30;      // tope de relevos encadenados en un mismo día (evita bucles infinitos)
 
@@ -55,7 +61,6 @@ exports.handler = async (event, context) => {
   let pending = weapons.filter((w) => !done.has(w));
   const start = pending.length;
   const deadline = () => context.getRemainingTimeInMillis() - MARGIN_MS;
-  let lastStart = 0;
   let lastError = "";
   let round = 0;
 
@@ -68,26 +73,33 @@ exports.handler = async (event, context) => {
       while (next < queue.length) {
         const weapon = queue[next++];
         if (deadline() <= 0) { pending.push(weapon); continue; }
-        const wait = lastStart + PAUSE_MS - Date.now();
-        lastStart = Math.max(Date.now(), lastStart + PAUSE_MS);
-        if (wait > 0) await sleep(wait);
         try {
           const qs = new URLSearchParams({ type: "riven", weapon_url_name: weapon, buyout_policy: "direct", sort_by: "price_asc" });
           let auctions = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
-          let gap = null;
+          let gaps = null;
           // El resumen diario sale solo de las más baratas: con las caras sumadas la mediana no representa al mercado.
           const summary = { ...summarize(auctions), capped: auctions.length >= CUT };
-          if (auctions.length >= CUT) {   // la búsqueda corta en 100: se pide también desde las más caras y se une
+          if (auctions.length >= CUT) {
+            // La búsqueda corta en 100: se piden las 100 más caras y las 100 más baratas de cada polaridad, y se une todo.
+            // Queda sin ver, por polaridad, la franja entre su techo y el piso de las caras.
+            const seen = new Map(auctions.map((a) => [a.id, a]));
             qs.set("sort_by", "price_desc");
             const caras = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
-            const ids = new Set(auctions.map((a) => a.id));
-            const lo = Math.max(...auctions.map((a) => a.buyout_price ?? 0));
             const hi = Math.min(...caras.map((a) => a.buyout_price ?? Infinity));
-            auctions = auctions.concat(caras.filter((a) => !ids.has(a.id)));
-            gap = lo < hi ? { lo, hi } : { lo: 1, hi: 0 };   // sin franja vista -> {1,0} (vacía): se vio todo el mercado
+            qs.set("sort_by", "price_asc");
+            gaps = {};
+            for (const pol of POLARITIES) {
+              qs.set("polarity", pol);
+              const part = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
+              const lo = part.length >= CUT ? Math.max(...part.map((a) => a.buyout_price ?? 0)) : Infinity;
+              gaps[pol] = lo < hi ? { lo, hi } : { lo: 1, hi: 0 };   // {1,0}: vacía, se vio toda la polaridad
+              for (const a of part) seen.set(a.id, a);
+            }
+            for (const a of caras) seen.set(a.id, a);
+            auctions = [...seen.values()];
           }
           await col.updateOne({ weapon, day }, { $set: { weapon, day, ...summary } }, { upsert: true });
-          await history.record(weapon, auctions, new Date(), gap);
+          await history.record(weapon, auctions, new Date(), gaps);
           await state.updateOne({ _id: weapon }, { $set: { slot } });
         } catch (e) {
           lastError = `${weapon}: ${e.message}`;

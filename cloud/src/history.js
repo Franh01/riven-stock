@@ -35,19 +35,26 @@ const slim = (a) => ({
   mr: a.item?.mastery_level ?? null,
   rank: a.item?.mod_rank ?? null,
   created: a.created || null,
+  pol: a.item?.polarity || null,
 });
 
 // Firma de los atributos (sin valores): sirve para detectar la misma publicación republicada.
 const sig = (attrs) => attrs.map((a) => `${a[0]}${a[2] ? "+" : "-"}`).sort().join("|");
 
-// `gap`: con dos búsquedas (baratas y caras) queda sin ver la franja {lo, hi}; null si se vio todo o se usa el corte simple.
-async function record(weapon, auctions, now = new Date(), gap = null) {
+// `gaps`: franja no vista {lo, hi} por polaridad ({madurai: {...}, ...}); null si se vio todo o se usa el corte simple.
+// Sin polaridad conocida (publicaciones guardadas antes de tenerla) cuenta como no vista si cae en la franja de cualquiera.
+function unseen(price, pol, gaps) {
+  const inGap = (g) => price >= g.lo && price <= g.hi;
+  return gaps[pol] ? inGap(gaps[pol]) : Object.values(gaps).some(inGap);
+}
+
+async function record(weapon, auctions, now = new Date(), gaps = null) {
   const { listings, sales, state } = await ensure();
   const market = auctions
     .filter((a) => a.is_direct_sell && a.visible !== false && !a.closed && !a.private)
     .map(slim);
   const cur = new Map(market.map((a) => [a.id, a]));
-  const truncated = !gap && auctions.length >= CUT;
+  const truncated = !gaps && auctions.length >= CUT;
   const top = market.reduce((m, a) => Math.max(m, a.price), 0);
 
   const last = await state.findOne({ _id: weapon });
@@ -62,7 +69,7 @@ async function record(weapon, auctions, now = new Date(), gap = null) {
     for (const [id, r] of prev) {
       if (cur.has(id)) continue;
       if (truncated && r.price_last >= top) continue;   // pudo quedar fuera del corte
-      if (gap && r.price_last >= gap.lo && r.price_last <= gap.hi) continue;   // cayó en la franja no vista
+      if (gaps && unseen(r.price_last, r.pol, gaps)) continue;   // cayó en la franja no vista de su polaridad
       const gone = { $set: { active: false, gone_at: now } };
       if (curSigs.has(`${r.seller}#${r.name}#${sig(r.attrs)}`)) {   // republicada: no es venta
         ops.push({ updateOne: { filter: { _id: id }, update: gone } });
@@ -94,15 +101,15 @@ async function record(weapon, auctions, now = new Date(), gap = null) {
     if (prev.has(a.id)) {
       // Solo se escribe lo que cambió: el plan gratis de Atlas limita a ~100 operaciones por segundo.
       const r = prev.get(a.id);
-      if (r.price_last !== a.price || r.status_last !== a.status) {
-        ops.push({ updateOne: { filter: { _id: a.id }, update: { $set: { last_seen: now, price_last: a.price, status_last: a.status } } } });
+      if (r.price_last !== a.price || r.status_last !== a.status || r.pol === undefined) {   // pol: completa las guardadas sin polaridad
+        ops.push({ updateOne: { filter: { _id: a.id }, update: { $set: { last_seen: now, price_last: a.price, status_last: a.status, pol: a.pol } } } });
       }
     } else {
       ops.push({
         updateOne: {
           filter: { _id: a.id },
           update: {
-            $setOnInsert: { weapon, name: a.name, attrs: a.attrs, rolls: a.rolls, mr: a.mr, rank: a.rank, seller: a.seller, created: a.created, first_seen: now, price_first: a.price },
+            $setOnInsert: { weapon, name: a.name, attrs: a.attrs, rolls: a.rolls, mr: a.mr, rank: a.rank, seller: a.seller, pol: a.pol, created: a.created, first_seen: now, price_first: a.price },
             $set: { last_seen: now, price_last: a.price, status_last: a.status, active: true },
             $unset: { gone_at: "" },
           },
@@ -113,8 +120,8 @@ async function record(weapon, auctions, now = new Date(), gap = null) {
   }
   if (saleOps.length) await sales.bulkWrite(saleOps, { ordered: false });
   if (ops.length) await listings.bulkWrite(ops, { ordered: false });
-  await state.updateOne({ _id: weapon }, { $set: { at: now, n: market.length, truncated: truncated || !!gap } }, { upsert: true });
+  await state.updateOne({ _id: weapon }, { $set: { at: now, n: market.length, truncated: truncated || !!gaps } }, { upsert: true });
   return sold;
 }
 
-module.exports = { record, ensure };
+module.exports = { record, ensure, unseen };
