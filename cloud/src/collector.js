@@ -30,7 +30,7 @@ function summarize(auctions) {
   };
 }
 
-const CUT = 480;           // la búsqueda de warframe.market devuelve como máximo ~500
+const CUT = 100;           // la búsqueda de warframe.market devuelve como máximo 100 (hasta el 23/10/2026 eran ~500)
 const MARGIN_MS = 60000;   // tiempo que se deja para cerrar y relanzarse
 const MAX_CHAIN = 30;      // tope de relevos encadenados en un mismo día (evita bucles infinitos)
 
@@ -75,7 +75,9 @@ exports.handler = async (event, context) => {
           const qs = new URLSearchParams({ type: "riven", weapon_url_name: weapon, buyout_policy: "direct", sort_by: "price_asc" });
           let auctions = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
           let gap = null;
-          if (auctions.length >= CUT) {   // la búsqueda corta en ~500: se pide también desde las más caras y se une
+          // El resumen diario sale solo de las más baratas: con las caras sumadas la mediana no representa al mercado.
+          const summary = { ...summarize(auctions), capped: auctions.length >= CUT };
+          if (auctions.length >= CUT) {   // la búsqueda corta en 100: se pide también desde las más caras y se une
             qs.set("sort_by", "price_desc");
             const caras = (await get(`/v1/auctions/search?${qs}`)).payload.auctions;
             const ids = new Set(auctions.map((a) => a.id));
@@ -84,7 +86,7 @@ exports.handler = async (event, context) => {
             auctions = auctions.concat(caras.filter((a) => !ids.has(a.id)));
             gap = lo < hi ? { lo, hi } : { lo: 1, hi: 0 };   // sin franja vista -> {1,0} (vacía): se vio todo el mercado
           }
-          await col.updateOne({ weapon, day }, { $set: { weapon, day, ...summarize(auctions) } }, { upsert: true });
+          await col.updateOne({ weapon, day }, { $set: { weapon, day, ...summary } }, { upsert: true });
           await history.record(weapon, auctions, new Date(), gap);
           await state.updateOne({ _id: weapon }, { $set: { slot } });
         } catch (e) {

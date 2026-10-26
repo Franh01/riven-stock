@@ -8,12 +8,12 @@ const json = (status, body, cache = "public, max-age=300") => ({
   body: JSON.stringify(body),
 });
 
-// Armas con más ventas inferidas en las últimas 24 h y con más publicaciones nuevas (la búsqueda de la API corta en 500, así que el total de órdenes no sirve).
+// Armas con más ventas inferidas en las últimas 24 h y con más publicaciones nuevas (la búsqueda de la API corta en 100, así que el total de órdenes no sirve).
 async function top(limit) {
   const { sales } = await history.ensure();
   const since = new Date(Date.now() - 86400000);
   const sold = await sales.aggregate([
-    { $match: { detected_at: { $gte: since } } },
+    { $match: { detected_at: { $gte: since }, suspect: { $exists: false } } },   // suspect: ventas falsas del corte en 100 (marcadas a mano)
     { $group: { _id: "$weapon", sold: { $sum: 1 }, prices: { $push: "$price" } } },
     { $sort: { sold: -1 } },
     { $limit: limit },
@@ -27,7 +27,7 @@ async function top(limit) {
   ]).toArray();
   const median = (a) => { const b = [...a].sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; };
   const st = await (await collection("collector_state")).find({ n: { $exists: true } }, { projection: { n: 1, truncated: 1 } }).toArray();
-  const stats = { weapons: st.length, truncated: st.filter((x) => x.truncated).length, ge480: st.filter((x) => x.n >= 480).length };
+  const stats = { weapons: st.length, truncated: st.filter((x) => x.truncated).length, capped: st.filter((x) => x.n >= 100).length };
   return {
     stats,
     sold: sold.map((d) => ({ weapon: d._id, sold: d.sold, median: median(d.prices) })),

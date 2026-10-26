@@ -2,7 +2,7 @@
 // lo que estaba activo y ya no aparece se anota como probable venta (con nivel de confianza).
 const { collection } = require("./db");
 
-const CUT = 480;                 // la búsqueda corta en ~500: con tantos resultados lo caro puede haber quedado afuera
+const CUT = 100;                 // la búsqueda corta en 100: con tantos resultados lo caro puede haber quedado afuera
 const ONLINE = ["ingame", "online"];
 const MAX_GAP_H = 36;            // con huecos más largos entre fotos baja la confianza
 const KEEP_GONE_S = 30 * 86400;  // las publicaciones que no fueron venta se borran solas a los 30 días
