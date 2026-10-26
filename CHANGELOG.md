@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.16.0] - 2026-10-25
+
 #### Español
 - Si cerrás o borrás un contrato desde warframe.market, la app ya no se queda trabada al cambiarle el precio o cerrarlo: avisa que ya no existe y lo saca de la lista. Además, la lista se vuelve a leer sola al volver a la ventana (como mucho una vez por minuto).
 - Cerrados: tocando la columna Vendido podés marcar un riven como vendido, corregir el precio o dejarlo como no vendido; el tacho lo borra del historial (deja de contar en ventas, ganancias y lo invertido).
