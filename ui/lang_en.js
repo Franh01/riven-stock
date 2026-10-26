@@ -375,6 +375,7 @@ window.LANGS.en = {
   "sum.ovHoursTip": "Hours (e.g. 2) or minutes (e.g. 30m) unsold before dropping the price",
   "sum.ovDrop": "Drop (p)",
   "sum.ovFloor": "Floor (p)",
+  "sum.ovSaved": "Settings for this riven saved",
   "sum.ovHint": "Empty = uses the global value.",
   "sum.histTitle": "Price history",
   "sum.tabOrders": "Cheapest",

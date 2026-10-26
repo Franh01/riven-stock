@@ -375,6 +375,7 @@ window.LANGS.es = {
   "sum.ovHoursTip": "Horas (ej. 2) o minutos (ej. 30m) sin vender antes de bajar el precio",
   "sum.ovDrop": "Baja (p)",
   "sum.ovFloor": "Piso (p)",
+  "sum.ovSaved": "Ajustes de este riven guardados",
   "sum.ovHint": "Vacío = usa el valor global.",
   "sum.histTitle": "Historial de precios",
   "sum.tabOrders": "Más baratas",

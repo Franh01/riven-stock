@@ -1094,6 +1094,11 @@ document.addEventListener('mousedown', (e) => {
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const typeName = (t) => { const k = "type." + t; const v = tr(k); return v === k ? cap(t) : v; };
 
+  // Guardado de los ajustes de un riven: avisa si se guardo o si fallo, y refresca la lista.
+  function savedRiven(p, okMsg) {
+    return p.then((r) => { if (r?.error) toast(tr("err.save", { e: r.error }), true); else toast(okMsg); loadMine(); })
+      .catch((e) => toast(tr("err.save", { e }), true));
+  }
   function toast(msg, isError = false) {
     const t = $("#toast");
     clearTimeout(t._timer); clearTimeout(t._hide);
@@ -3189,8 +3194,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     $("#est-card")?.addEventListener("click", () => showTab("comps"));
     if (mk) return;
     if (aid.startsWith("demo")) { document.querySelectorAll("#sum-auto, #ov-h, #ov-a, #ov-f").forEach((x) => (x.disabled = true)); return; }   // tutorial: datos de ejemplo
-    $("#sum-auto").addEventListener("change", (e) => api().set_autodrop(aid, e.target.checked).then(loadMine));
-    for (const id of ["#ov-h", "#ov-a", "#ov-f"]) $(id).addEventListener("change", () => api().set_overrides(aid, $("#ov-h").value, $("#ov-a").value, $("#ov-f").value).then(loadMine));
+    $("#sum-auto").addEventListener("change", (e) => savedRiven(api().set_autodrop(aid, e.target.checked), tr(e.target.checked ? "cfg.on" : "cfg.off")));
+    for (const id of ["#ov-h", "#ov-a", "#ov-f"]) $(id).addEventListener("change", () => savedRiven(api().set_overrides(aid, $("#ov-h").value, $("#ov-a").value, $("#ov-f").value), tr("sum.ovSaved")));
   }
   $("#bell").addEventListener("click", async () => { await loadAlerts(); renderAlerts(); $("#alerts-dialog").showModal(); });
   $("#al-x").addEventListener("click", () => $("#alerts-dialog").close());
@@ -3333,8 +3338,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   $("#gear").addEventListener("click", openConfig);
   $("#opp-btn").addEventListener("click", openOpp);
   new ResizeObserver(() => { if (tour?.place) tour.place(); }).observe($("#cfg-body"));   // el contenido asincrono de Ajustes cambia el alto: el recorrido se realinea
-  $("#rd-auto-on").addEventListener("change", (e) => editing && api().set_autodrop(editing.id, e.target.checked).then(loadMine));
-  for (const id of ["#rd-ov-h", "#rd-ov-a", "#rd-ov-f"]) $(id).addEventListener("change", () => editing && api().set_overrides(editing.id, $("#rd-ov-h").value, $("#rd-ov-a").value, $("#rd-ov-f").value).then(loadMine));
+  $("#rd-auto-on").addEventListener("change", (e) => editing && savedRiven(api().set_autodrop(editing.id, e.target.checked), tr(e.target.checked ? "cfg.on" : "cfg.off")));
+  for (const id of ["#rd-ov-h", "#rd-ov-a", "#rd-ov-f"]) $(id).addEventListener("change", () => editing && savedRiven(api().set_overrides(editing.id, $("#rd-ov-h").value, $("#rd-ov-a").value, $("#rd-ov-f").value), tr("sum.ovSaved")));
   $("#opp-x").addEventListener("click", () => $("#opp-dialog").close());
   $("#opp-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $("#cfg-x").addEventListener("click", () => $("#cfg-dialog").close());
