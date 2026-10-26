@@ -184,7 +184,7 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
     if any(_stale(o) < 1 for _, o in top):
         reasons.append({"key": "staleComps"})
     return {
-        "adj": round(adj, 2), "reasons": reasons,
+        "adj": round(adj, 2), "reasons": reasons, "tier": tier(weapon, view) if weapon else None,
         "price": price, "low": low, "high": high,
         "n": len(top), "confidence": conf, "avg_sim": round(avg_sim, 2),
         "comps": [{"id": o["id"], "price": o["p"], "sim": round(s, 2), "status": o["st"], "rolls": o["r"], "rank": o.get("k"),
@@ -196,6 +196,7 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
 
 import datetime as _dt
 import json as _json
+import math as _math
 from pathlib import Path as _Path
 
 _WSTATS = None
@@ -211,6 +212,40 @@ def weapon_stats(weapon):
         except (OSError, ValueError):
             _WSTATS = {}
     return _WSTATS.get(weapon)
+
+
+_TIER = None
+
+
+def tier(weapon, view):
+    """Etiqueta caro/barato según ventas reales (data/tier_model.json, tools/train_tier.py).
+    Devuelve {level: high|mid|low, p, why: [stats que más suman, con signo]} o None si no hay modelo."""
+    global _TIER
+    if _TIER is None:
+        try:
+            _TIER = _json.loads((_Path(__file__).parent / "data" / "tier_model.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            _TIER = {}
+    if not _TIER:
+        return None
+    c = _TIER["coef"]
+    if weapon not in _TIER["base"]:
+        return None   # sin ventas de esa arma no hay base: mejor no etiquetar
+    npos = 0
+    parts = {}
+    for st in view["stats"]:
+        npos += bool(st["positive"])
+        k = ("+" if st["positive"] else "-") + st["slug"]
+        if k in c:
+            parts[k] = c[k]
+    for k, v in (("rolls", _math.log1p(view.get("rolls") or 0)), ("rank10", (view.get("rank") or 0) >= 8), ("npos3", npos == 3)):
+        if k in c:
+            parts[k] = c[k] * v
+    z = c["icpt"] + c["base"] * _TIER["base"][weapon] + sum(parts.values())
+    p = 1 / (1 + _math.exp(-z))
+    level = "high" if p >= _TIER["hi"] else "low" if p <= _TIER["lo"] else "mid"
+    why = [k for k, v in sorted(parts.items(), key=lambda t: -t[1]) if k[0] in "+-" and v > 0.15][:3]   # "+slug"/"-slug"
+    return {"level": level, "p": round(p, 2), "why": why}
 
 
 def weapon_adjust(weapon, stats):

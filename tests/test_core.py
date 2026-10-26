@@ -526,5 +526,19 @@ class ClosedApiTest(unittest.TestCase):
         # ya usados: no se pueden transmutar de nuevo
         self.assertIn("error", self.api.transmute(["c1", "c2", "p1", "p2"], "rifle"))
 
+class TierTest(unittest.TestCase):
+    def view(self, *stats):
+        return {"stats": [{"slug": a, "value": 1, "positive": b} for a, b in stats], "rolls": 0, "rank": 8}
+
+    def test_etiqueta_por_arma_y_stats(self):
+        arma = next(iter(pricing._json.loads((Path(pricing.__file__).parent / "data" / "tier_model.json").read_text("utf-8"))["base"]))
+        r = pricing.tier(arma, self.view(("critical_damage", True), ("multishot", True)))
+        self.assertIn(r["level"], ("high", "mid", "low"))
+        self.assertTrue(0 <= r["p"] <= 1)
+
+    def test_arma_sin_ventas_no_se_etiqueta(self):
+        self.assertIsNone(pricing.tier("arma_que_no_existe", self.view(("zoom", True))))
+
+
 if __name__ == "__main__":
     unittest.main()
