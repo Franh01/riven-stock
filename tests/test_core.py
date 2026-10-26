@@ -526,6 +526,27 @@ class ClosedApiTest(unittest.TestCase):
         # ya usados: no se pueden transmutar de nuevo
         self.assertIn("error", self.api.transmute(["c1", "c2", "p1", "p2"], "rifle"))
 
+class SearchPaceTest(unittest.TestCase):
+    """Tope por minuto de la búsqueda de contratos: Cloudflare frena con 11-14 en un minuto."""
+    def test_la_decima_busqueda_espera_y_lo_demas_no(self):
+        import ratelimit
+        now = [1000.0]
+        slept = []
+        def sleep(s):
+            slept.append(s); now[0] += s
+        q = ratelimit.RequestQueue(clock=lambda: now[0], sleep=sleep)
+        job = lambda label: ratelimit._Job(lambda: None, label)
+        for i in range(ratelimit.SEARCH_PER_MIN):
+            q._wait_slot(job("get_rivens_by_weapon: syam")); now[0] += 2
+        self.assertEqual(q.search_room(), 0)
+        before = sum(slept)
+        q._wait_slot(job("get_my_profile"))   # otros pedidos no cuentan para este tope
+        self.assertLess(sum(slept) - before, 2)
+        q._wait_slot(job("get_rivens_by_weapon: onos"))
+        self.assertGreater(sum(slept) - before, 30)   # esperó a que saliera la primera del minuto
+        self.assertGreaterEqual(now[0] - 1000.0, ratelimit.SEARCH_WINDOW_S)
+
+
 class TierTest(unittest.TestCase):
     def view(self, *stats):
         return {"stats": [{"slug": a, "value": 1, "positive": b} for a, b in stats], "rolls": 0, "rank": 8}

@@ -3064,7 +3064,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const poll = aid.startsWith("demo") ? 0 : setInterval(async () => {
       const q = await api().queue_status().catch(() => null), n = $("#skel-note");
       if (!q || !n) return;
-      const txt = q.cooldown_s > 0 ? tr(q.reason === "net" ? "sum.qNet" : "sum.qLimit", { n: Math.ceil(q.cooldown_s) })
+      const txt = q.cooldown_s > 0 ? tr(q.reason === "net" ? "sum.qNet" : q.reason === "pace" ? "sum.qPace" : "sum.qLimit", { n: Math.ceil(q.cooldown_s) })
         : q.total > 1 ? `${tr("common.askingWfm")} ${tr("sum.qProg", { d: q.done, t: q.total })}${q.eta_s >= 1 ? ` · ${tr("sum.qEta", { n: Math.ceil(q.eta_s) })}` : ""}` : tr("common.askingWfm");
       n.firstChild.textContent = txt; $("#skel-fill").style.width = (q.total > 1 ? q.percent : 8) + "%";
     }, 400);
@@ -3492,7 +3492,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       if (show) {
         bar.classList.toggle("wait", q.cooldown_s > 0);
         $("#q-title").textContent = q.cooldown_s > 0
-          ? tr(q.reason === "net" ? "q.net" : "q.wait")
+          ? tr(q.reason === "net" ? "q.net" : q.reason === "pace" ? "q.pace" : "q.wait")
           : tr("q.asking", { d: q.done, t: q.total });
         // En espera el tiempo es fijo: la barra avanza con la cuenta regresiva.
         if (q.cooldown_s > 0) { cdMax = Math.max(cdMax, q.cooldown_s); }

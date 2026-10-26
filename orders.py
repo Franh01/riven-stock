@@ -26,6 +26,7 @@ def cheapest_online(auctions, n=8):
 class OrderCache:
     IDLE_S = 30        # sin uso de la app durante este tiempo = idle
     TTL_S = 600        # pasado esto una entrada se vuelve a cargar
+    USER_RESERVE = 6   # búsquedas por minuto que el recorrido de fondo deja libres (abrir un riven pide hasta 5)
     PAUSE_S = 6        # descanso entre armas: la búsqueda de contratos admite ~10-20 pedidos por minuto (docs rules)
     BACKOFF_S = 10     # primera espera tras un error (429, red); se duplica en cada error seguido
     BACKOFF_MAX_S = 60  # tope: una ventana completa del límite por minuto
@@ -188,6 +189,8 @@ class OrderCache:
         while not self._stop.wait(self.PAUSE_S):
             loophealth.beat("cache", self.PAUSE_S)
             if not self.idle() or QUEUE.busy():   # nunca le roba turno a lo que pidió el usuario
+                continue
+            if QUEUE.search_room() < self.USER_RESERVE:   # deja búsquedas libres para cuando abras un riven
                 continue
             try:
                 todo = [w for w in self.wanted_fn() if not self.get(w, self.TTL_S)]

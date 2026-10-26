@@ -28,6 +28,12 @@ COOLDOWN_S = 10       # primera espera tras un 429; se duplica en cada reintento
 COOLDOWN_MAX_S = 60
 NET_RETRIES = 3       # reintentos ante timeouts o cortes de red antes de mostrar el error
 NET_WAIT_S = 3        # espera base; se duplica en cada reintento
+# Tope aparte para la búsqueda de contratos: Cloudflare (error 1015) frena con 11-14 búsquedas en un
+# minuto (medido en el log del 23 al 26/10), aunque vayan de a una cada 6 s. Lo comparten todos los
+# que buscan (recorrido de fondo, abrir un riven, Mercado), así que ninguna ráfaga se escapa.
+SEARCH_LABEL = "get_rivens_by_weapon"
+SEARCH_PER_MIN = 9
+SEARCH_WINDOW_S = 60
 
 _TRANSIENT = (requests.exceptions.Timeout, requests.exceptions.ConnectionError, socket.timeout,
               TimeoutError, ConnectionError, websocket.WebSocketException)
@@ -66,6 +72,8 @@ class RequestQueue:
         self._cond = threading.Condition()
         self._stamps = deque()      # momentos en que arrancaron los últimos pedidos
         self._cooldown_until = 0.0
+        self._search_stamps = deque()   # arranques de búsquedas de contratos en el último minuto
+        self._pace_until = 0.0          # hasta cuándo espera una búsqueda por el tope por minuto
         self._reason = "limit"      # por qué espera la cola: limit (429) o net (sin conexión)
         self._active = None
         self._log = deque(maxlen=30)   # últimos pedidos que arrancaron (para mostrarlos en la UI)
@@ -94,6 +102,16 @@ class RequestQueue:
         with self._cond:
             return [dict(e) for e in self._log if e["id"] > since]
 
+    def search_room(self):
+        """Búsquedas de contratos que se pueden hacer ya sin pasar el tope por minuto."""
+        with self._cond:
+            self._trim_searches(self._clock())
+            return SEARCH_PER_MIN - len(self._search_stamps)
+
+    def _trim_searches(self, now):
+        while self._search_stamps and self._search_stamps[0] <= now - SEARCH_WINDOW_S:
+            self._search_stamps.popleft()
+
     def busy(self):
         """True si hay pedidos esperando o en curso (el cargador de fondo no debe meterse)."""
         with self._cond:
@@ -105,6 +123,9 @@ class RequestQueue:
             waiting = len(self._q) + (1 if self._active else 0)
             now = self._clock()
             cooldown = max(0.0, self._cooldown_until - now)
+            pace = max(0.0, self._pace_until - now)
+            reason = "pace" if pace > cooldown else self._reason
+            cooldown = max(cooldown, pace)
             total = self._total
             return {
                 "pending": waiting,
@@ -113,7 +134,7 @@ class RequestQueue:
                 "percent": round(100 * self._done / total) if total else 100,
                 "eta_s": round(waiting * self.window / self.max + cooldown, 1),
                 "cooldown_s": round(cooldown, 1),
-                "reason": self._reason,
+                "reason": reason,
                 "label": (self._active.label if self._active else (self._q[0].label if self._q else "")),
             }
 
@@ -144,16 +165,27 @@ class RequestQueue:
             except Exception:
                 log.exception("Falla en el vigilante de la cola")
 
-    def _wait_slot(self):
+    def _wait_slot(self, job=None):
         """Bloquea hasta que se pueda arrancar un pedido sin pasar el límite, y lo registra."""
+        search = job is not None and job.label.startswith(SEARCH_LABEL)
         while True:
             now = self._clock()
             while self._stamps and self._stamps[0] <= now - self.window:
                 self._stamps.popleft()
             wait = max(self._cooldown_until - now,
                        (self._stamps[0] + self.window - now) if len(self._stamps) >= self.max else 0.0)
+            with self._cond:
+                self._trim_searches(now)
+                pace = (self._search_stamps[0] + SEARCH_WINDOW_S - now) if search and len(self._search_stamps) >= SEARCH_PER_MIN else 0.0
+                self._pace_until = now + pace if pace > 0 else 0.0
+            if pace > 0 and pace >= wait:
+                log.info("Tope de %d búsquedas por minuto: %s espera %.0f s", SEARCH_PER_MIN, job.label, pace)
+            wait = max(wait, pace)
             if wait <= 0:
                 self._stamps.append(now)
+                if search:
+                    with self._cond:
+                        self._search_stamps.append(now)
                 return
             self._sleep(wait)
 
@@ -186,7 +218,7 @@ class RequestQueue:
                     self._cond.wait()
                 job = self._q.popleft()
                 self._active = job
-            self._wait_slot()
+            self._wait_slot(job)
             with self._cond:
                 self._seq += 1
                 seq, depth = self._seq, len(self._q)
