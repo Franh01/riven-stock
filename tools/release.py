@@ -51,6 +51,13 @@ def main():
             run(sys.executable, "tools/build_weapon_data.py")
         except subprocess.CalledProcessError:
             print("Aviso: no se pudo actualizar data/weapon_stats.json; se usa la anterior.")
+        try:   # etiqueta caro/barato: reentrena con las ventas de la nube; si falla se publica el modelo anterior
+            ventas = ROOT / "dist" / "ventas.json"
+            ventas.parent.mkdir(exist_ok=True)
+            run("node", "tools/export_sales.js", str(ventas))
+            run(sys.executable, "tools/train_tier.py", str(ventas))
+        except (subprocess.CalledProcessError, OSError):
+            print("Aviso: no se pudo reentrenar data/tier_model.json; se usa el anterior.")
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
     zpath = dist / f"riven-stock-v{ver}.zip"
@@ -85,7 +92,7 @@ def main():
     setup = dist / f"RivenStock-v{ver}-Setup.exe"
     setupsha = dist / (setup.name + ".sha256")
 
-    run("git", "add", "VERSION", "CHANGELOG.md", "data/weapon_stats.json")
+    run("git", "add", "VERSION", "CHANGELOG.md", "data/weapon_stats.json", "data/tier_model.json")
     run("git", "commit", "-m", f"Version {ver}\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>")
     run("git", "tag", f"v{ver}")
     run("git", "push", "origin", "HEAD", f"v{ver}")
