@@ -2425,8 +2425,11 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       const slug = statCombos[i].value;
       if (!slug) return null;
       let value = parseFloat(el.querySelector(".slot-value").value);
-      // Un negativo en % o segundos va con signo menos aunque lo escriban sin él.
-      if (!SLOTS[i].positive && value > 0 && statBySlug[slug]?.unit !== "multiply") value = -value;
+      // El signo lo pone el slot, no lo que escriban: negativo va con menos, salvo los invertidos
+      // (Weapon Recoil), donde warframe.market espera el positivo con menos y el negativo con más.
+      if (statBySlug[slug]?.unit !== "multiply" && value) {
+        value = Math.abs(value) * (SLOTS[i].positive === !!statBySlug[slug]?.positiveIsNegative ? -1 : 1);
+      }
       return { url_name: slug, positive: SLOTS[i].positive, value };
     }).filter(Boolean);
     return {

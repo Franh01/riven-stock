@@ -34,6 +34,12 @@ class Pricing(unittest.TestCase):
         self.assertEqual(est["price"], 200)
         self.assertEqual(est["confidence"], "alta")
 
+    def test_un_caro_parecido_no_decide_solo(self):
+        caro = (("critical_chance", 100.0), ("multishot", 80.0), ("zoom", 30.0))
+        flojo = (("critical_chance", 100.0), ("fire_rate", 60.0))
+        est = pricing.estimate(MINE, [pub(1, 10000, stats=caro), pub(2, 200, stats=flojo), pub(3, 300, stats=flojo)])
+        self.assertLess(est["price"], 10000)
+
     def test_ignora_el_propio_y_precios_vacios(self):
         market = [pub(i, 200) for i in range(4)] + [{**pub(9, 1), "id": "mine"}, pub(10, 0)]
         est = pricing.estimate(MINE, market, exclude_id="mine")

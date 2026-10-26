@@ -110,7 +110,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         ]
         stats = [
             {"slug": a["slug"], "name": a["i18n"]["en"]["name"], "unit": a.get("unit"),
-             "positiveOnly": bool(a.get("positiveOnly")), "exclusiveTo": a.get("exclusiveTo") or [],
+             "positiveOnly": bool(a.get("positiveOnly")), "positiveIsNegative": bool(a.get("positiveIsNegative")), "exclusiveTo": a.get("exclusiveTo") or [],
              "prefix": a.get("prefix"), "suffix": a.get("suffix")}
             for a in self.client.riven_attributes()
         ]
@@ -551,6 +551,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         orders = self.weapon_orders(weapon, exclude_id)
         view = auction_view(a)
         pool, failed = self._pool_for(weapon, view, orders.pop("market", []))
+        for i in self._book.own:   # tus otras publicaciones no son mercado
+            pool.pop(i, None)
         try:
             rtype = self._rtype(weapon)
         except (WFMError, requests.RequestException):

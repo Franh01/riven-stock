@@ -163,6 +163,11 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
     scored.sort(key=lambda t: -t[0])
     top = scored[:MAX_COMPS]
     pairs = [(o["p"], (sim ** 5) * (1.0 if o["st"] in ("ingame", "online") else 0.5) * _stale(o)) for sim, o in top]
+    # Uno que no es casi el mismo riven no pesa más que todos los demás juntos: si no, un solo caro
+    # decide el precio (Xoris a 10000p con 3 comparables flojos, rango 10000-10000).
+    if len(pairs) > 1:
+        total = sum(w for _, w in pairs)
+        pairs = [(p, w if sim >= 0.8 else min(w, 0.9 * (total - w))) for (p, w), (sim, _) in zip(pairs, top)]
     avg_sim = sum(s for s, _ in top) / len(top)
     conf = "alta" if len(top) >= 6 and avg_sim >= 0.7 else "media" if len(top) >= 3 and avg_sim >= 0.5 else "baja"
     adj, reasons = weapon_adjust(weapon, view["stats"]) if weapon else (1.0, [])
