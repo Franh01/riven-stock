@@ -64,8 +64,19 @@ def _explain_error(res, method, path):
         err = None
     parts = []
     if isinstance(err, dict):
+        flat = {}
+        for field, msgs in err.items():
+            if isinstance(msgs, dict):  # {"item": {"name": [...]}}: el campo real es el de adentro
+                flat.update(msgs)
+            else:
+                flat[field] = msgs
+        err = flat
         for field, msgs in err.items():
             msgs = msgs if isinstance(msgs, list) else [msgs]
+            if field == "name" and "app.form.invalid" in msgs:
+                parts.append("El nombre del riven no es válido: se arma con los stats positivos (por ejemplo Magna-scinak), "
+                             "elegí uno de los sugeridos en la lista")
+                continue
             if field == "starting_price" and "buyout_price" in err:
                 continue  # se manda el mismo valor en ambos: alcanza con avisar del precio
             detail = "; ".join(_CODES.get(str(m), str(m)) for m in msgs)

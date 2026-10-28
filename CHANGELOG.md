@@ -7,10 +7,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 #### Español
 - Publicar un riven con Retroceso del arma como positivo y otro negativo ya no falla con "solo se permite un negativo": la app manda el signo que espera warframe.market para ese atributo invertido.
 - El precio estimado ya no lo decide un solo comparable caro cuando hay pocos y poco parecidos (por ejemplo, un Xoris que daba 10000p con rango 10000-10000). Tus otras publicaciones tampoco cuentan como mercado.
+- Si escribís a mano un nombre de riven que no sale de los stats elegidos (por ejemplo "Magnasus"), la app avisa antes de publicar, y si warframe.market lo rechaza explica que el nombre no es válido en vez de mostrar el error crudo.
 
 #### English
 - Publishing a riven with Weapon Recoil as a positive plus another negative no longer fails with "only one negative allowed": the app sends the sign warframe.market expects for that inverted stat.
 - The estimated price is no longer decided by a single expensive comparable when there are few, loosely matching ones (for example, a Xoris showing 10000p with a 10000-10000 range). Your other listings no longer count as market either.
+- If you type a riven name by hand that doesn't come from the chosen stats (for example "Magnasus"), the app warns you before publishing, and if warframe.market rejects it, it explains the name is invalid instead of showing the raw error.
 
 ## [0.16.0] - 2026-10-25
 

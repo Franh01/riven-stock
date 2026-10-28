@@ -2397,6 +2397,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const tagTitle = tr(guess?.sure ? "nm.suggTip" : "nm.checkTip");
     let hint = "";
     if (!suggested) hint = tr(valuesOk ? "nm.pick" : "nm.fill");
+    // Un nombre escrito a mano que no sale de los stats elegidos lo rechaza warframe.market (ej. "Magnasus").
+    if (custom && chosen && names.length && !names.some((n) => n.toLowerCase() === chosen.toLowerCase())) hint = tr("nm.invalid");
     box.innerHTML = names.map((n) => `<button type="button" class="name-chip ${!custom && n === chosen ? "selected" : ""}" data-name="${esc(n)}">
         ${esc(n)}${n === suggested ? `<small title="${tagTitle}">${tag}</small>` : ""}</button>`).join("") +
       `<button type="button" class="name-chip ${custom ? "selected" : ""}" data-name="">${tr("nm.other")}</button>` +
@@ -2418,6 +2420,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     refreshNames();
   });
   slotEls.forEach((el) => el.querySelector(".slot-value").addEventListener("input", refreshNames));
+  $("#f-name").addEventListener("input", refreshNames);   // avisa al escribir un nombre que no sale de los stats
 
   function readForm() {
     const weapon = currentWeapon();

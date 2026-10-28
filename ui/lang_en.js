@@ -682,6 +682,7 @@ window.LANGS.en = {
   "nm.pick": "Pick the one shown in the game.",
   "nm.fill": "Enter the values to suggest the order.",
   "nm.other": "Other…",
+  "nm.invalid": "That name doesn't match the chosen stats: warframe.market will reject it. Pick one from the list.",
   "rd.edit": "Edit",
   "rd.new": "New riven",
   "rd.draftBack": "We restored what you were entering.",

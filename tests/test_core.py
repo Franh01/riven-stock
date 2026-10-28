@@ -567,5 +567,26 @@ class TierTest(unittest.TestCase):
         self.assertIsNone(pricing.tier("arma_que_no_existe", self.view(("zoom", True))))
 
 
+class ExplainErrorTest(unittest.TestCase):
+    class Res:
+        status_code = 400
+        text = ""
+        def __init__(self, body):
+            self._b = body
+        def json(self):
+            return self._b
+
+    def test_nombre_invalido_se_explica_sin_dict_crudo(self):
+        import wfm_client
+        msg = wfm_client._explain_error(self.Res({"error": {"item": {"name": ["app.form.invalid"]}}}), "POST", "/auctions/create")
+        self.assertIn("nombre del riven no es válido", msg)
+        self.assertNotIn("{", msg)
+
+    def test_precio_sigue_igual(self):
+        import wfm_client
+        msg = wfm_client._explain_error(self.Res({"error": {"buyout_price": ["app.form.invalid"]}}), "POST", "/x")
+        self.assertIn("El precio", msg)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -682,6 +682,7 @@ window.LANGS.es = {
   "nm.pick": "Elegí el que figura en el juego.",
   "nm.fill": "Cargá los valores para sugerir el orden.",
   "nm.other": "Otro…",
+  "nm.invalid": "Ese nombre no coincide con los stats elegidos: warframe.market lo va a rechazar. Elegí uno de la lista.",
   "rd.edit": "Editar",
   "rd.new": "Nuevo riven",
   "rd.draftBack": "Recuperamos lo que estabas cargando.",
