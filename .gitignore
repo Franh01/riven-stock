@@ -21,3 +21,4 @@ cloud/.serverless/
 build/
 .vercel
 crashes/
+riven-stock.log.*
