@@ -1791,7 +1791,7 @@
 "shot": null,
 "status": 20,
 "total": 225.0,
-"type": "Arch-Melee"
+"type": "Melee"
 },
 "corvas": {
 "crit": 40,

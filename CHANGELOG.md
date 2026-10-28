@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.16.1] - 2026-10-28
+
 #### Español
 - Publicar un riven con Retroceso del arma como positivo y otro negativo ya no falla con "solo se permite un negativo": la app manda el signo que espera warframe.market para ese atributo invertido.
 - El precio estimado ya no lo decide un solo comparable caro cuando hay pocos y poco parecidos (por ejemplo, un Xoris que daba 10000p con rango 10000-10000). Tus otras publicaciones tampoco cuentan como mercado.
