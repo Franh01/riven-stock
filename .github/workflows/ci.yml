@@ -1,0 +1,56 @@
+name: CI Windows
+
+# Cada push y cada PR: tests, chequeo del JS, build del exe + instalador y prueba de humo del exe.
+# release.py se niega a publicar un commit cuyo CI no esté en verde.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Chequeo del JS de la interfaz
+        run: python tools/check_js.py
+
+      - name: Tests
+        run: python -m unittest discover -s tests
+
+      - name: Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build del exe y el instalador
+        run: python tools/build_exe.py
+
+      - name: Prueba de humo del exe
+        run: python tools/smoke_exe.py build/dist/RivenStock/RivenStock.exe
+
+      - name: Guardar instalador y log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riven-stock-windows
+          path: |
+            dist/*.exe
+            dist/*.sha256
+            ${{ runner.temp }}/rs-smoke/riven-stock.log
+          if-no-files-found: warn
+          retention-days: 14

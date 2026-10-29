@@ -6,9 +6,12 @@ calcula el sha256, hace commit + tag + push y crea el release en GitHub con `gh`
 Las notas del release salen de la sección del CHANGELOG.
 """
 import hashlib
+import json
 import re
 import subprocess
 import sys
+import time
+import urllib.request
 import zipfile
 from datetime import date
 from pathlib import Path
@@ -23,6 +26,33 @@ def run(*cmd, capture=False):
     return r.stdout.strip() if capture else ""
 
 
+def ci_en_verde(timeout=1800):
+    """True si el workflow 'CI Windows' del commit actual (ya pusheado) terminó en success.
+    Espera hasta `timeout` s a que termine. Usa la API pública de GitHub: el repo es público y no hace falta gh."""
+    sha = run("git", "rev-parse", "HEAD", capture=True)
+    repo = re.search(r"github\.com[:/](.+?)(?:\.git)?$", run("git", "remote", "get-url", "origin", capture=True)).group(1)
+    url = f"https://api.github.com/repos/{repo}/actions/runs?head_sha={sha}"
+    fin = time.time() + timeout
+    while True:
+        try:
+            with urllib.request.urlopen(url, timeout=30) as r:
+                runs = [w for w in json.load(r)["workflow_runs"] if w["name"] == "CI Windows"]
+        except OSError as e:
+            sys.exit(f"No pude consultar el CI de GitHub: {e}")
+        if not runs:
+            print(f"No hay CI para {sha[:7]}: pusheá el commit y esperá a que corra.")
+            return False
+        w = runs[0]
+        if w["status"] == "completed":
+            print(f"CI Windows de {sha[:7]}: {w['conclusion']} ({w['html_url']})")
+            return w["conclusion"] == "success"
+        if time.time() > fin:
+            print("El CI sigue corriendo y se agotó la espera.")
+            return False
+        print(f"CI Windows de {sha[:7]} en curso ({w['status']}), espero...")
+        time.sleep(30)
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     dry = "--dry-run" in sys.argv
@@ -32,6 +62,9 @@ def main():
     if not dry and run("git", "status", "--porcelain", capture=True).replace("?? ", "").strip():
         # Archivos sin commitear (salvo ignorados) harían un release que no coincide con el repo.
         sys.exit("Hay cambios sin commitear. Commiteá primero.")
+
+    if not dry and not ci_en_verde():
+        sys.exit("El CI de Windows de este commit no está en verde; no se publica. Esperá a que termine o corregí el error.")
 
     if subprocess.run([sys.executable, "tools/check_js.py"], cwd=ROOT).returncode:
         sys.exit("El JS de la interfaz tiene errores de sintaxis; no se publica.")
