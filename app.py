@@ -110,7 +110,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         ]
         stats = [
             {"slug": a["slug"], "name": a["i18n"]["en"]["name"], "unit": a.get("unit"),
-             "positiveOnly": bool(a.get("positiveOnly")), "positiveIsNegative": bool(a.get("positiveIsNegative")), "exclusiveTo": a.get("exclusiveTo") or [],
+             "positiveOnly": bool(a.get("positiveOnly")), "positiveIsNegative": bool(a.get("positiveIsNegative")), "negativeOnly": bool(a.get("negativeOnly")), "exclusiveTo": a.get("exclusiveTo") or [],
              "prefix": a.get("prefix"), "suffix": a.get("suffix")}
             for a in self.client.riven_attributes()
         ]
@@ -1074,7 +1074,7 @@ def _traced(name, fn):
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
-        shown = "" if hide else ", ".join([repr(a) for a in args[1:]] + [f"{k}={v!r}" for k, v in kwargs.items()])[:200]
+        shown = "" if hide else ", ".join([repr(a) for a in args[1:]] + [f"{k}={v!r}" for k, v in kwargs.items()])[:600]
         if not quiet:
             logging.info("UI -> %s(%s)", name, shown)
         t0 = time.monotonic()

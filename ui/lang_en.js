@@ -683,6 +683,7 @@ window.LANGS.en = {
   "nm.fill": "Enter the values to suggest the order.",
   "nm.other": "Other…",
   "nm.invalid": "That name doesn't match the chosen stats: warframe.market will reject it. Pick one from the list.",
+  "nm.extraPos": "That name belongs to a riven with one fewer positive: {s} looks like the negative. Move it to the negative slot.",
   "rd.edit": "Edit",
   "rd.new": "New riven",
   "rd.draftBack": "We restored what you were entering.",

@@ -683,6 +683,7 @@ window.LANGS.es = {
   "nm.fill": "Cargá los valores para sugerir el orden.",
   "nm.other": "Otro…",
   "nm.invalid": "Ese nombre no coincide con los stats elegidos: warframe.market lo va a rechazar. Elegí uno de la lista.",
+  "nm.extraPos": "Ese nombre es de un riven con un positivo menos: {s} parece ser el negativo. Pasalo al casillero de negativo.",
   "rd.edit": "Editar",
   "rd.new": "Nuevo riven",
   "rd.draftBack": "Recuperamos lo que estabas cargando.",

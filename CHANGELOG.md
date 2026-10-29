@@ -4,6 +4,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+### Corregido
+- Editar un precio o un costo en la tabla mientras la app refrescaba la posición tiraba un error de la interfaz y cancelaba la edición. Ahora el refresco espera a que termines de editar.
+- Si el nombre que escribís es el del juego pero cargaste el stat negativo como positivo (por ejemplo "Toxicta" con tres positivos), la app te dice cuál stat pasar al casillero de negativo en vez de dejar que warframe.market rechace el nombre.
+- Los stats que solo pueden ser negativos (Chance to Gain Combo Count) ya no se ofrecen en los casilleros de positivos.
+
+#### English
+### Fixed
+- Editing a price or cost in the table while the app refreshed the position threw an interface error and cancelled the edit. The refresh now waits until you finish editing.
+- If the name you type is the in-game one but you entered the negative stat as a positive (for example "Toxicta" with three positives), the app tells you which stat to move to the negative slot instead of letting warframe.market reject the name.
+- Stats that can only be negative (Chance to Gain Combo Count) are no longer offered in the positive slots.
+
 ## [0.16.1] - 2026-10-28
 
 #### Español

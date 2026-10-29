@@ -1424,6 +1424,7 @@ document.addEventListener('mousedown', (e) => {
   }
 
   function renderMine() {
+    if (deferWhileEditing("mine", renderMine)) return;
     const visibles = mine.filter((a) => a.visible).length;
     const rows = sortedMine().filter(matchesQuery).filter((a) => !posFilter || (position[a.id]?.tags.includes(posFilter) && (position[a.id].price == null || position[a.id].price === a.price)));
     renderPosFilter();
@@ -1509,14 +1510,28 @@ document.addEventListener('mousedown', (e) => {
   }
 
   // Edición en la celda (precio y costo): Enter guarda, Esc o salir del campo cancela.
+  // Mientras se edita una celda, redibujar su tabla (por ejemplo, el refresco de posición cada 20 s) sacaría el
+  // campo enfocado: su blur vuelve a dibujar la tabla en medio del innerHTML y tira NotFoundError. Se posterga.
+  let editingIn = null;
+  const deferredRenders = new Set();
+  function deferWhileEditing(id, render) {
+    if (editingIn !== id) return false;
+    deferredRenders.add(render);
+    return true;
+  }
+
   function inlineEdit(span, initial, onSave, onCancel = renderMine) {
+    editingIn = span.closest("#mine, #closed-card")?.id ?? null;
     span.outerHTML = `<input type="number" min="0" step="any" value="${initial ?? ""}" class="inline-input" id="inline-edit">`;
     const input = $("#inline-edit");
     input.focus(); input.select();
     let done = false;
     const finish = (save) => {
       if (done) return; done = true;
+      editingIn = null;
+      const later = [...deferredRenders]; deferredRenders.clear();
       if (save) onSave(input.value.trim()); else onCancel();
+      later.forEach((render) => render());
     };
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
     input.addEventListener("blur", () => finish(false));
@@ -1772,6 +1787,7 @@ document.addEventListener('mousedown', (e) => {
   // ---- Cerrados -------------------------------------------------------------
 
   function renderClosed() {
+    if (deferWhileEditing("closed-card", renderClosed)) return;
     $("#closed-card").hidden = !closed.length;
     const rows = closed.filter(matchesQuery);
     $("#closed-title").textContent = tr("closed.title") + (queryTokens.length ? ` · ${tr("closed.matches", { n: rows.length, t: closed.length })}` : "");
@@ -2300,7 +2316,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       const taken = new Set(statCombos.filter((_, j) => j !== i).map((c) => c.value).filter(Boolean));
       combo.setOptions(catalog.stats
         .filter((s) => (!s.exclusiveTo.length || !type || s.exclusiveTo.includes(type))
-          && (SLOTS[i].positive || !s.positiveOnly) && !taken.has(s.slug))
+          && (SLOTS[i].positive ? !s.negativeOnly : !s.positiveOnly) && !taken.has(s.slug))
         .map((s) => ({ value: s.slug, label: s.name, hint: UNIT[s.unit] })));
       refreshUnit(slotEls[i]);
     });
@@ -2398,7 +2414,13 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     let hint = "";
     if (!suggested) hint = tr(valuesOk ? "nm.pick" : "nm.fill");
     // Un nombre escrito a mano que no sale de los stats elegidos lo rechaza warframe.market (ej. "Magnasus").
-    if (custom && chosen && names.length && !names.some((n) => n.toLowerCase() === chosen.toLowerCase())) hint = tr("nm.invalid");
+    if (custom && chosen && names.length && !names.some((n) => n.toLowerCase() === chosen.toLowerCase())) {
+      hint = tr("nm.invalid");
+      // Si el nombre sale de los otros positivos, el que sobra es el negativo cargado como positivo (ej. "Toxicta").
+      const extra = positives.length === 3 && positives.find((p) => permutations(positives.filter((q) => q !== p).map((q) => q.slug))
+        .some((o) => rivenName(o)?.toLowerCase() === chosen.toLowerCase()));
+      if (extra) hint = tr("nm.extraPos", { s: esc(statBySlug[extra.slug]?.name ?? extra.slug) });
+    }
     box.innerHTML = names.map((n) => `<button type="button" class="name-chip ${!custom && n === chosen ? "selected" : ""}" data-name="${esc(n)}">
         ${esc(n)}${n === suggested ? `<small title="${tagTitle}">${tag}</small>` : ""}</button>`).join("") +
       `<button type="button" class="name-chip ${custom ? "selected" : ""}" data-name="">${tr("nm.other")}</button>` +
