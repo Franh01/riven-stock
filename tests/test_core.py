@@ -45,9 +45,23 @@ class Pricing(unittest.TestCase):
         est = pricing.estimate(MINE, market, exclude_id="mine")
         self.assertEqual(est["n"], 4)
 
-    def test_stats_distintos_no_son_comparables(self):
-        otros = [pub(i, 500, stats=(("zoom", 10.0), ("recoil", -5.0))) for i in range(5)]
-        self.assertIsNone(pricing.estimate(MINE, otros))
+    def test_stats_distintos_dan_estimado_flojo(self):
+        # Sin parecidos no se queda sin precio: usa todos los del arma, con confianza baja y la razón
+        otros = [pub(i, p, stats=(("zoom", 10.0), ("recoil", -5.0))) for i, p in enumerate((100, 300, 500, 700, 900))]
+        est = pricing.estimate(MINE, otros)
+        self.assertEqual(est["confidence"], "baja")
+        self.assertIn("looseComps", [r["key"] for r in est["reasons"]])
+        self.assertGreater(est["price"], 100)  # pesos 0 no lo tiran al más barato
+        self.assertIsNone(pricing.estimate(MINE, []))
+
+    def test_pocos_cercanos_se_mezclan_con_el_resto(self):
+        # 1 medio parecido a 1000 y varios del arma flojos a 100: el precio queda entre los dos
+        market = [pub(0, 1000, stats=(("critical_chance", 100.0), ("zoom", 50.0)))] + \
+                 [pub(i, 100, stats=(("critical_chance", 100.0),)) for i in range(1, 12)]
+        est = pricing.estimate(MINE, market)
+        self.assertIn("fewComps", [r["key"] for r in est["reasons"]])
+        self.assertLess(100, est["price"])
+        self.assertLess(est["price"], 1000)
 
     def test_techo_por_comparables_baratos(self):
         # 3+ muy parecidos a 40 y uno carísimo: el techo 2.5x de la mediana cercana lo recorta

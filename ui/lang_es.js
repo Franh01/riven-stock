@@ -352,6 +352,8 @@ window.LANGS.es = {
   "why.listedLong": "Lleva {d} días publicado a {p}p sin venderse: el estimado se limita.",
   "why.cheaperCap": "Los {n} comparables más parecidos están bastante más baratos: el estimado se limita a ese nivel.",
   "why.staleComps": "Algunos comparables llevan semanas publicados sin venderse: pesan menos.",
+  "why.fewComps": "Solo hay {n} comparable(s) cercano(s): el precio se mezcla con el de rivens menos parecidos del arma.",
+  "why.looseComps": "No hay rivens parecidos publicados: el estimado sale de todos los del arma y es poco confiable.",
   "tier.high": "Probable caro: rivens parecidos suelen venderse arriba de 80p",
   "tier.mid": "Difícil de decir: rivens parecidos se venden tanto por arriba como por debajo de 80p",
   "tier.low": "Probable barato: rivens parecidos casi siempre se venden a 80p o menos",

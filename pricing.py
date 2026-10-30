@@ -32,6 +32,12 @@ TYPE_WEIGHTS = {
 }
 MIN_SIM = 0.35      # por debajo no se considera comparable
 MAX_COMPS = 12      # cuántos comparables entran al cálculo
+LOOSE_SIM = 0.1     # con 1-2 comparables se mezcla con el estimado de rivens menos parecidos
+FEW_WEIGHT = 0.3    # peso (en escala log) de los pocos cercanos en esa mezcla
+# Cuantiles de los precios publicados para (bajo, precio, alto). Las publicaciones baratas se
+# venden y quedan las caras: contra ventas reales (tools/backtest_estimate.py) la mediana daba
+# un estimado 1.43x arriba y el cuantil 0.25 queda centrado.
+QUANTILES = (0.05, 0.25, 0.5)
 
 
 def _w(slug, rtype=None):
@@ -137,6 +143,8 @@ def _stale(o):
 def _wquantile(pairs, q):
     """pairs: [(valor, peso)]; cuantil ponderado."""
     pairs = sorted(pairs)
+    if sum(w for _, w in pairs) <= 0:  # todos con similitud 0 (respaldo sin parecidos): pesan igual
+        pairs = [(v, 1.0) for v, _ in pairs]
     total = sum(w for _, w in pairs)
     acc = 0.0
     for v, w in pairs:
@@ -148,6 +156,25 @@ def _wquantile(pairs, q):
 
 def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
     """view: auction_view de mi riven. Devuelve {price, low, high, n, confidence, comps} o None."""
+    est = _estimate(view, market, exclude_id, rtype, weapon, MIN_SIM)
+    if est is None:
+        # Ningún comparable cercano: mejor un estimado flojo con todos los del arma que ninguno
+        est = _estimate(view, market, exclude_id, rtype, weapon, 0.0)
+        if est:
+            est["confidence"] = "baja"
+            est["reasons"].append({"key": "looseComps"})
+        return est
+    if est["n"] <= 2:
+        # Con 1-2 comparables el precio depende de quién publicó qué: se ancla al resto del arma
+        wide = _estimate(view, market, exclude_id, rtype, weapon, LOOSE_SIM)
+        if wide and wide["n"] > est["n"]:
+            for k in ("price", "low", "high"):
+                est[k] = round(_math.exp(FEW_WEIGHT * _math.log(est[k]) + (1 - FEW_WEIGHT) * _math.log(wide[k])))
+            est["reasons"].append({"key": "fewComps", "n": est["n"]})
+    return est
+
+
+def _estimate(view, market, exclude_id, rtype, weapon, min_sim):
     pos, neg = _split(view["stats"])
     if not pos or not market:
         return None
@@ -156,7 +183,7 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
         if o["id"] == exclude_id or not o["p"]:
             continue
         sim = similarity(pos, neg, view.get("rolls") or 0, o, rtype, view.get("rank"))
-        if sim >= MIN_SIM:
+        if sim >= min_sim:
             scored.append((sim, o))
     if not scored:
         return None
@@ -171,7 +198,7 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
     avg_sim = sum(s for s, _ in top) / len(top)
     conf = "alta" if len(top) >= 6 and avg_sim >= 0.7 else "media" if len(top) >= 3 and avg_sim >= 0.5 else "baja"
     adj, reasons = weapon_adjust(weapon, view["stats"]) if weapon else (1.0, [])
-    price, low, high = (round(_wquantile(pairs, q) * adj) for q in (0.5, 0.25, 0.75))
+    low, price, high = (max(1, round(_wquantile(pairs, q) * adj)) for q in QUANTILES)
     # Techo 1: lo que ya lleva publicado sin venderse a mi precio
     days = _age_days(view.get("created")) if view.get("created") and view.get("price") else None
     if days is not None and days >= 3:

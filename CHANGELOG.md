@@ -4,6 +4,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+### Cambiado
+- El precio estimado ahora apunta al precio al que realmente se venden rivens parecidos y no al que se publican: antes quedaba en promedio un 40% arriba. Medido contra 4000 ventas reales, el error típico bajó de 1.9x a 1.5x.
+- Con uno o dos comparables cercanos, el estimado se mezcla con el resto de los rivens del arma en vez de depender de un solo vendedor. Lo explica en las razones del precio.
+- Si no hay ningún riven parecido publicado, en vez de no mostrar precio da un estimado con confianza baja a partir de todos los del arma.
+
+#### English
+### Changed
+- The estimated price now targets what similar rivens actually sell for instead of what they are listed at: it used to be about 40% too high. Measured against 4000 real sales, the typical error dropped from 1.9x to 1.5x.
+- With only one or two close comparables, the estimate is blended with the rest of the weapon's rivens instead of hinging on a single seller. The price reasons say so.
+- When no similar riven is listed, it now gives a low-confidence estimate from all of the weapon's rivens instead of showing no price.
+
 ## [0.16.2] - 2026-10-29
 
 #### Español

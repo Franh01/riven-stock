@@ -352,6 +352,8 @@ window.LANGS.en = {
   "why.listedLong": "Listed for {d} days at {p}p without selling: the estimate is capped.",
   "why.cheaperCap": "The {n} closest comparables are much cheaper: the estimate is capped near that level.",
   "why.staleComps": "Some comparables have been listed for weeks without selling: they weigh less.",
+  "why.fewComps": "Only {n} close comparable(s): the price is blended with less similar rivens of the weapon.",
+  "why.looseComps": "No similar rivens are listed: the estimate uses every riven of the weapon and is unreliable.",
   "tier.high": "Likely pricey: similar rivens usually sell for over 80p",
   "tier.mid": "Hard to call: similar rivens sell both above and below 80p",
   "tier.low": "Likely cheap: almost always sells at 80p or less",
