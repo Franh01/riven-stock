@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.16.2] - 2026-10-29
+
 #### Español
 ### Corregido
 - Editar un precio o un costo en la tabla mientras la app refrescaba la posición tiraba un error de la interfaz y cancelaba la edición. Ahora el refresco espera a que termines de editar.
