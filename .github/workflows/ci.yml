@@ -2,15 +2,19 @@ name: CI Windows
 
 # Cada push y cada PR: tests, chequeo del JS, build del exe + instalador y prueba de humo del exe.
 # release.py se niega a publicar un commit cuyo CI no esté en verde.
+# Un tag vX.Y.Z (lo pushea release.py) además publica el release: zip, instalador, sha256 y notas.
 on:
   push:
     branches: ["**"]
+    tags: ["v*"]
   pull_request:
 
 jobs:
   windows:
     runs-on: windows-latest
     timeout-minutes: 30
+    permissions:
+      contents: write   # gh release create en los tags
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +46,19 @@ jobs:
 
       - name: Prueba de humo del exe
         run: python tools/smoke_exe.py build/dist/RivenStock/RivenStock.exe
+
+      - name: Publicar el release (solo tags v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ver="${GITHUB_REF_NAME#v}"
+          python tools/release.py --ci "$ver"
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/riven-stock-v$ver.zip" "dist/riven-stock-v$ver.zip.sha256" \
+            "dist/RivenStock-v$ver-Setup.exe" "dist/RivenStock-v$ver-Setup.exe.sha256" \
+            --title "Riven Stock $ver" --notes-file dist/notas.md
 
       - name: Guardar instalador y log
         if: always()

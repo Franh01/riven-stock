@@ -5,6 +5,7 @@ y health.json (última versión sana y cuántos arranques seguidos fallaron por 
 import ctypes
 import json
 import os
+import sys
 import shutil
 import threading
 import time
@@ -35,6 +36,12 @@ def _write(p, data):
 
 def _alive(pid):
     """¿Sigue vivo ese proceso? (Windows). Ante la duda, no."""
+    if sys.platform != "win32":
+        try:
+            os.kill(int(pid), 0)
+            return True
+        except Exception:
+            return False
     try:
         h = ctypes.windll.kernel32.OpenProcess(0x1000, False, int(pid))   # QUERY_LIMITED_INFORMATION
         if not h:
