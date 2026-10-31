@@ -171,7 +171,49 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
             for k in ("price", "low", "high"):
                 est[k] = round(_math.exp(FEW_WEIGHT * _math.log(est[k]) + (1 - FEW_WEIGHT) * _math.log(wide[k])))
             est["reasons"].append({"key": "fewComps", "n": est["n"]})
-    return est
+    return calibration.apply(est, _factors(), weapon, rtype)
+
+
+# --- Calibración por arma (calibration.py, la ajusta la nube una vez por día) -----
+# El archivo lo escribe la app al bajarlo; si falta, el estimado sale como siempre.
+_factors_cache = {"mtime": None, "levels": {}}
+_refresh_hook = None
+
+
+def set_refresh_hook(fn):
+    """La app registra acá cómo bajar los factores (en un hilo: nunca frena el estimado)."""
+    global _refresh_hook
+    _refresh_hook = fn
+
+
+_factors_path_override = None
+
+
+def set_factors_path(p):
+    """La app guarda los factores en la carpeta de datos del usuario: el exe
+    empaquetado tiene su carpeta de sólo lectura."""
+    global _factors_path_override
+    _factors_path_override = _Path(p)
+
+
+def factors_path():
+    return _factors_path_override or (_Path(__file__).parent / "data" / "estimator_factors.json")
+
+
+def _factors():
+    p = factors_path()
+    try:
+        mtime = p.stat().st_mtime
+    except OSError:
+        mtime = None
+    if mtime != _factors_cache["mtime"]:
+        _factors_cache.update(mtime=mtime, levels=calibration.load(p) if mtime else {})
+    if _refresh_hook and (mtime is None or _time.time() - mtime > 24 * 3600):
+        try:
+            _refresh_hook()
+        except Exception:  # noqa: BLE001 -- bajarlos nunca puede romper un estimado
+            pass
+    return _factors_cache["levels"]
 
 
 def _estimate(view, market, exclude_id, rtype, weapon, min_sim):
@@ -229,7 +271,10 @@ def _estimate(view, market, exclude_id, rtype, weapon, min_sim):
 import datetime as _dt
 import json as _json
 import math as _math
+import time as _time
 from pathlib import Path as _Path
+
+import calibration
 
 _WSTATS = None
 PHYS_STAT = {"impact_damage": "impact", "puncture_damage": "puncture", "slash_damage": "slash"}

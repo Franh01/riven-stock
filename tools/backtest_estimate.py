@@ -138,10 +138,53 @@ def run(estimate=None):
     return rows, missing
 
 
+def calibrate(estimate=None, train_frac=0.7):
+    """Ajusta los factores por arma con las ventas viejas y mide la mejora en las nuevas.
+
+    La división es temporal, no por arma: el factor se aplica justamente a las armas
+    que tienen historial, así que lo honesto es entrenar con lo que había antes de T
+    y medir en lo que vino después."""
+    import calibration
+    import pricing
+    estimate = estimate or pricing.estimate
+    data = json.loads(CACHE.read_text(encoding="utf-8"))
+    cs = cases(data)
+    rows = []
+    total = len(cs)
+    print(f"PROGRESS 0/{total}", flush=True)
+    for i, (s, view, market, rtype) in enumerate(cs, 1):
+        est = estimate(view, market, rtype=rtype, weapon=s["weapon"])
+        if est and est.get("price"):
+            rows.append((s["weapon"], s["t"], math.log(est["price"] / s["price"])))
+        if i % 500 == 0:
+            print(f"PROGRESS {i}/{total}", flush=True)
+    print(f"PROGRESS {total}/{total}")
+    rows.sort(key=lambda r: r[1])
+    cut = rows[int(len(rows) * train_frac)][1]
+    samples = {}
+    for w, t, e in rows:
+        if t < cut:
+            samples.setdefault(w, []).append(e)
+    factors = calibration.fit(samples)
+    test = [r for r in rows if r[1] >= cut]
+    before = summarize([("antes", e) for _, _, e in test])["antes"]
+    after = summarize([("despues", e + math.log(factors[w]["f"])) if w in factors else ("despues", e)
+                       for w, _, e in test])["despues"]
+    cubiertas = sum(1 for w, _, _ in test if w in factors)
+    print(f"{len(rows)} ventas con estimado; corte {dt.datetime.fromtimestamp(cut, dt.timezone.utc):%Y-%m-%d %H:%M} UTC")
+    print(f"factores para {len(factors)} armas; en la prueba entran {cubiertas} ventas de armas calibradas")
+    for nombre, (n, med, ok, bias) in (("antes", before), ("despues", after)):
+        print(f"{nombre:>8} {n:>6} {math.exp(med):>8.2f}x {ok * 100:>6.1f}% {math.exp(bias):>6.2f}x")
+    top = sorted(factors.items(), key=lambda kv: -abs(math.log(kv[1]["f"])))[:8]
+    for w, e in top:
+        print(f"  {w:<28} n={e['n']:>3} f={e['f']:.2f} (mediana {math.exp(e['med_log']):.2f}x)")
+    return factors, before, after
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["export", "run"])
+    ap.add_argument("cmd", choices=["export", "run", "calibrate"])
     ap.add_argument("--days", type=int, default=14)
     ap.add_argument("--n", type=int, default=4000)
     a = ap.parse_args()
-    export(a.days, a.n) if a.cmd == "export" else run()
+    {"export": lambda: export(a.days, a.n), "run": run, "calibrate": calibrate}[a.cmd]()

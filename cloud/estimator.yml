@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Calibración nocturna del estimador de Riven Stock (pedido de Fran, 2026-10-31).
+  Una Lambda corre una vez por día: mide el error del estimado contra las ventas
+  reales, se autovalida y publica sólo los niveles de corrección que mejoran.
+  La misma función, por su URL, le sirve esos factores a la app.
+
+Parameters:
+  MongoUri:
+    Type: String
+    NoEcho: true
+    Description: Cadena de conexión de MongoDB Atlas (la misma del colector).
+  Schedule:
+    Type: String
+    Default: "cron(0 7 * * ? *)"
+    Description: 07:00 UTC, que para Fran son las 04:00 de Argentina.
+  CodeBucket:
+    Type: String
+    Description: Bucket donde vive el zip (lo sube tools/build_estimator_lambda.py).
+  CodeKey:
+    Type: String
+    Default: estimator.zip
+
+Resources:
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/riven-stock-estimator
+      RetentionInDays: 14
+
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: riven-stock-estimator-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  Function:
+    Type: AWS::Lambda::Function
+    DependsOn: LogGroup
+    Properties:
+      FunctionName: riven-stock-estimator
+      Runtime: python3.12
+      Handler: handler.handler
+      Role: !GetAtt Role.Arn
+      # 12 mil ventas con su mercado tardan unos 6 minutos: 15 es el techo de Lambda.
+      Timeout: 900
+      MemorySize: 1024
+      Environment:
+        Variables:
+          # La conexión va por campo de la función (como en el colector); NoEcho evita
+          # que quede en el texto del stack.
+          MONGODB_URI: !Ref MongoUri
+          ESTIMATOR_SERVE_ONLY: "0"
+      Code:
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeKey
+
+  Url:
+    Type: AWS::Lambda::Url
+    DependsOn: Function
+    Properties:
+      TargetFunctionArn: !GetAtt Function.Arn
+      AuthType: NONE
+      Cors:
+        AllowOrigins: ["*"]
+        AllowMethods: ["GET"]
+
+  UrlPermiso:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Function
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  CadaDia:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: riven-stock-estimator-diario
+      ScheduleExpression: !Ref Schedule
+      State: ENABLED
+      Targets:
+        - Id: estimador
+          Arn: !GetAtt Function.Arn
+
+  PermisoEventos:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Function
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CadaDia.Arn
+
+Outputs:
+  EstimatorUrl:
+    Description: URL pública de los factores (la usa la app)
+    Value: !GetAtt Url.FunctionUrl
+  FunctionName:
+    Value: !Ref Function

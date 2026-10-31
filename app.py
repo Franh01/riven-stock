@@ -60,6 +60,7 @@ from loops import LoopsMixin
 from feedbackapi import FeedbackMixin
 from orders import OrderCache
 from state import Book, slim_to_raw
+import pricing
 from pricing import estimate
 from ratelimit import QUEUE
 from wfm_client import SEARCH_CAP, AuthError, CloudflareError, WFMClient, WFMError, cheapest_ingame
@@ -94,6 +95,11 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             store.backup_if_due()
         except Exception:
             logging.exception("No se pudo migrar o respaldar la base")
+        # Calibración por arma que publica la nube: se guarda en la carpeta de datos del
+        # usuario (el exe empaquetado no puede escribir en la suya) y se baja sola una
+        # vez por día, desde pricing, sin frenar ningún estimado.
+        pricing.set_factors_path(store.DB_PATH.parent / "estimator_factors.json")
+        pricing.set_refresh_hook(self.estimator_refresh)
         self.client = WFMClient()
         self._online = False   # lo mantiene el hilo contador
         self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"))

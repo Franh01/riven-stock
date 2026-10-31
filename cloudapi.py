@@ -3,22 +3,56 @@
 import hashlib
 import json
 import logging
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
+
+import requests
 
 import cloud_backup
 import loophealth
 import store
 import updater
 
+# Calibración del estimado por arma (Lambda riven-stock-estimator, ver cloud/estimator.yml).
+# Publica una vez por día un factor por arma medido contra las ventas reales.
+ESTIMATOR_URL = "https://3s3sggd5nvsrvqsqeupdxhcljy0kpnmz.lambda-url.us-east-1.on.aws/"
+
 
 class CloudMixin:
     CLOUD_EVERY_S = 20 * 3600
+    _estimator_busy = False
 
     def _cloud_set(self, **kv):
         with store.connect() as conn:
             for k, v in kv.items():
                 store.set_setting(conn, k, v)
+
+    def estimator_refresh(self):
+        """Lo llama pricing cuando el archivo de factores está viejo (o no está).
+        Nunca frena un estimado: baja en un hilo y si falla se sigue con lo que haya."""
+        if self._estimator_busy:
+            return
+        threading.Thread(target=self._estimator_download, daemon=True).start()
+
+    def _estimator_download(self):
+        import pricing
+        self._estimator_busy = True
+        try:
+            r = requests.get(ESTIMATOR_URL, timeout=10)
+            r.raise_for_status()
+            d = r.json()
+            if not isinstance(d.get("factors"), dict) or not d.get("updated"):
+                return   # respuesta rara: mejor no pisar lo que ya hay
+            p = pricing.factors_path()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            tmp = p.with_suffix(".tmp")
+            tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+            tmp.replace(p)
+        except (requests.RequestException, ValueError, OSError) as e:
+            logging.info("Calibración: no se pudo bajar los factores (%s)", e)
+        finally:
+            self._estimator_busy = False
 
     def cloud_info(self):
         with store.connect() as conn:
