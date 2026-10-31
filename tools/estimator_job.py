@@ -84,7 +84,11 @@ def choose(train, test):
         cand = dict(factors)
         cand[level] = fitted[level]
         got, usados = evaluate(test, cand)
-        mejor = got["med"] < base["med"] - 1e-4 and got["ok"] >= base["ok"] - 1e-4 and got["n"] > 0
+        # Corregir un sesgo tiene que bajar el error típico Y acercar el sesgo a cero.
+        # Los aciertos dentro de x1.5 son secundarios: toleramos que caigan hasta 2 puntos
+        # (corregir el centro a veces estira apenas la cola) pero no más.
+        mejor = (got["med"] < base["med"] * 0.995 and abs(got["bias"]) <= abs(base["bias"]) + 1e-9
+                 and got["ok"] >= base["ok"] - 0.02 and got["n"] > 0)
         report["niveles"][level] = {"fitted": len(fitted[level]), "test": got, "usados": usados.get(level, 0), "publica": mejor}
         if mejor:
             factors[level] = fitted[level]

@@ -10,12 +10,14 @@ import datetime as dt
 import json
 import math
 import os
+import random
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SINCE_DAYS = 14
 WINDOW_H = 6            # horas de tolerancia para considerar viva una publicación
 MAX_SALES = 20000
+SEED = 7
 COL = "estimator"
 
 import pricing  # noqa: E402
@@ -84,7 +86,11 @@ def cases_from_mongo(limit=MAX_SALES, since_days=SINCE_DAYS, client=None):
     q = {"suspect": {"$exists": False}, "price": {"$gt": 0},
          "detected_at": {"$gte": since.replace(tzinfo=None)}, "confidence": {"$in": ["alta", "media"]}}
     proj = {"_id": 0, "weapon": 1, "price": 1, "attrs": 1, "rolls": 1, "rank": 1, "seller": 1, "detected_at": 1}
-    sales = list(database.sales.find(q, proj).sort("detected_at", -1).limit(limit))
+    # Muestra al azar de toda la ventana, no las más nuevas: con las últimas 20 mil
+    # quedaban 4 días y el corte de entrenamiento/prueba caía sobre poquísimo tiempo.
+    sales = list(database.sales.find(q, proj))
+    random.Random(SEED).shuffle(sales)
+    sales = sales[:limit]
     if not sales:
         return []
     tipos = fetch_rtypes() or stored_rtypes(database[COL])

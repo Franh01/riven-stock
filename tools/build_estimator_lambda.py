@@ -7,6 +7,7 @@ pymongo y los datos que usa pricing, arma el zip y lo sube con CloudFormation.
   python tools/build_estimator_lambda.py --deploy    # sube el zip y actualiza el stack
 """
 import argparse
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -47,14 +48,17 @@ def build(python=None):
 
 
 def deploy(uri):
+    # Clave con el hash del zip: si se sube siempre al mismo lugar, CloudFormation
+    # no ve cambios en el template y deja la versión vieja del código.
+    key = f"estimator-{hashlib.sha256(ZIP.read_bytes()).hexdigest()[:10]}.zip"
     subprocess.run(["aws", "s3", "mb", f"s3://{BUCKET}", "--region", REGION, "--profile", PROFILE],
                    capture_output=True)   # si ya existe, sigue
-    subprocess.run(["aws", "s3", "cp", str(ZIP), f"s3://{BUCKET}/estimator.zip",
+    subprocess.run(["aws", "s3", "cp", str(ZIP), f"s3://{BUCKET}/{key}",
                     "--profile", PROFILE, "--region", REGION], check=True)
     subprocess.run(["aws", "cloudformation", "deploy", "--template-file", str(ROOT / "cloud" / "estimator.yml"),
                     "--stack-name", STACK, "--capabilities", "CAPABILITY_NAMED_IAM",
-                    "--parameter-overrides", f"MongoUri={uri}", f"CodeBucket={BUCKET}", "CodeKey=estimator.zip",
-                    "--profile", PROFILE, "--region", REGION, "--no-fail-on-empty-changeset"], check=True)
+                    "--parameter-overrides", f"MongoUri={uri}", f"CodeBucket={BUCKET}", f"CodeKey={key}",
+                    "--profile", PROFILE, "--region", REGION], check=True)
     out = subprocess.run(["aws", "cloudformation", "describe-stacks", "--stack-name", STACK,
                           "--profile", PROFILE, "--region", REGION,
                           "--query", "Stacks[0].Outputs", "--output", "json"],
