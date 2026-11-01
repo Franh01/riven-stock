@@ -1,4 +1,4 @@
-"""Datos y publicación de la calibración en Mongo (lo que corre en la nube).
+"""Ventas para la calibración e historial de lo publicado, en Mongo (lo que corre en la nube).
 
 El armado de los casos es el mismo del backtest: para cada venta se reconstruye
 el mercado que había cuando se detectó (publicaciones activas de esa arma, sin
@@ -10,17 +10,15 @@ import datetime as dt
 import json
 import math
 import os
-import random
 from pathlib import Path
+
+import pricing
 
 ROOT = Path(__file__).resolve().parent
 SINCE_DAYS = 14
 WINDOW_H = 6            # horas de tolerancia para considerar viva una publicación
 MAX_SALES = 20000
-SEED = 7
 COL = "estimator"
-
-import pricing  # noqa: E402
 
 
 def uri():
@@ -33,7 +31,6 @@ def uri():
 
 
 def db(client=None):
-    from pymongo import MongoClient
     return db_client(client).get_default_database()
 
 
@@ -88,9 +85,8 @@ def cases_from_mongo(limit=MAX_SALES, since_days=SINCE_DAYS, client=None):
     proj = {"_id": 0, "weapon": 1, "price": 1, "attrs": 1, "rolls": 1, "rank": 1, "seller": 1, "detected_at": 1}
     # Muestra al azar de toda la ventana, no las más nuevas: con las últimas 20 mil
     # quedaban 4 días y el corte de entrenamiento/prueba caía sobre poquísimo tiempo.
-    sales = list(database.sales.find(q, proj))
-    random.Random(SEED).shuffle(sales)
-    sales = sales[:limit]
+    # La base la elige y la limita: bajar todas para sortear pesaría en la memoria de la Lambda.
+    sales = list(database.sales.aggregate([{"$match": q}, {"$project": proj}, {"$sample": {"size": limit}}]))
     if not sales:
         return []
     tipos = fetch_rtypes() or stored_rtypes(database[COL])
@@ -122,7 +118,8 @@ def cases_from_mongo(limit=MAX_SALES, since_days=SINCE_DAYS, client=None):
 
 
 def save(doc, rtypes_map=None, client=None):
-    """Publica los factores (un solo documento, el que lee la API) y los tipos usados."""
+    """Guarda los factores publicados, los tipos usados y una línea de historial.
+    La app no lee de acá: baja el archivo público de S3 (handler.publish)."""
     database = db(client)
     col = database[COL]
     col.replace_one({"_id": "factors"}, {**doc, "_id": "factors"}, upsert=True)

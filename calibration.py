@@ -7,16 +7,20 @@ ese sesgo. Con pocas ventas el factor se encoge hacia 1: sólo pesa lo que
 alcanzan los datos.
 
 Lo usan los dos lados: el proceso de la nube (tools/estimator_job.py) lo ajusta
-con todas las ventas, y la app lo aplica en pricing.estimate.
+con una muestra de las ventas recientes, y la app lo aplica en pricing.estimate.
 
 Sin dependencias: sólo stdlib, así el mismo archivo corre en la Lambda.
 """
+import datetime as dt
+import hashlib
 import json
 import math
 from pathlib import Path
 
-# Con menos de MIN_SALES ventas el arma no se toca: el ruido tapa la señal
-# (elegido con la grilla de tools/estimator_job.py sobre 12 mil ventas).
+# Archivo público con los factores (cloud/estimator.yml): la app lo baja y release.py lo verifica.
+ESTIMATOR_URL = "https://riven-stock-estimator-public-099572291636.s3.us-east-1.amazonaws.com/factors.json"
+
+# Con menos de MIN_SALES ventas el arma no se toca: el ruido tapa la señal.
 MIN_SALES = 10
 # Ventas necesarias para que el factor valga la mitad de lo medido.
 SHRINK_K = 10
@@ -24,6 +28,8 @@ SHRINK_K = 10
 CAP = 1.6
 # Por arma se usan como mucho estas ventas (las más nuevas): más no cambia la mediana.
 MAX_PER_WEAPON = 80
+# Factores más viejos que esto no se aplican: si la nube se cae, la app vuelve al estimado puro.
+MAX_AGE_DAYS = 7
 
 
 def factor_entry(logs):
@@ -53,11 +59,26 @@ def fit(samples):
     return out
 
 
+def _usable(e):
+    """(f, n) de una entrada publicada, o None si está rota. Viene de la red y termina
+    en un precio y en el HTML: acá se valida lo que en otro caso rompería un estimado."""
+    try:
+        f, n = float(e["f"]), int(e["n"])
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(f) or f <= 0:
+        return None
+    return min(max(f, 1 / CAP), CAP), n
+
+
 def lookup(levels, weapon, rtype):
-    """El nivel más específico que tenga factor para esa arma (nunca se suman)."""
+    """El nivel más específico que tenga un factor sano para esa arma (nunca se suman)."""
+    if not isinstance(levels, dict):
+        return None, None
     for level, key in (("por_arma", weapon), ("por_tipo", rtype), ("todo", "*")):
-        e = (levels.get(level) or {}).get(key) if levels else None
-        if e:
+        group = levels.get(level)
+        e = group.get(key) if isinstance(group, dict) else None
+        if _usable(e):
             return level, e
     return None, None
 
@@ -69,32 +90,36 @@ def apply(est, levels, weapon, rtype=None):
     _nivel, e = lookup(levels, weapon, rtype)
     if not e:
         return est
-    f = e.get("f") or 1.0
+    f, n = _usable(e)
     if abs(f - 1) < 0.01:      # corrección despreciable: no vale ensuciar la tarjeta
         return est
     for k in ("price", "low", "high"):
         if isinstance(est.get(k), (int, float)) and est[k]:
             est[k] = max(1, round(est[k] * f))
-    est.setdefault("reasons", []).append({"key": "calibrado", "f": round(f, 2), "n": e.get("n")})
+    est.setdefault("reasons", []).append({"key": "calibrado", "f": round(f, 2), "n": n})
     return est
 
 
 def load(path):
-    """Factores publicados (JSON {'factors': {...}}). Si falta o está roto, {}."""
+    """Factores publicados: (niveles, fecha de publicación). Si falta o está roto, ({}, None)."""
     try:
         d = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return {}
+        return {}, None
     f = d.get("factors") if isinstance(d, dict) else None
-    return f if isinstance(f, dict) else {}
+    return (f, d.get("updated")) if isinstance(f, dict) else ({}, None)
 
 
-def dump(factors, path, **meta):
-    """Escribe el JSON publicado. atomic (tmp + replace) para que la app nunca lea a medias."""
-    d = {"v": meta.pop("v", 1), "factors": factors, **meta}
-    p = Path(path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(".tmp")
-    tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
-    tmp.replace(p)
-    return d
+def fresh(updated, now=None):
+    """¿Siguen vigentes? Sin una fecha válida, no: mejor el estimado puro que uno viejo."""
+    try:
+        t = dt.datetime.strptime(updated, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=dt.timezone.utc)
+    except (TypeError, ValueError):
+        return False
+    return (now or dt.datetime.now(dt.timezone.utc)) - t <= dt.timedelta(days=MAX_AGE_DAYS)
+
+
+def code_sha(path):
+    """Huella del código, igual en cualquier sistema (no importan los finales de línea).
+    La nube mide un pricing.py concreto: release.py compara para no publicar otro distinto."""
+    return hashlib.sha256(Path(path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:12]

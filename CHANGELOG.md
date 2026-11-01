@@ -11,12 +11,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 - Si no hay ningún riven parecido publicado, en vez de no mostrar precio da un estimado con confianza baja a partir de todos los del arma.
 - La lista de "Lo que más lo acerca a caro" ahora une los stats con "y" antes del último, en vez de dejarla como una lista de comas que parecía cortada.
 
+### Agregado
+- El precio estimado ahora se corrige solo con las ventas reales de los últimos 14 días, arma por arma. La corrección se comprueba contra ventas que no se usaron para calcularla antes de publicarse, y la app deja de usarla si tiene más de 7 días. Cuando se aplica, aparece en las razones del precio.
+
+### Corregido
+- Al zip de actualización le faltaba un archivo desde la versión 0.16.0, así que la app no abría si la instalabas o actualizabas desde el zip. El instalador no estaba afectado. Si quedaste en esa situación, bajá esta versión de nuevo.
+
 #### English
 ### Changed
 - The estimated price now targets what similar rivens actually sell for instead of what they are listed at: it used to be about 40% too high. Measured against 4000 real sales, the typical error dropped from 1.9x to 1.5x.
 - With only one or two close comparables, the estimate is blended with the rest of the weapon's rivens instead of hinging on a single seller. The price reasons say so.
 - When no similar riven is listed, it now gives a low-confidence estimate from all of the weapon's rivens instead of showing no price.
 - The "What pushes it toward pricey" list now joins the stats with "and" before the last one instead of a bare comma list that looked cut off.
+
+### Added
+- The estimated price now corrects itself with the real sales of the last 14 days, weapon by weapon. The correction is checked against sales that were not used to compute it before it is published, and the app stops using it if it is more than 7 days old. The price reasons show it when it applies.
+
+### Fixed
+- The update zip was missing a file since version 0.16.0, so the app did not open if you installed or updated from the zip. The installer was not affected. If you ended up in that situation, download this version again.
 
 ## [0.16.2] - 2026-10-29
 

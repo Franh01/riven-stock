@@ -3,6 +3,13 @@
 No usa las más baratas (suelen ser los peores rolls): pondera cada publicación por qué tan
 parecida es (stats positivos compartidos, valores, negativo, rerolls) y toma la mediana ponderada.
 """
+import datetime as _dt
+import json as _json
+import math as _math
+import time as _time
+from pathlib import Path as _Path
+
+import calibration
 
 # Stats que el mercado paga más; el resto pesa 1.
 WEIGHTS = {
@@ -163,8 +170,7 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
         if est:
             est["confidence"] = "baja"
             est["reasons"].append({"key": "looseComps"})
-        return est
-    if est["n"] <= 2:
+    elif est["n"] <= 2:
         # Con 1-2 comparables el precio depende de quién publicó qué: se ancla al resto del arma
         wide = _estimate(view, market, exclude_id, rtype, weapon, LOOSE_SIM)
         if wide and wide["n"] > est["n"]:
@@ -176,7 +182,7 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
 
 # --- Calibración por arma (calibration.py, la ajusta la nube una vez por día) -----
 # El archivo lo escribe la app al bajarlo; si falta, el estimado sale como siempre.
-_factors_cache = {"mtime": None, "levels": {}}
+_factors_cache = {"mtime": None, "levels": {}, "updated": None}
 _refresh_hook = None
 
 
@@ -207,13 +213,15 @@ def _factors():
     except OSError:
         mtime = None
     if mtime != _factors_cache["mtime"]:
-        _factors_cache.update(mtime=mtime, levels=calibration.load(p) if mtime else {})
+        levels, updated = calibration.load(p) if mtime else ({}, None)
+        _factors_cache.update(mtime=mtime, levels=levels, updated=updated)
     if _refresh_hook and (mtime is None or _time.time() - mtime > 24 * 3600):
         try:
             _refresh_hook()
         except Exception:  # noqa: BLE001 -- bajarlos nunca puede romper un estimado
             pass
-    return _factors_cache["levels"]
+    # La vigencia se mira siempre: el archivo no cambia, pero vence igual.
+    return _factors_cache["levels"] if calibration.fresh(_factors_cache["updated"]) else {}
 
 
 def _estimate(view, market, exclude_id, rtype, weapon, min_sim):
@@ -267,14 +275,6 @@ def _estimate(view, market, exclude_id, rtype, weapon, min_sim):
                   for s, o in top],
     }
 
-
-import datetime as _dt
-import json as _json
-import math as _math
-import time as _time
-from pathlib import Path as _Path
-
-import calibration
 
 _WSTATS = None
 PHYS_STAT = {"impact_damage": "impact", "puncture_damage": "puncture", "slash_damage": "slash"}

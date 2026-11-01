@@ -135,6 +135,7 @@ El borrador del modal Nuevo riven vive solo en memoria de la UI durante 10 s (`D
 flowchart LR
     A["riven del usuario"] --> P["pricing.estimate<br/>mediana ponderada por similitud<br/>(WEIGHTS por stat)"]
     CA[("caché de órdenes<br/>del arma")] --> P
+    CF["calibration.apply<br/>factor por ventas reales"] --> P
     P --> E["precio estimado"]
     E --> SP["stockcheck.position<br/>barata / cara / estancada<br/>BAND 0,25 · MIN_DIFF 15"]
     E --> OP["opportunities.find<br/>% bajo el estimado, ganancia mínima<br/>máx. 3 por arma, CHEAP_FRACTION 0,3"]
@@ -176,8 +177,13 @@ flowchart LR
     F --> M
     F --> S3[("S3 privado")]
     API --> M
+    EB2["EventBridge<br/>cron 07:00 UTC"] --> L["Lambda riven-stock-estimator<br/>(Python, tools/estimator_job.py)"]
+    M --> L
+    L --> PUB[("S3 público<br/>factors.json")]
+    PUB -- "GET una vez por día" --> APP
 ```
 
+- Calibración: la Lambda cruza las ventas de 14 días con `pricing.estimate`, entrena con lo viejo y publica un nivel (`por_arma`, `por_tipo`, `todo`) solo si mejora en lo nuevo. La app ignora los factores con más de 7 días, así que si la Lambda se cae vuelve sola al estimado sin ajustar. `pricing_sha` registra con qué `pricing.py` se calcularon: `tools/release.py` no publica si no coincide con el del repo.
 - El servidor de backup solo ve bytes cifrados; la clave sale del código de recuperación que tiene el usuario.
 - Credenciales y cuenta AWS: ver notas locales (`.secrets/atlas.env`, perfil `cuenta_personal`). Recursos con tag `project=riven-stock`.
 
@@ -203,7 +209,7 @@ sequenceDiagram
     end
 ```
 
-Publicar: `python tools/release.py X.Y.Z` (git limpio; toma "Sin publicar" del CHANGELOG, corre `tools/check_js.py` (sintaxis del JS y claves es/en) y los tests (`python -m unittest discover -s tests`), arma zip e instalador, pushea, taggea y publica el release). Diseño en `DISENO_AUTOACTUALIZACION.md`.
+Publicar: `python tools/release.py X.Y.Z` (git limpio; toma "Sin publicar" del CHANGELOG, corre `tools/check_js.py` (sintaxis del JS, claves es/en y razones del backend con texto) y los tests (`python -m unittest discover -s tests`), arma zip e instalador, pushea, taggea y publica el release). Diseño en `DISENO_AUTOACTUALIZACION.md`.
 
 ## 9. Áreas de mejora detectadas
 
@@ -211,7 +217,7 @@ Ordenadas por lo que más conviene atacar. Son hallazgos de leer el código, no 
 
 0. **Fuente única, etapas 1 a 3 hechas.** El `Book` es el único lugar de los contratos propios y ajenos; la UI se resincroniza con `own_view` (lee el Book, sin red) tras publicar, cambiar precio o republicar; y `OrderCache.search` es el único punto que pide órdenes de un arma a warframe.market, con un solo pedido en vuelo por arma y stats (single-flight). Pendiente a futuro: el `OrderCache` sigue guardando una copia por arma en disco (`orders`, `market`, `_targeted`) La identidad estable por `lot_id` se evaluó y se descartó: al republicar ya migran costo, lote y horas al id nuevo (`store.migrate_auction`).
 
-1. **Tests parciales.** `tests/test_core.py` cubre `pricing`, `stockcheck`, `opportunities`, `reroll.kuva_cost` e Invertido; falta `autodrop_pass` (vive en `app.py` y depende de la app, se podrá probar al partirlo) y Balance.
+1. **Tests parciales.** `tests/test_core.py` cubre `pricing`, `stockcheck`, `opportunities`, `reroll.kuva_cost` e Invertido; `tests/test_calibration.py` cubre la calibración, el empaquetado y los textos del backend; falta `autodrop_pass` (vive en `app.py` y depende de la app, se podrá probar al partirlo) y Balance.
 2. **`app.py` monolítico (unas 1070 líneas, clase `Api` con más de 100 métodos).** La nube ya salió a `cloudapi.py` (`CloudMixin`, que `Api` hereda sin cambiar nombres de métodos). Los bucles (contador, fotos, oportunidades, bajas) también salieron a `loops.py` (`LoopsMixin`, mismos nombres de métodos; `start_counter`/`stop_counter` quedan en `app.py`). El feedback y los crashes también salieron a `feedbackapi.py` (`FeedbackMixin`; usa `Api.LOG_FILE`). Con esto `app.py` queda con el arranque, el cierre, el estado y el resto de la API.
 3. **`ui/index.html` de unas 3900 líneas en un solo archivo.** HTML, CSS, JS, ayuda y recorridos juntos. Partir al menos el JS y el CSS en archivos facilita revisar cambios y que `check_js.py` señale mejor los errores.
 4. **Archivos sobrantes en el repo:** `_backup/` (copias viejas de app, store, wfm_client, orders, updater) y `poc.py`. Git ya guarda el historial; son candidatos a borrar (hay que confirmarlo antes).

@@ -1,6 +1,7 @@
 """Chequea la sintaxis del JS de la interfaz (scripts embebidos de ui/index.html y ui/*.js) con node.
 Un error de sintaxis deja la UI sin arrancar (esqueletos para siempre), así que release.py lo corre antes de publicar.
-También chequea las claves de idioma: que lang_es.js y lang_en.js tengan las mismas y que las usadas en la UI existan.
+También chequea las claves de idioma: que lang_es.js y lang_en.js tengan las mismas, que las usadas en la UI existan
+y que cada razón del estimado que manda el backend tenga su texto (la UI las pide con tr("why." + r.key), que un grep no ve).
 Uso: python tools/check_js.py   (sale con código 1 si hay error; si no hay node, avisa y sale 0)"""
 import re
 import shutil
@@ -9,7 +10,14 @@ import sys
 import tempfile
 from pathlib import Path
 
-UI = Path(__file__).resolve().parent.parent / "ui"
+ROOT = Path(__file__).resolve().parent.parent
+UI = ROOT / "ui"
+
+
+def razones_backend(root=ROOT):
+    """Claves de las razones del estimado que arma el Python de la app: {"key": "x"} en una línea de reasons."""
+    return {k for f in Path(root).glob("*.py")
+            for k in re.findall(r'reasons.*\{"key":\s*"(\w+)"', f.read_text(encoding="utf-8"))}
 
 
 def claves_idioma():
@@ -24,6 +32,10 @@ def claves_idioma():
         usadas |= set(re.findall(r'tr\("([\w.]+)"', txt)) | set(re.findall(r'data-i18n[\w-]*="([\w.]+)"', txt))
     base = {re.sub(r"\.(one|other)$", "", k) for k in claves["es"]}
     errs += [f"Clave usada y no definida: {k}" for k in sorted(usadas - base)]
+    razones = razones_backend()
+    if not razones:
+        errs.append("No encontré las razones del estimado en el backend: cambió su forma y este chequeo quedó ciego.")
+    errs += [f"Razón del backend sin texto: why.{k}" for k in sorted(razones) if f"why.{k}" not in base]
     return errs
 
 

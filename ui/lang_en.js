@@ -354,6 +354,7 @@ window.LANGS.en = {
   "why.staleComps": "Some comparables have been listed for weeks without selling: they weigh less.",
   "why.fewComps": "Only {n} close comparable(s): the price is blended with less similar rivens of the weapon.",
   "why.looseComps": "No similar rivens are listed: the estimate uses every riven of the weapon and is unreliable.",
+  "why.calibrado": "Adjusted {pct} based on {n} real sales.",
   "tier.high": "Likely pricey: similar rivens usually sell for over 80p",
   "tier.mid": "Hard to call: similar rivens sell both above and below 80p",
   "tier.low": "Likely cheap: almost always sells at 80p or less",
@@ -827,4 +828,6 @@ window.LANGS.en = {
   "help.17.x": "At the bottom of the Market tab you see the weapons with the most sales in the last 24 hours and the ones with the most orders posted right now. The data comes from the app's cloud, which checks warframe.market every 6 hours; sales are estimated (a riven that disappears without being reposted). Tap a weapon to search it on the market. With only a few days of data the lists can swing a lot.",
   "help.18.t": "Closed contracts",
   "help.18.x": "The closed table keeps what you closed from the app. Click the price in the Sold column to mark it sold or fix the price, or leave it empty if it didn't sell (for example, if you pulled it from the market to change its disposition). The trash can removes it from the history without touching warframe.market. Unsold closed rivens can also be used in Transmute. If you close or delete a contract on the website, the app drops it from the list when you come back to the window or try to change it.",
+  "help.19.t": "Adjustment from real sales",
+  "help.19.x": "Once a day the app downloads a correction computed from the real sales of the last 14 days. If a weapon keeps selling below or above what the app estimates, the estimated price is adjusted and the price reasons say so. The correction is only published if it improves accuracy on sales that were not used to compute it, and once it is more than 7 days old the app stops using it and goes back to the unadjusted estimate.",
 };

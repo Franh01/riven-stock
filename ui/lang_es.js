@@ -354,6 +354,7 @@ window.LANGS.es = {
   "why.staleComps": "Algunos comparables llevan semanas publicados sin venderse: pesan menos.",
   "why.fewComps": "Solo hay {n} comparable(s) cercano(s): el precio se mezcla con el de rivens menos parecidos del arma.",
   "why.looseComps": "No hay rivens parecidos publicados: el estimado sale de todos los del arma y es poco confiable.",
+  "why.calibrado": "Ajustado {pct} por lo que se pagó en {n} ventas reales.",
   "tier.high": "Probable caro: rivens parecidos suelen venderse arriba de 80p",
   "tier.mid": "Difícil de decir: rivens parecidos se venden tanto por arriba como por debajo de 80p",
   "tier.low": "Probable barato: rivens parecidos casi siempre se venden a 80p o menos",
@@ -827,4 +828,6 @@ window.LANGS.es = {
   "help.17.x": "Al final de la pestaña Mercado ves las armas con más ventas en las últimas 24 horas y las que más órdenes tienen publicadas ahora. Los datos salen de la nube de la app, que mira warframe.market cada 6 horas; las ventas son estimadas (un riven que desaparece sin ser republicado). Tocá un arma para buscarla en el mercado. Con pocos días de datos las listas pueden variar mucho.",
   "help.18.t": "Contratos cerrados",
   "help.18.x": "La tabla de cerrados guarda lo que cerraste desde la app. Tocá el precio de la columna Vendido para marcarlo vendido o corregir el precio, o dejalo vacío si no se vendió (por ejemplo, si lo sacaste del mercado para cambiarle el balance). El tacho lo borra del historial, sin tocar warframe.market. Los cerrados sin vender también se pueden usar en Transmutar. Si cerrás o borrás un contrato desde la web, la app lo saca de la lista al volver a la ventana o al intentar cambiarlo.",
+  "help.19.t": "Ajuste por ventas reales",
+  "help.19.x": "Una vez por día la app baja una corrección calculada con las ventas reales de los últimos 14 días. Si un arma se viene vendiendo por debajo o por encima de lo que estima la app, el precio estimado se ajusta y lo explica en las razones del precio. La corrección solo se publica si mejora el acierto contra ventas que no se usaron para calcularla, y si tiene más de 7 días la app deja de usarla y vuelve al estimado sin ajustar.",
 };

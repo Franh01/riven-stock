@@ -20,7 +20,11 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-INCLUIR = ["app.py", "cloud_backup.py", "cloudapi.py", "crashes.py", "loops.py", "feedback.py", "feedbackapi.py", "loophealth.py", "netdiag.py", "opportunities.py", "ratelimit.py", "stockcheck.py", "orders.py", "pricing.py", "reroll.py", "store.py", "wfm_client.py", "updater.py", "requirements.txt",
+sys.path.insert(0, str(ROOT))
+
+import calibration  # noqa: E402
+
+INCLUIR = ["app.py", "calibration.py", "cloud_backup.py", "cloudapi.py", "crashes.py", "loops.py", "feedback.py", "feedbackapi.py", "loophealth.py", "netdiag.py", "opportunities.py", "ratelimit.py", "stockcheck.py", "orders.py", "pricing.py", "reroll.py", "state.py", "store.py", "wfm_client.py", "updater.py", "requirements.txt",
            "VERSION", "CHANGELOG.md", "README.md", "instalar.bat", "assets", "data", "tools", "ui", "installer"]
 
 
@@ -117,6 +121,26 @@ def esperar_release(repo, ver, timeout=2700):
     return False
 
 
+def estimador_publicado():
+    """El JSON público de la calibración, o None si no se puede leer."""
+    try:
+        with urllib.request.urlopen(calibration.ESTIMATOR_URL, timeout=15) as r:
+            return json.loads(r.read())
+    except (OSError, ValueError):
+        return None
+
+
+def estimador_desfasado(doc, sha):
+    """Motivo para no publicar, o None. La nube mide un pricing.py: si la app sale con otro,
+    los factores corrigen un estimador que ya no es el que usan los jugadores."""
+    if not isinstance(doc, dict):
+        return "No se pudo leer la calibración publicada (factors.json); no se publica."
+    if doc.get("pricing_sha") != sha:
+        return ("La calibración de la nube se midió con otro pricing.py; no se publica. Redesplegá con "
+                "tools/build_estimator_lambda.py --deploy y corré la Lambda una vez.")
+    return None
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     dry = "--dry-run" in sys.argv
@@ -133,10 +157,15 @@ def main():
         sys.exit("El CI de Windows de este commit no está en verde; no se publica. Esperá a que termine o corregí el error.")
 
     if subprocess.run([sys.executable, "tools/check_js.py"], cwd=ROOT).returncode:
-        sys.exit("El JS de la interfaz tiene errores de sintaxis; no se publica.")
+        sys.exit("El JS o los textos de la interfaz tienen errores; no se publica.")
 
     if subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests"], cwd=ROOT).returncode:
         sys.exit("Fallan los tests; no se publica.")
+
+    if not dry:
+        problema = estimador_desfasado(estimador_publicado(), calibration.code_sha(ROOT / "pricing.py"))
+        if problema:
+            sys.exit(problema)
 
     cl = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     if not notas_de(cl, "Sin publicar"):

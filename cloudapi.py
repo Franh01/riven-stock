@@ -4,24 +4,25 @@ import hashlib
 import json
 import logging
 import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
 
+import calibration
 import cloud_backup
 import loophealth
 import store
 import updater
 
-# Calibración del estimado por arma (Lambda riven-stock-estimator, ver cloud/estimator.yml).
-# Publica una vez por día un factor por arma medido contra las ventas reales.
-ESTIMATOR_URL = "https://3s3sggd5nvsrvqsqeupdxhcljy0kpnmz.lambda-url.us-east-1.on.aws/"
-
 
 class CloudMixin:
     CLOUD_EVERY_S = 20 * 3600
-    _estimator_busy = False
+    # Bajar los factores de calibración: a lo sumo un intento por hora, aunque falle.
+    ESTIMATOR_RETRY_S = 3600
+    _estimator_lock = threading.Lock()
+    _estimator_last = 0.0
 
     def _cloud_set(self, **kv):
         with store.connect() as conn:
@@ -31,18 +32,20 @@ class CloudMixin:
     def estimator_refresh(self):
         """Lo llama pricing cuando el archivo de factores está viejo (o no está).
         Nunca frena un estimado: baja en un hilo y si falla se sigue con lo que haya."""
-        if self._estimator_busy:
-            return
+        with self._estimator_lock:
+            now = time.time()
+            if now - self._estimator_last < self.ESTIMATOR_RETRY_S:
+                return
+            self._estimator_last = now
         threading.Thread(target=self._estimator_download, daemon=True).start()
 
     def _estimator_download(self):
         import pricing
-        self._estimator_busy = True
         try:
-            r = requests.get(ESTIMATOR_URL, timeout=10)
+            r = requests.get(calibration.ESTIMATOR_URL, timeout=10)
             r.raise_for_status()
             d = r.json()
-            if not isinstance(d.get("factors"), dict) or not d.get("updated"):
+            if not isinstance(d, dict) or not isinstance(d.get("factors"), dict) or not d.get("updated"):
                 return   # respuesta rara: mejor no pisar lo que ya hay
             p = pricing.factors_path()
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -51,8 +54,6 @@ class CloudMixin:
             tmp.replace(p)
         except (requests.RequestException, ValueError, OSError) as e:
             logging.info("Calibración: no se pudo bajar los factores (%s)", e)
-        finally:
-            self._estimator_busy = False
 
     def cloud_info(self):
         with store.connect() as conn:

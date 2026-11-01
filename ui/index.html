@@ -3139,7 +3139,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
           ${es.tier ? `<div class="${es.tier.level === "high" ? "below" : es.tier.level === "low" ? "above" : "muted"}" style="margin-top:6px;font-size:12px">${tr("tier." + es.tier.level)}${es.tier.why.length ? `<br>${tr("tier.why", { w: fmtList(es.tier.why.map((k) => { const n = statBySlug[k.slice(1)]?.name ?? k.slice(1).replace(/_/g, " "); return k[0] === "-" ? tr("tier.neg", { n }) : n; })) })}` : ""}</div>` : ""}
           ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">${tr("sum.partial")}</div>` : ""}
           <small class="muted" style="display:block;margin-top:4px">${tr("sum.compsLine", { n: es.n, c: tr("conf." + es.confidence) })}</small>
-          ${(es.reasons || []).map((r) => `<div class="${["negMain", "posUnused", "listedLong", "cheaperCap"].includes(r.key) ? "above" : ["fewComps", "looseComps"].includes(r.key) ? "muted" : "below"}" style="margin-top:4px;font-size:12px">${tr("why." + r.key, { s: String(r.slug || "").replace(/_/g, " "), p: r.share ?? r.p, f: Math.round((1 - (r.f ?? 1)) * 100), d: r.d, n: r.n })}</div>`).join("")}</div>`
+          ${(es.reasons || []).map((r) => `<div class="${["negMain", "posUnused", "listedLong", "cheaperCap"].includes(r.key) ? "above" : ["fewComps", "looseComps", "calibrado"].includes(r.key) ? "muted" : "below"}" style="margin-top:4px;font-size:12px">${tr("why." + r.key, { s: String(r.slug || "").replace(/_/g, " "), p: r.share ?? r.p, f: Math.round((1 - (r.f ?? 1)) * 100), pct: (r.f >= 1 ? "+" : "−") + Math.abs(Math.round(((r.f ?? 1) - 1) * 100)) + "%", d: r.d, n: r.n })}</div>`).join("")}</div>`
       : `<div class="sum-card"><h4>${tr("sum.estimated")}</h4><small class="muted">${tr("sum.noComps")}</small></div>`;
     const comps = es ? `<div class="comp-legend">${tr("sum.legend")}</div><div class="comps">${
       es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><b>${x.price}p</b><span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
@@ -3976,7 +3976,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     const s = await api().token_status(); tokHelpUrl = s.help_url;
     if (!s.has) openToken();
   }
-  const HELP_N = 18;
+  const HELP_N = 19;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><div class="tour-pick"><select id="tour-sel">${["inicio", "stock", "reporte", "backup", "opp"].map((k) => `<option value="${k}">${tr("tour.name." + k)}</option>`).join("")}</select><button class="ghost tour-btn" id="tour-go">${tr("help.tourGo")}</button></div>`;

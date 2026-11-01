@@ -2,8 +2,8 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: >
   Calibración nocturna del estimador de Riven Stock (pedido de Fran, 2026-10-31).
   Una Lambda corre una vez por día: mide el error del estimado contra las ventas
-  reales, se autovalida y publica sólo los niveles de corrección que mejoran.
-  La misma función, por su URL, le sirve esos factores a la app.
+  reales, se autovalida y publica sólo los niveles de corrección que mejoran,
+  en un archivo público de S3 que baja la app.
 
 Parameters:
   MongoUri:
@@ -22,6 +22,30 @@ Parameters:
     Default: estimator.zip
 
 Resources:
+  # Sólo factors.json es público: sin listado y sin poder escribir. La app no tiene
+  # credenciales y lo que se sirve son números, así que una URL pública alcanza.
+  Publico:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub riven-stock-estimator-public-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+
+  PublicoLectura:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Publico
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub ${Publico.Arn}/factors.json
+
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -40,6 +64,14 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: publicar-factores
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub ${Publico.Arn}/factors.json
 
   Function:
     Type: AWS::Lambda::Function
@@ -57,28 +89,10 @@ Resources:
           # La conexión va por campo de la función (como en el colector); NoEcho evita
           # que quede en el texto del stack.
           MONGODB_URI: !Ref MongoUri
-          ESTIMATOR_SERVE_ONLY: "0"
+          ESTIMATOR_BUCKET: !Ref Publico
       Code:
         S3Bucket: !Ref CodeBucket
         S3Key: !Ref CodeKey
-
-  Url:
-    Type: AWS::Lambda::Url
-    DependsOn: Function
-    Properties:
-      TargetFunctionArn: !GetAtt Function.Arn
-      AuthType: NONE
-      Cors:
-        AllowOrigins: ["*"]
-        AllowMethods: ["GET"]
-
-  UrlPermiso:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref Function
-      Action: lambda:InvokeFunctionUrl
-      Principal: "*"
-      FunctionUrlAuthType: NONE
 
   CadaDia:
     Type: AWS::Events::Rule
@@ -101,6 +115,6 @@ Resources:
 Outputs:
   EstimatorUrl:
     Description: URL pública de los factores (la usa la app)
-    Value: !GetAtt Url.FunctionUrl
+    Value: !Sub https://${Publico}.s3.${AWS::Region}.amazonaws.com/factors.json
   FunctionName:
     Value: !Ref Function

@@ -3,12 +3,16 @@
 Mide el error del estimado contra las ventas reales y publica un factor de
 corrección por nivel: todo el mercado, cada tipo de arma y cada arma. Antes de
 publicar se auto-valida: ajusta con las ventas viejas y prueba con las nuevas.
-Un nivel sólo se publica si en la prueba mejora el error típico sin empeorar la
-proporción de aciertos; si no, queda en 1 y la app no cambia nada.
+Un nivel sólo se publica si en la prueba baja el error típico, el sesgo no se
+aleja de cero y los aciertos dentro de x1.5 no caen más de MAX_OK_DROP; si no,
+queda en 1 y la app no cambia nada. Lo aprobado se reajusta con todas las ventas
+para publicar: la prueba valida el método, y el factor final aprovecha lo más nuevo.
 
 Uso:
   python tools/estimator_job.py            # con la caché del backtest (prueba local)
-  python tools/estimator_job.py --mongo    # baja de la nube, ajusta y publica en Mongo
+  python tools/estimator_job.py --mongo    # con las ventas de Mongo, sin publicar nada
+
+Publicar es de la Lambda (tools/estimator_lambda/handler.py).
 """
 import argparse
 import datetime as dt
@@ -21,10 +25,14 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import calibration  # noqa: E402
+import pricing  # noqa: E402
 
 LEVELS = ("por_arma", "por_tipo", "todo")
 # Fracción de la ventana que se usa para entrenar (el resto valida).
 TRAIN_FRAC = 0.6
+# Los aciertos dentro de x1.5 son secundarios: corregir el centro a veces estira apenas
+# la cola, así que se toleran estos puntos de caída pero no más.
+MAX_OK_DROP = 0.02
 
 
 def _median(xs):
@@ -75,8 +83,8 @@ def evaluate(cases, factors):
 
 
 def choose(train, test):
-    """Publica cada nivel sólo si en la prueba (datos que no vio) mejora el error típico
-    sin bajar la proporción dentro de x1.5. Devuelve (factores, informe)."""
+    """Elige los niveles a publicar según la prueba (datos que no vio). Devuelve
+    (factores reajustados con todas las ventas, informe medido sólo con train)."""
     fitted = fit_levels(train)
     base, _ = evaluate(test, {})
     factors, report = {}, {"antes": base, "niveles": {}}
@@ -84,17 +92,16 @@ def choose(train, test):
         cand = dict(factors)
         cand[level] = fitted[level]
         got, usados = evaluate(test, cand)
-        # Corregir un sesgo tiene que bajar el error típico Y acercar el sesgo a cero.
-        # Los aciertos dentro de x1.5 son secundarios: toleramos que caigan hasta 2 puntos
-        # (corregir el centro a veces estira apenas la cola) pero no más.
+        # Corregir un sesgo tiene que bajar el error típico sin alejar el sesgo de cero.
         mejor = (got["med"] < base["med"] * 0.995 and abs(got["bias"]) <= abs(base["bias"]) + 1e-9
-                 and got["ok"] >= base["ok"] - 0.02 and got["n"] > 0)
+                 and got["ok"] >= base["ok"] - MAX_OK_DROP and got["n"] > 0)
         report["niveles"][level] = {"fitted": len(fitted[level]), "test": got, "usados": usados.get(level, 0), "publica": mejor}
         if mejor:
             factors[level] = fitted[level]
             base = got
     report["despues"] = base
-    return factors, report
+    final = fit_levels(train + test)
+    return {level: final[level] for level in factors}, report
 
 
 def split(cases, frac=TRAIN_FRAC):
@@ -105,18 +112,18 @@ def split(cases, frac=TRAIN_FRAC):
 
 
 def publish_shape(factors, report, now=None):
-    """El documento que se guarda y que la app lee."""
+    """El documento que se publica y que la app lee."""
     return {
         "v": 1,
         "updated": (now or dt.datetime.now(dt.timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "factors": {lvl: f for lvl, f in factors.items() if f},
         "validated": {lvl: bool(r.get("publica")) for lvl, r in (report.get("niveles") or {}).items()},
+        "pricing_sha": calibration.code_sha(pricing.__file__),
     }
 
 
 def cases_from_cache(path):
     """Casos desde la caché del backtest (para probar sin Mongo)."""
-    import pricing
     from tools.backtest_estimate import cases as backtest_cases
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     out = []
@@ -131,7 +138,6 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cache", default=str(ROOT / "cache" / "backtest.json"))
     ap.add_argument("--mongo", action="store_true", help="usar Mongo (lo que corre en la nube)")
-    ap.add_argument("--publish", action="store_true", help="guardar en Mongo si se validó")
     a = ap.parse_args()
     if a.mongo:
         import estimator_mongo
@@ -150,10 +156,6 @@ def main():
               f"aciertos {b['ok']*100:.1f}% -> {t['ok']*100:.1f}%")
     print(f"total: med {math.exp(report['antes']['med']):.2f}x -> {math.exp(report['despues']['med']):.2f}x "
           f"({len(doc['factors'])} niveles publicados)")
-    if a.mongo and a.publish:
-        import estimator_mongo
-        estimator_mongo.save(doc)
-        print("publicado en Mongo")
     return doc
 
 
