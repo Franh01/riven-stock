@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.16.4] - 2026-11-02
+
 #### Español
 ### Cambiado
 - Los datos de las armas (reparto de daño, crítico, estado) y la etiqueta caro/barato ahora se actualizan solos una vez por día, sin esperar una versión nueva: un arma recién salida o un cambio de balance llegan al día siguiente. Antes de publicarse, la etiqueta se prueba contra ventas que no se usaron para entrenarla; si algo no pasa la prueba o no se puede bajar, la app sigue con los datos que trae instalados.
