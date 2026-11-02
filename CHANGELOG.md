@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.16.3] - 2026-11-02
+
 #### Español
 ### Cambiado
 - El precio estimado ahora apunta al precio al que realmente se venden rivens parecidos y no al que se publican: antes quedaba en promedio un 40% arriba. Medido contra 4000 ventas reales, el error típico bajó de 1.9x a 1.5x.
