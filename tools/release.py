@@ -38,14 +38,18 @@ def ci_en_verde(timeout=1800):
     Espera hasta `timeout` s a que termine. Usa la API pública de GitHub: el repo es público y no hace falta gh."""
     sha = run("git", "rev-parse", "HEAD", capture=True)
     repo = re.search(r"github\.com[:/](.+?)(?:\.git)?$", run("git", "remote", "get-url", "origin", capture=True)).group(1)
-    url = f"https://api.github.com/repos/{repo}/actions/runs?head_sha={sha}"
+    # Sin ?head_sha=: ese filtro de la API tarda minutos en ver una corrida recién creada.
+    url = f"https://api.github.com/repos/{repo}/actions/runs?per_page=50"
     fin = time.time() + timeout
     while True:
         try:
             with urllib.request.urlopen(url, timeout=30) as r:
-                runs = [w for w in json.load(r)["workflow_runs"] if w["name"] == "CI Windows"]
+                runs = [w for w in json.load(r)["workflow_runs"] if w["name"] == "CI Windows" and w["head_sha"] == sha]
         except OSError as e:
             sys.exit(f"No pude consultar el CI de GitHub: {e}")
+        if not runs and time.time() < fin - timeout + 180:   # recién pusheado: GitHub tarda unos segundos
+            time.sleep(15)
+            continue
         if not runs:
             print(f"No hay CI para {sha[:7]}: pusheá el commit y esperá a que corra.")
             return False
