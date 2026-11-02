@@ -4,6 +4,8 @@ Description: >
   Una Lambda corre una vez por día: mide el error del estimado contra las ventas
   reales, se autovalida y publica sólo los niveles de corrección que mejoran,
   en un archivo público de S3 que baja la app.
+  Una segunda Lambda (2026-11-02) regenera los datos de armas y el modelo
+  caro/barato (weapon_data.json), para que un arma nueva no obligue a sacar versión.
 
 Parameters:
   MongoUri:
@@ -14,6 +16,10 @@ Parameters:
     Type: String
     Default: "cron(0 7 * * ? *)"
     Description: 07:00 UTC, que para Fran son las 04:00 de Argentina.
+  WeaponDataSchedule:
+    Type: String
+    Default: "cron(30 6 * * ? *)"
+    Description: Media hora antes de la calibración, que mide con estos datos.
   CodeBucket:
     Type: String
     Description: Bucket donde vive el zip (lo sube tools/build_estimator_lambda.py).
@@ -22,7 +28,7 @@ Parameters:
     Default: estimator.zip
 
 Resources:
-  # Sólo factors.json es público: sin listado y sin poder escribir. La app no tiene
+  # Sólo factors.json y weapon_data.json son públicos: sin listado y sin poder escribir. La app no tiene
   # credenciales y lo que se sirve son números, así que una URL pública alcanza.
   Publico:
     Type: AWS::S3::Bucket
@@ -44,7 +50,9 @@ Resources:
           - Effect: Allow
             Principal: "*"
             Action: s3:GetObject
-            Resource: !Sub ${Publico.Arn}/factors.json
+            Resource:
+              - !Sub ${Publico.Arn}/factors.json
+              - !Sub ${Publico.Arn}/weapon_data.json
 
   LogGroup:
     Type: AWS::Logs::LogGroup
@@ -71,7 +79,9 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: s3:PutObject
-                Resource: !Sub ${Publico.Arn}/factors.json
+                Resource:
+                  - !Sub ${Publico.Arn}/factors.json
+                  - !Sub ${Publico.Arn}/weapon_data.json
 
   Function:
     Type: AWS::Lambda::Function
@@ -112,9 +122,58 @@ Resources:
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CadaDia.Arn
 
+  ArmasLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/riven-stock-weapon-data
+      RetentionInDays: 14
+
+  # Mismo zip y mismo rol: sólo cambia el handler (tools/weapon_data_job.py).
+  ArmasFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: ArmasLogGroup
+    Properties:
+      FunctionName: riven-stock-weapon-data
+      Runtime: python3.12
+      Handler: handler.handler_armas
+      Role: !GetAtt Role.Arn
+      # Hoy tarda segundos (65 mil ventas); el margen es para cuando crezca.
+      Timeout: 900
+      MemorySize: 1024
+      Environment:
+        Variables:
+          MONGODB_URI: !Ref MongoUri
+          ESTIMATOR_BUCKET: !Ref Publico
+      Code:
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeKey
+
+  ArmasCadaDia:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: riven-stock-weapon-data-diario
+      ScheduleExpression: !Ref WeaponDataSchedule
+      State: ENABLED
+      Targets:
+        - Id: armas
+          Arn: !GetAtt ArmasFunction.Arn
+
+  ArmasPermisoEventos:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ArmasFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ArmasCadaDia.Arn
+
 Outputs:
   EstimatorUrl:
     Description: URL pública de los factores (la usa la app)
     Value: !Sub https://${Publico}.s3.${AWS::Region}.amazonaws.com/factors.json
   FunctionName:
     Value: !Ref Function
+  WeaponDataUrl:
+    Description: URL pública de los datos de armas (la usa la app)
+    Value: !Sub https://${Publico}.s3.${AWS::Region}.amazonaws.com/weapon_data.json
+  WeaponDataFunctionName:
+    Value: !Ref ArmasFunction

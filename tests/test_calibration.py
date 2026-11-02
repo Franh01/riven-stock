@@ -241,6 +241,9 @@ class Lambda(unittest.TestCase):
         parche = mock.patch.dict(sys.modules, {"estimator_job": job})
         parche.start()
         self.addCleanup(parche.stop)
+        red = mock.patch.object(lambda_handler, "_use_published_weapon_data")   # baja weapon_data.json
+        red.start()
+        self.addCleanup(red.stop)
 
     def test_sin_url_ni_rama_http(self):
         self.assertFalse(hasattr(lambda_handler, "serve"))

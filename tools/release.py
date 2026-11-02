@@ -130,6 +130,27 @@ def estimador_publicado():
         return None
 
 
+def bundle_weapon_data(url=None, dest=None):
+    """Copia a data/ lo último que publicó la Lambda de armas (weapon_data.json), para que el
+    instalador salga con datos frescos aunque la app no tenga internet la primera vez.
+    Si no se puede bajar o no valida, quedan los data/*.json que ya están. Devuelve True si copió."""
+    import pricing
+    sys.path.insert(0, str(ROOT / "tools"))
+    import build_weapon_data
+    try:
+        with urllib.request.urlopen(url or pricing.WEAPON_DATA_URL, timeout=30) as r:
+            ok = pricing.check_weapon_data(json.loads(r.read()))
+    except (OSError, ValueError):
+        ok = None
+    if not ok:
+        print("Aviso: no se pudo bajar weapon_data.json publicado; se usan los data/*.json que ya están.")
+        return False
+    dest = dest or ROOT / "data"
+    (dest / "weapon_stats.json").write_text(build_weapon_data.dumps(ok[0]), encoding="utf-8")
+    (dest / "tier_model.json").write_text(json.dumps(ok[1], separators=(",", ":")), encoding="utf-8")
+    return True
+
+
 def estimador_desfasado(doc, sha):
     """Motivo para no publicar, o None. La nube mide un pricing.py: si la app sale con otro,
     los factores corrigen un estimador que ya no es el que usan los jugadores."""
@@ -177,18 +198,7 @@ def main():
         print("--dry-run: no se tocó el repo ni se publicó nada.")
         return
 
-    # Tabla de armas al día en cada release; si no hay internet se publica la que ya está.
-    try:
-        run(sys.executable, "tools/build_weapon_data.py")
-    except subprocess.CalledProcessError:
-        print("Aviso: no se pudo actualizar data/weapon_stats.json; se usa la anterior.")
-    try:   # etiqueta caro/barato: reentrena con las ventas de la nube; si falla se publica el modelo anterior
-        ventas = ROOT / "dist" / "ventas.json"
-        ventas.parent.mkdir(exist_ok=True)
-        run("node", "tools/export_sales.js", str(ventas))
-        run(sys.executable, "tools/train_tier.py", str(ventas))
-    except (subprocess.CalledProcessError, OSError):
-        print("Aviso: no se pudo reentrenar data/tier_model.json; se usa el anterior.")
+    bundle_weapon_data()
     (ROOT / "CHANGELOG.md").write_text(cl, encoding="utf-8")
     (ROOT / "VERSION").write_text(ver + "\n", encoding="utf-8")
 

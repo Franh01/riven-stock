@@ -1,24 +1,30 @@
-"""Lambda del estimador (riven-stock): ajusta la calibración y la publica.
+"""Lambdas del estimador (riven-stock): calibración (handler) y datos de armas (handler_armas).
 
 Corre una vez por día (EventBridge): mide el error contra las ventas reales,
 ajusta los factores, se autovalida y deja en S3 sólo lo que mejora. La app baja
 ese archivo público; la función no tiene URL ni atiende pedidos de nadie.
 
-Los archivos de lógica (pricing.py, calibration.py, estimator_job.py,
-estimator_mongo.py y data/weapon_stats.json) los copia el script de build:
-acá no se duplica nada. boto3 ya viene en el runtime de Lambda.
+handler_armas regenera los datos de armas y el modelo caro/barato
+(tools/weapon_data_job.py) media hora antes, y la calibración mide con esos mismos datos.
+
+Los archivos de lógica (pricing.py, calibration.py, estimator_job.py, weapon_data_job.py,
+estimator_mongo.py, data/*.json...) los copia el script de build: acá no se duplica
+nada. boto3 ya viene en el runtime de Lambda.
 """
 import datetime as dt
 import json
 import os
 
+import urllib.request
+
 FACTORS_KEY = "factors.json"
+WEAPON_DATA_KEY = "weapon_data.json"
 
 
-def publish(doc):
-    """Deja los factores en el bucket público, que es lo único que ve la app."""
+def publish(doc, key=FACTORS_KEY):
+    """Deja el documento en el bucket público, que es lo único que ve la app."""
     import boto3
-    boto3.client("s3").put_object(Bucket=os.environ["ESTIMATOR_BUCKET"], Key=FACTORS_KEY,
+    boto3.client("s3").put_object(Bucket=os.environ["ESTIMATOR_BUCKET"], Key=key,
                                   Body=json.dumps(doc, ensure_ascii=False).encode("utf-8"),
                                   ContentType="application/json", CacheControl="public, max-age=3600")
 
@@ -32,6 +38,7 @@ def run_job():
     import estimator_job
     import estimator_mongo
 
+    _use_published_weapon_data()
     client = estimator_mongo.db_client()
     try:
         cases = estimator_mongo.cases_from_mongo(client=client)
@@ -49,6 +56,44 @@ def run_job():
     return {"ok": True, "casos": len(cases), "entrenamiento": len(train), "prueba": len(test),
             "niveles": resumen, "antes": _stats(report["antes"]), "despues": _stats(report["despues"]),
             "at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+
+def _use_published_weapon_data(path="/tmp/weapon_data.json"):
+    """La calibración mide con los mismos datos de armas que usa la app; si no se pueden
+    bajar, quedan los del zip."""
+    import pricing
+    try:
+        with urllib.request.urlopen(pricing.WEAPON_DATA_URL, timeout=30) as r:
+            body = r.read()
+        if pricing.check_weapon_data(json.loads(body)):
+            with open(path, "wb") as f:
+                f.write(body)
+            pricing.set_weapon_data_path(path)
+    except (OSError, ValueError) as e:
+        print(f"weapon_data.json: {e!r}")
+
+
+def run_weapon_data():
+    import estimator_mongo
+    import weapon_data_job
+
+    client = estimator_mongo.db_client()
+    try:
+        doc, report = weapon_data_job.run(client)
+    finally:
+        client.close()
+    if doc:
+        publish(doc, WEAPON_DATA_KEY)
+    return {"ok": doc is not None, "publicado": doc is not None, **report,
+            "at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+
+def handler_armas(event, context):
+    resumen = run_weapon_data()
+    print(json.dumps(resumen, ensure_ascii=False))
+    if not resumen["ok"]:
+        raise RuntimeError("weapon_data.json no se publicó: ninguna parte pasó la compuerta")
+    return resumen
 
 
 def handler(event, context):

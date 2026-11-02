@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+### Cambiado
+- Los datos de las armas (reparto de daño, crítico, estado) y la etiqueta caro/barato ahora se actualizan solos una vez por día, sin esperar una versión nueva: un arma recién salida o un cambio de balance llegan al día siguiente. Antes de publicarse, la etiqueta se prueba contra ventas que no se usaron para entrenarla; si algo no pasa la prueba o no se puede bajar, la app sigue con los datos que trae instalados.
+
+#### English
+### Changed
+- Weapon data (damage split, crit, status) and the pricey/cheap label now update on their own once a day instead of waiting for a new version: a newly released weapon or a balance change arrives the next day. Before it is published, the label is tested against sales that were not used to train it; if something fails the test or cannot be downloaded, the app keeps using the data it was installed with.
+
 ## [0.16.3] - 2026-11-02
 
 #### Español

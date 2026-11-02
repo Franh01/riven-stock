@@ -18,7 +18,8 @@ def slug(name):
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
-def main():
+def build():
+    """Baja los datos de WFCD y devuelve {slug: datos del arma} (lo que va a data/weapon_stats.json)."""
     out = {}
     for f in FILES:
         with urllib.request.urlopen(BASE + f + ".json", timeout=60) as r:
@@ -39,7 +40,16 @@ def main():
                 "rate": a.get("speed"), "shot": a.get("shot_type"),
                 "multishot": it.get("multishot"),
             }
-    OUT.write_text(json.dumps(out, ensure_ascii=False, indent=0, sort_keys=True), encoding="utf-8")
+    return out
+
+
+def dumps(out):
+    return json.dumps(out, ensure_ascii=False, indent=0, sort_keys=True)
+
+
+def main():
+    out = build()
+    OUT.write_text(dumps(out), encoding="utf-8")
     print(len(out), "armas ->", OUT)
 
 

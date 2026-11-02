@@ -1,7 +1,8 @@
-"""Arma y (si se pide) despliega la Lambda del estimador.
+"""Arma y (si se pide) despliega las Lambdas del estimador y de los datos de armas.
 
 Copia la lógica tal cual está en el repo -- sin duplicar archivos -- junto con
-pymongo y los datos que usa pricing, arma el zip y lo sube con CloudFormation.
+pymongo, numpy y los datos que usa pricing, arma el zip y lo sube con CloudFormation.
+Las dos funciones comparten el zip y cambian sólo el handler.
 
   python tools/build_estimator_lambda.py            # sólo arma dist/estimator.zip
   python tools/build_estimator_lambda.py --deploy    # sube el zip y actualiza el stack
@@ -20,7 +21,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "dist" / "estimator"
 ZIP = ROOT / "dist" / "estimator.zip"
-FILES = {"pricing.py": "", "calibration.py": "", "estimator_mongo.py": "", "estimator_job.py": "tools"}
+FILES = {"pricing.py": "", "calibration.py": "", "estimator_mongo.py": "", "estimator_job.py": "tools",
+         "weapon_data_job.py": "tools", "train_tier.py": "tools", "build_weapon_data.py": "tools"}
 BUCKET = "riven-stock-estimator-099572291636"
 STACK = "riven-stock-estimator"
 PROFILE = "cuenta_personal"
@@ -41,9 +43,13 @@ def build(python=None):
         shutil.copy2(ROOT / sub / f if sub else ROOT / f, OUT / f)
     shutil.copy2(ROOT / "tools" / "estimator_lambda" / "handler.py", OUT / "handler.py")
     (OUT / "data").mkdir()
-    shutil.copy2(ROOT / "data" / "weapon_stats.json", OUT / "data" / "weapon_stats.json")
+    for f in ("weapon_stats.json", "tier_model.json"):
+        shutil.copy2(ROOT / "data" / f, OUT / "data" / f)
+    # Wheels de Linux para el runtime de Lambda (numpy es binario: el de esta PC puede no servir).
     subprocess.run([python, "-m", "pip", "install", "-q", "--target", str(OUT), "--upgrade",
-                    "--no-compile", "pymongo", "dnspython"], check=True)
+                    "--no-compile", "--platform", "manylinux2014_x86_64", "--only-binary=:all:",
+                    "--python-version", "3.12", "--implementation", "cp",
+                    "pymongo", "dnspython", "numpy"], check=True)
     ZIP.parent.mkdir(exist_ok=True)
     if ZIP.exists():
         ZIP.unlink()

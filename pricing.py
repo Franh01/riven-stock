@@ -276,37 +276,121 @@ def _estimate(view, market, exclude_id, rtype, weapon, min_sim):
     }
 
 
-_WSTATS = None
+# --- Datos de armas y modelo caro/barato (la nube los regenera, tools/weapon_data_job.py) -----
+# Un arma nueva o un cambio de balance llegan sin sacar versión: la app baja weapon_data.json
+# una vez por día. Si falta, no valida o venció, se usan los data/*.json que vienen con la app.
+WEAPON_DATA_URL = "https://riven-stock-estimator-public-099572291636.s3.us-east-1.amazonaws.com/weapon_data.json"
+WEAPON_DATA_SCHEMA = 1
+# Más viejo que esto no se usa: si la nube se cae meses, vuelve lo que trae la versión instalada.
+WEAPON_DATA_MAX_AGE_DAYS = 60
+# Menos armas que esto es un archivo roto o a medias (hoy son más de 500).
+WEAPON_DATA_MIN_WEAPONS = 300
+_wd_cache = {"mtime": None, "checked": 0.0, "data": None}
+_wd_path_override = None
+_wd_refresh_hook = None
+_bundle_cache = {}
+
+
+def set_weapon_data_path(p):
+    global _wd_path_override
+    _wd_path_override = _Path(p)
+
+
+def weapon_data_path():
+    return _wd_path_override or (_Path(__file__).parent / "data" / "weapon_data.json")
+
+
+def set_weapon_data_refresh_hook(fn):
+    """La app registra acá cómo bajar weapon_data.json (en un hilo: nunca frena el estimado)."""
+    global _wd_refresh_hook
+    _wd_refresh_hook = fn
+
+
+def _num(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and _math.isfinite(v)
+
+
+def check_weapon_data(d):
+    """Valida el documento publicado. Devuelve (weapon_stats, tier_model, updated) o None."""
+    try:
+        if d.get("schema") != WEAPON_DATA_SCHEMA:
+            return None
+        updated = _dt.datetime.strptime(d["updated"], "%Y-%m-%dT%H:%M:%SZ")
+        ws, tm = d["weapon_stats"], d["tier_model"]
+        if not isinstance(ws, dict) or len(ws) < WEAPON_DATA_MIN_WEAPONS:
+            return None
+        if not all(isinstance(v, dict) and isinstance(v.get("share"), dict) for v in ws.values()):
+            return None
+        c = tm["coef"]
+        if not (isinstance(c, dict) and _num(c.get("icpt")) and _num(c.get("base"))
+                and all(_num(v) for v in c.values()) and _num(tm["hi"]) and _num(tm["lo"])
+                and isinstance(tm["base"], dict) and all(_num(v) for v in tm["base"].values())):
+            return None
+        return ws, tm, updated
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return None
+
+
+def weapon_data_fresh(updated, now=None):
+    now = now or _dt.datetime.now(_dt.timezone.utc).replace(tzinfo=None)
+    return now - updated <= _dt.timedelta(days=WEAPON_DATA_MAX_AGE_DAYS)
+
+
+def _bundle(name):
+    if name not in _bundle_cache:
+        try:
+            _bundle_cache[name] = _json.loads((_Path(__file__).parent / "data" / name).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            _bundle_cache[name] = {}
+    return _bundle_cache[name]
+
+
+def _weapon_data():
+    """(weapon_stats, tier_model) vigentes: los bajados de la nube o, si no sirven, los del bundle."""
+    now = _time.time()
+    if now - _wd_cache["checked"] > 60:   # se llama por cada riven: no mirar el disco cada vez
+        _wd_cache["checked"] = now
+        p = weapon_data_path()
+        try:
+            mtime = p.stat().st_mtime
+        except OSError:
+            mtime = None
+        if mtime != _wd_cache["mtime"]:
+            data = None
+            if mtime:
+                try:
+                    data = check_weapon_data(_json.loads(p.read_text(encoding="utf-8")))
+                except (OSError, ValueError):
+                    data = None
+            _wd_cache.update(mtime=mtime, data=data)
+        if _wd_refresh_hook and (mtime is None or now - mtime > 24 * 3600):
+            try:
+                _wd_refresh_hook()
+            except Exception:  # noqa: BLE001 -- bajarlos nunca puede romper un estimado
+                pass
+    d = _wd_cache["data"]
+    if d and weapon_data_fresh(d[2]):
+        return d[0], d[1]
+    return _bundle("weapon_stats.json"), _bundle("tier_model.json")
+
+
 PHYS_STAT = {"impact_damage": "impact", "puncture_damage": "puncture", "slash_damage": "slash"}
 
 
 def weapon_stats(weapon):
-    """Datos del arma (reparto de daño, crítico, estado) de data/weapon_stats.json; None si no está."""
-    global _WSTATS
-    if _WSTATS is None:
-        try:
-            _WSTATS = _json.loads((_Path(__file__).parent / "data" / "weapon_stats.json").read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            _WSTATS = {}
-    return _WSTATS.get(weapon)
+    """Datos del arma (reparto de daño, crítico, estado); None si no está."""
+    return _weapon_data()[0].get(weapon)
 
 
-_TIER = None
-
-
-def tier(weapon, view):
-    """Etiqueta caro/barato según ventas reales (data/tier_model.json, tools/train_tier.py).
-    Devuelve {level: high|mid|low, p, why: [stats que más suman, con signo]} o None si no hay modelo."""
-    global _TIER
-    if _TIER is None:
-        try:
-            _TIER = _json.loads((_Path(__file__).parent / "data" / "tier_model.json").read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            _TIER = {}
-    if not _TIER:
+def tier(weapon, view, model=None):
+    """Etiqueta caro/barato según ventas reales (tier_model, tools/train_tier.py).
+    Devuelve {level: high|mid|low, p, why: [stats que más suman, con signo]} o None si no hay modelo.
+    model: para medir un modelo recién entrenado (tools/weapon_data_job.py) en vez del vigente."""
+    m = model if model is not None else _weapon_data()[1]
+    if not m:
         return None
-    c = _TIER["coef"]
-    if weapon not in _TIER["base"]:
+    c = m["coef"]
+    if weapon not in m["base"]:
         return None   # sin ventas de esa arma no hay base: mejor no etiquetar
     npos = 0
     parts = {}
@@ -318,9 +402,9 @@ def tier(weapon, view):
     for k, v in (("rolls", _math.log1p(view.get("rolls") or 0)), ("rank10", (view.get("rank") or 0) >= 8), ("npos3", npos == 3)):
         if k in c:
             parts[k] = c[k] * v
-    z = c["icpt"] + c["base"] * _TIER["base"][weapon] + sum(parts.values())
+    z = c["icpt"] + c["base"] * m["base"][weapon] + sum(parts.values())
     p = 1 / (1 + _math.exp(-z))
-    level = "high" if p >= _TIER["hi"] else "low" if p <= _TIER["lo"] else "mid"
+    level = "high" if p >= m["hi"] else "low" if p <= m["lo"] else "mid"
     why = [k for k, v in sorted(parts.items(), key=lambda t: -t[1]) if k[0] in "+-" and v > 0.15][:3]   # "+slug"/"-slug"
     return {"level": level, "p": round(p, 2), "why": why}
 

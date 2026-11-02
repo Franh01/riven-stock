@@ -13,8 +13,9 @@ import numpy as np
 CUT_PRICE, MIN_WEAPON, MIN_STAT = 80, 8, 30
 
 
-def main(path):
-    S = [s for s in json.load(open(path, encoding="utf-8")) if s.get("price", 0) >= 5 and s.get("attrs")]
+def fit(sales):
+    """Entrena con la lista de ventas y devuelve el modelo (el dict que va a data/tier_model.json)."""
+    S = [s for s in sales if s.get("price", 0) >= 5 and s.get("attrs")]
     cnt = collections.Counter(s["weapon"] for s in S)
     S = [s for s in S if cnt[s["weapon"]] >= MIN_WEAPON]
     S.sort(key=lambda s: s["detected_at"])
@@ -49,8 +50,13 @@ def main(path):
     kc = [c for c, k in zip(["icpt", "base"] + cols, keep) if k]
     out = {"coef": {c: round(float(v), 4) for c, v in zip(kc, b)}, "base": base_w, "gm": round(gm, 3),
            "hi": round(float(np.quantile(p, 0.8)), 3), "lo": round(float(np.quantile(p, 0.2)), 3), "n": len(S)}
+    return out
+
+
+def main(path):
+    out = fit(json.load(open(path, encoding="utf-8")))
     Path(__file__).parent.parent.joinpath("data", "tier_model.json").write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
-    print(len(S), "ventas;", len(kc), "coeficientes; umbrales", out["lo"], out["hi"])
+    print(out["n"], "ventas;", len(out["coef"]), "coeficientes; umbrales", out["lo"], out["hi"])
 
 
 if __name__ == "__main__":

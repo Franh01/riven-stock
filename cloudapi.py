@@ -23,6 +23,8 @@ class CloudMixin:
     ESTIMATOR_RETRY_S = 3600
     _estimator_lock = threading.Lock()
     _estimator_last = 0.0
+    _weapon_data_lock = threading.Lock()
+    _weapon_data_last = 0.0
 
     def _cloud_set(self, **kv):
         with store.connect() as conn:
@@ -54,6 +56,32 @@ class CloudMixin:
             tmp.replace(p)
         except (requests.RequestException, ValueError, OSError) as e:
             logging.info("Calibración: no se pudo bajar los factores (%s)", e)
+
+    def weapon_data_refresh(self):
+        """Lo llama pricing cuando weapon_data.json (armas y modelo caro/barato) está viejo o falta.
+        Mismo trato que los factores: en un hilo, a lo sumo un intento por hora."""
+        with self._weapon_data_lock:
+            now = time.time()
+            if now - self._weapon_data_last < self.ESTIMATOR_RETRY_S:
+                return
+            self._weapon_data_last = now
+        threading.Thread(target=self._weapon_data_download, daemon=True).start()
+
+    def _weapon_data_download(self):
+        import pricing
+        try:
+            r = requests.get(pricing.WEAPON_DATA_URL, timeout=20)
+            r.raise_for_status()
+            d = r.json()
+            if not pricing.check_weapon_data(d):
+                return   # no valida: queda lo que había (o el bundle)
+            p = pricing.weapon_data_path()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            tmp = p.with_suffix(".tmp")
+            tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+            tmp.replace(p)
+        except (requests.RequestException, ValueError, OSError) as e:
+            logging.info("Datos de armas: no se pudo bajar weapon_data.json (%s)", e)
 
     def cloud_info(self):
         with store.connect() as conn:

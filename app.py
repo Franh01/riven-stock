@@ -100,6 +100,10 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         # vez por día, desde pricing, sin frenar ningún estimado.
         pricing.set_factors_path(store.DB_PATH.parent / "estimator_factors.json")
         pricing.set_refresh_hook(self.estimator_refresh)
+        # Armas y modelo caro/barato: los regenera la nube cada día (weapon_data.json), así
+        # un arma nueva no obliga a sacar versión. Sin archivo válido se usa data/ del bundle.
+        pricing.set_weapon_data_path(store.DB_PATH.parent / "weapon_data.json")
+        pricing.set_weapon_data_refresh_hook(self.weapon_data_refresh)
         self.client = WFMClient()
         self._online = False   # lo mantiene el hilo contador
         self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"))
