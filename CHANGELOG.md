@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+### Corregido
+- La ventana de nuevo riven (y la de editar) podía abrirse aplastada, mostrando solo una franja con scroll; ahora se abre con su alto completo.
+
+#### English
+### Fixed
+- The new riven window (and the edit one) could open squashed, showing only a thin scrolling strip; it now opens at full height.
+
 ## [0.16.4] - 2026-11-02
 
 #### Español
