@@ -4,6 +4,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+### Agregado
+- Nuevo ajuste "Estancado después de" en Ajustes > Precios y alertas: cuántas horas online al mismo precio sin venderse hacen falta para marcar un riven como Estancado. Es independiente del ajuste automático de precio.
+
+### Corregido
+- La etiqueta Estancado no aparecía en rivens sin estimado confiable ni en los que el ajuste automático ya había dejado en el piso, porque el contador se reiniciaba cada vez que el ajuste decidía no bajar. Ahora cuenta las horas online al precio actual y solo vuelve a cero cuando el precio cambia (también si lo cambiás en la web).
+
+#### English
+### Added
+- New "Stale after" setting in Settings > Prices and alerts: how many online hours at the same price without selling it takes to mark a riven as Stale. It is independent of automatic pricing.
+
+### Fixed
+- The Stale tag did not show up on rivens without a reliable estimate, nor on rivens that automatic pricing had already left at the floor, because the counter reset every time automatic pricing decided not to lower the price. It now counts online hours at the current price and only goes back to zero when the price changes (also if you change it on the website).
+
 ## [0.16.4] - 2026-11-02
 
 #### Español

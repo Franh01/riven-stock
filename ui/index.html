@@ -1403,7 +1403,9 @@ document.addEventListener('mousedown', (e) => {
     const p = position[a.id];
     if (!p || !p.tags.length) return "";
     if (p.price != null && p.price !== a.price) return "";   // etiqueta calculada con un precio anterior
-    const tip = tr("pos.tip", { e: p.estimate, p: (p.pct > 0 ? "+" : "") + p.pct });
+    const stale = p.hours != null ? tr("pos.staleTip", { h: Math.floor(p.hours) }) : "";
+    const tip = p.estimate == null ? stale
+      : tr("pos.tip", { e: p.estimate, p: (p.pct > 0 ? "+" : "") + p.pct }) + (p.tags.includes("estancado") && stale ? " · " + stale : "");
     const adj = (p.tags.includes("caro") || p.tags.includes("barato")) && !busy
       ? `<button type="button" class="pos-adj" data-act="pos-adjust" title="${tr("pos.adjustTip", { p: p.estimate })}">→ ${p.estimate}p</button>` : "";
     return `<div class="pos-tags" title="${esc(tip)}">${p.tags.map((t) => `<span class="pos-tag ${t}">${tr("pos." + t)}</span>`).join("")}${adj}</div>`;
@@ -3231,7 +3233,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   $("#al-x").addEventListener("click", () => $("#alerts-dialog").close());
   for (const id of ["#sum-dialog", "#alerts-dialog"]) $(id).addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   // ---- Configuración del ajuste automático de precio ----
-  const CFG_DEF = { autodrop_enabled: false, autodrop_hours: 10, autodrop_amount: 5, autodrop_floor: 10, invisible_on_close: true };
+  const CFG_DEF = { autodrop_enabled: false, autodrop_hours: 10, autodrop_amount: 5, autodrop_floor: 10, stale_hours: 10, invisible_on_close: true };
   const ovHoursText = (v) => (!v ? "" : v < 1 ? Math.round(v * 60) + "m" : String(+v.toFixed(2)));   // menos de 1 h se muestra en minutos
   const cfgVal = (k) => (settings[k] === undefined || settings[k] === null ? CFG_DEF[k] : settings[k]);
   const OPP_DEF = { opp_threshold: 30, opp_min_gain: 15 };
@@ -3280,6 +3282,8 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
           <input type="range" id="cfg-amount" min="1" max="50" value="${cfgVal("autodrop_amount")}"></div>
         <div class="cfg-row"><span>${tr("cfg.floor")}<small>${tr("cfg.floorSub")}</small></span><span><input type="number" id="cfg-floor" min="1" value="${cfgVal("autodrop_floor")}"> p</span></div>
       </div></div>
+      <div class="sum-card"><div class="cfg-row"><span>${tr("cfg.stale")}<small>${tr("cfg.staleSub")}</small></span><span class="val" id="v-stale">${cfgVal("stale_hours")} h</span>
+        <input type="range" id="cfg-stale" min="1" max="72" value="${cfgVal("stale_hours")}"></div></div>
       <h4 class="cfg-sec">${ic("cog", 16)}${tr("cfg.secGeneral")}</h4>
       <div class="sum-card"><label class="switch-row"><span><b>${tr("cfg.showSlots")}</b><small>${tr("cfg.showSlotsSub")}</small></span>${sw("cfg-showslots", cfgVal("show_slots") !== false)}</label></div>
       <div class="sum-card"><div class="cfg-row"><span>${tr("cfg.slots")}<small>${tr("cfg.slotsSub")}</small></span><span><input type="number" id="cfg-slots" min="1" step="5" value="${cfgVal("riven_slots") || 15}"></span></div></div>
@@ -3376,6 +3380,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   $("#cfg-dialog").addEventListener("mousedown", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $("#cfg-body").addEventListener("input", (e) => {
     if (e.target.id === "cfg-hours") $("#v-hours").textContent = e.target.value + " h";
+    if (e.target.id === "cfg-stale") $("#v-stale").textContent = e.target.value + " h";
     if (e.target.id === "cfg-amount") $("#v-amount").textContent = e.target.value + "p";
   });
   for (const box of [$("#cfg-body"), $("#opp-body")]) box.addEventListener("change", (e) => {
@@ -3384,6 +3389,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     if (t.id === "cl-share") saveCfg("share_sales", t.checked);
     else if (t.id === "cfg-enabled") { saveCfg("autodrop_enabled", t.checked); $("#cfg-params").classList.toggle("cfg-off", !t.checked); toast(tr(t.checked ? "cfg.on" : "cfg.off")); }
     else if (t.id === "cfg-hours") saveCfg("autodrop_hours", Number(t.value));
+    else if (t.id === "cfg-stale") { settings.stale_hours = Number(t.value); api().set_setting("stale_hours", settings.stale_hours).then(loadPosition); }
     else if (t.id === "cfg-amount") saveCfg("autodrop_amount", Number(t.value));
     else if (t.id === "cfg-slots") {
       const v = Math.max(1, Math.round(Number(t.value) || 15)); t.value = v;

@@ -99,6 +99,67 @@ class Stock(unittest.TestCase):
     def test_sin_datos_confiables(self):
         self.assertIsNone(stockcheck.position(MINE, self.MARKET[:2], None, 0, 0))
 
+    def test_estancado_sin_estimado_confiable(self):
+        pos = stockcheck.position(MINE, self.MARKET[:2], None, 20, 10)
+        self.assertEqual(pos["tags"], ["estancado"])
+        self.assertIsNone(pos["estimate"])
+        self.assertEqual(pos["hours"], 20)
+
+
+class HorasAlPrecio(unittest.TestCase):
+    """Estancado cuenta las horas online al precio actual: el reset del autodrop en el piso no las borra."""
+
+    def _riven(self, conn, aid="r1", price=30):
+        store.sync_rivens(conn, [{"id": aid, "buyout_price": price}], prune=False)
+
+    def test_reset_del_piso_no_borra_horas_al_precio(self):
+        with tempfile.TemporaryDirectory() as d, store.connect(Path(d) / "t.db") as conn:
+            self._riven(conn)
+            store.add_riven_seconds(conn, ["r1"], 5 * 3600)
+            store.reset_riven_hours(conn, "r1")            # autodrop en el piso: "otras N horas"
+            store.add_riven_seconds(conn, ["r1"], 15 * 3600)
+            h = store.riven_hours(conn)["r1"]
+            self.assertAlmostEqual(h["hours"], 15)
+            self.assertAlmostEqual(h["price_hours"], 20)
+
+    def test_cambio_de_precio_reinicia(self):
+        with tempfile.TemporaryDirectory() as d, store.connect(Path(d) / "t.db") as conn:
+            self._riven(conn)
+            store.add_riven_seconds(conn, ["r1"], 20 * 3600)
+            store.add_price(conn, "r1", 30, "manual")      # mismo precio: no cuenta como cambio
+            self.assertAlmostEqual(store.riven_hours(conn)["r1"]["price_hours"], 20)
+            store.add_price(conn, "r1", 27, "auto")
+            self.assertEqual(store.riven_hours(conn)["r1"]["price_hours"], 0)
+
+    def test_cambio_en_la_web_reinicia(self):
+        with tempfile.TemporaryDirectory() as d, store.connect(Path(d) / "t.db") as conn:
+            self._riven(conn)
+            store.add_riven_seconds(conn, ["r1"], 20 * 3600)
+            self._riven(conn, price=25)                    # el refresco ve otro precio
+            self.assertEqual(store.riven_hours(conn)["r1"]["price_hours"], 0)
+
+    def test_editar_pasa_las_horas_solo_si_no_cambia_el_precio(self):
+        with tempfile.TemporaryDirectory() as d, store.connect(Path(d) / "t.db") as conn:
+            for old, new, price, esperado in (("a1", "a2", 30, 20), ("b1", "b2", 40, 0)):
+                self._riven(conn, old)
+                store.add_riven_seconds(conn, [old], 20 * 3600)
+                self._riven(conn, new, price)              # mismo orden que el editar de app.py
+                store.migrate_auction(conn, old, new)
+                store.add_price(conn, new, price, "publish")
+                self.assertAlmostEqual(store.riven_hours(conn)[new]["price_hours"], esperado)
+
+    def test_migracion_arranca_con_las_horas_que_habia(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "t.db"
+            with store.connect(path) as conn:
+                self._riven(conn)
+                store.add_riven_seconds(conn, ["r1"], 7 * 3600)
+                conn.execute("ALTER TABLE riven_online_hours DROP COLUMN price_seconds")
+                conn.execute("PRAGMA user_version = 2")
+                conn.commit()
+            with store.connect(path) as conn:
+                self.assertAlmostEqual(store.riven_hours(conn)["r1"]["price_hours"], 7)
+
 
 class Opportunities(unittest.TestCase):
     def test_detecta_el_barato(self):

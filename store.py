@@ -250,7 +250,15 @@ def _m2_sale_hours(conn):
     )""")
 
 
-MIGRATIONS = [_m1_from_transmute, _m2_sale_hours]
+def _m3_price_seconds(conn):
+    # Horas online al precio actual: el autodrop resetea "seconds" en el piso, esta solo se resetea si cambia el precio.
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(riven_online_hours)")}
+    if "price_seconds" not in cols:
+        conn.execute("ALTER TABLE riven_online_hours ADD COLUMN price_seconds REAL NOT NULL DEFAULT 0")
+        conn.execute("UPDATE riven_online_hours SET price_seconds = seconds")
+
+
+MIGRATIONS = [_m1_from_transmute, _m2_sale_hours, _m3_price_seconds]
 
 
 def _migrate(conn, path=DB_PATH):
@@ -448,16 +456,15 @@ def online_seconds(conn):
 
 def sync_rivens(conn, auctions, prune=True):
     """Alinea riven_online_hours con los contratos abiertos: los nuevos empiezan en cero
-    (con su primer precio en el historial) y los que ya no existen se borran."""
+    (con su primer precio en el historial) y los que ya no existen se borran. Un precio cambiado
+    fuera de la app (en la web) queda en el historial como "seen"."""
     ids = {a["id"] for a in auctions}
     known = {r["auction_id"] for r in conn.execute("SELECT auction_id FROM riven_online_hours")}
     now = now_iso()
     for a in auctions:
         if a["id"] not in known:
             conn.execute("INSERT INTO riven_online_hours (auction_id, counting_since) VALUES (?, ?)", (a["id"], now))
-        last = last_price(conn, a["id"])
-        if last is None:
-            add_price(conn, a["id"], a["buyout_price"], "seen", commit=False)
+        add_price(conn, a["id"], a["buyout_price"], "seen", commit=False)
     if prune:   # con una lista parcial (ej. un solo contrato nuevo) NO se poda: borraria los ajustes de los demas
         for gone in known - ids:
             conn.execute("DELETE FROM riven_online_hours WHERE auction_id = ?", (gone,))
@@ -469,10 +476,13 @@ def migrate_auction(conn, old_id, new_id):
     ajustes propios, historial de precios y avisos, para que todo siga apuntando a un contrato vivo."""
     row = conn.execute("SELECT * FROM riven_online_hours WHERE auction_id = ?", (old_id,)).fetchone()
     if row:
+        # las horas al precio actual solo pasan si la edición no cambió el precio
+        new_last, old_last = last_price(conn, new_id), last_price(conn, old_id)
+        same = new_last is None or new_last == old_last
         conn.execute("UPDATE riven_online_hours SET seconds = ?, counting_since = ?, autodrop_on = ?, "
-                     "hours_override = ?, amount_override = ?, floor_override = ? WHERE auction_id = ?",
+                     "hours_override = ?, amount_override = ?, floor_override = ?, price_seconds = ? WHERE auction_id = ?",
                      (row["seconds"], row["counting_since"], row["autodrop_on"], row["hours_override"],
-                      row["amount_override"], row["floor_override"], new_id))
+                      row["amount_override"], row["floor_override"], row["price_seconds"] if same else 0, new_id))
         conn.execute("DELETE FROM riven_online_hours WHERE auction_id = ?", (old_id,))
     for table in ("price_history", "price_drops", "notifications"):
         conn.execute(f"UPDATE {table} SET auction_id = ? WHERE auction_id = ?", (new_id, old_id))
@@ -486,11 +496,15 @@ def last_price(conn, auction_id):
 
 
 def add_price(conn, auction_id, price, source, commit=True):
-    """Registra el precio solo si cambió respecto del último guardado."""
-    if last_price(conn, auction_id) == price:
+    """Registra el precio solo si cambió respecto del último guardado. Un cambio real
+    reinicia las horas al precio actual (las que deciden "Estancado")."""
+    last = last_price(conn, auction_id)
+    if last == price:
         return
     conn.execute("INSERT INTO price_history (auction_id, price, source, at) VALUES (?, ?, ?, ?)",
                  (auction_id, int(price), source, now_iso()))
+    if last is not None:
+        conn.execute("UPDATE riven_online_hours SET price_seconds = 0 WHERE auction_id = ?", (auction_id,))
     if commit:
         conn.commit()
 
@@ -506,13 +520,14 @@ def add_riven_seconds(conn, auction_ids, seconds):
     if not ids:
         return
     marks = ",".join("?" * len(ids))
-    conn.execute(f"UPDATE riven_online_hours SET seconds = seconds + ? WHERE auction_id IN ({marks})",
-                 [float(seconds), *ids])
+    conn.execute(f"UPDATE riven_online_hours SET seconds = seconds + ?, price_seconds = price_seconds + ? "
+                 f"WHERE auction_id IN ({marks})", [float(seconds), float(seconds), *ids])
     conn.commit()
 
 
 def riven_hours(conn):
     return {r["auction_id"]: {"hours": r["seconds"] / 3600, "since": r["counting_since"],
+                              "price_hours": r["price_seconds"] / 3600,
                               "autodrop_on": bool(r["autodrop_on"]),
                               "hours_override": r["hours_override"], "amount_override": r["amount_override"],
                               "floor_override": r["floor_override"]}

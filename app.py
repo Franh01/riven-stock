@@ -134,7 +134,7 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
     # ---- Preferencias (locales) -------------------------------------------
 
     SETTING_KEYS = {"cloud_auto", "lang", "tracked_weapons", "auto_ingame", "mine_sort", "invisible_on_close",
-                    "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "tutorials",
+                    "autodrop_enabled", "autodrop_hours", "autodrop_amount", "autodrop_floor", "stale_hours", "tutorials",
                     "show_requests", "share_sales", "share_notice_seen", "opp_enabled", "opp_weapons", "opp_threshold", "opp_min_gain",
                     "kuva_plat", "riven_slots", "show_slots"}
 
@@ -366,22 +366,23 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             threading.Thread(target=self._fill_for_position, daemon=True).start()
         with store.connect() as conn:
             cfg, hours = store.settings(conn), store.riven_hours(conn)
-        base = cfg.get("autodrop_hours", 10)
+        need = cfg.get("stale_hours", 10)
         out = {}
         for aid, a in list(self._book.own.items()):
             if not a.get("visible", True):
                 continue
+            h = hours.get(aid) or {}
             w = a["item"]["weapon_url_name"]
             e = self._cache.get(w, self.CACHE_MAX_AGE_S)
             if not e or not e.get("market"):
+                if stockcheck.stale(h.get("price_hours"), need):   # estancado no necesita mercado
+                    out[aid] = stockcheck.stale_only(auction_view(a), h.get("price_hours"))
                 continue
-            h = hours.get(aid) or {}
             try:
                 rtype = self._rtype(w)
             except (WFMError, requests.RequestException):
                 rtype = None
-            pos = stockcheck.position(auction_view(a), e["market"], rtype, h.get("hours"),
-                                      h.get("hours_override") or base, weapon=w)
+            pos = stockcheck.position(auction_view(a), e["market"], rtype, h.get("price_hours"), need, weapon=w)
             if pos:
                 out[aid] = pos
         return out
