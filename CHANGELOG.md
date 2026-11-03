@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.16.5] - 2026-11-03
+
 #### Español
 ### Agregado
 - Nuevo ajuste "Estancado después de" en Ajustes > Precios y alertas: cuántas horas online al mismo precio sin venderse hacen falta para marcar un riven como Estancado. Es independiente del ajuste automático de precio.
