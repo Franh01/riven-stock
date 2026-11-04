@@ -2683,10 +2683,17 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   }
   function renderEstimate(es) {
     {
+      const estH = $("#est-section h2"); estH.dataset.i18n = es.source === "model" ? "rd.estTitleSales" : "rd.estTitle"; estH.textContent = tr(estH.dataset.i18n);
       $("#est-summary").innerHTML = `<button class="chip" data-price="${es.low}" title="${tr("rd.useTip")}"><b>${es.low}p</b><span>${tr("rd.fast")} · ${tr("rd.use")}</span></button><button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
-        `<button class="chip" data-price="${es.high}" title="${tr("rd.useTip")}"><b>${es.high}p</b><span>${tr("rd.high")} · ${tr("rd.use")}</span></button><div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>` +
+        `<button class="chip" data-price="${es.high}" title="${tr("rd.useTip")}"><b>${es.high}p</b><span>${tr("rd.high")} · ${tr("rd.use")}</span></button>${es.source === "model" ? `<div class="chip"><b>${(es.sales || []).length}</b><span>${tr("rd.sales")}</span></div>` : `<div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>`}` +
         (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + sellSpeedHtml(es);
-      $("#est-results").innerHTML = `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><div class="muted" style="font-size:12px;margin:6px 0">${tr("rd.stLegend")}</div><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
+      const sales = es.sales || [];
+      $("#est-results").innerHTML = es.source === "model" ? (sales.length ? `<details class="orders"><summary>${tr("rd.seeSales", { n: sales.length })}</summary><div class="muted" style="font-size:12px;margin:6px 0">${tr("rd.salesLegend")}</div><table class="ref-table"><tbody>${sales.map((x) => `<tr>
+        <td class="price">${x.price}p</td>
+        <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
+        <td class="muted">${x.rank == null ? "" : (x.rank >= 8 ? tr("sum.rankMax") : tr("sum.rank", { k: x.rank })) + " · "}${esc(x.rolls ?? "?")} ${tr("rd.rolls").toLowerCase()} · ${tr("rd.similar", { p: Math.round(x.sim * 100) })}</td>
+        <td class="muted">${x.at ? `<span title="${esc(fullDate(x.at))}">${tr("sum.sold", { t: esc(ago(x.at)) })}</span> · ` : ""}${esc(x.seller || "")}</td></tr>`).join("")}</tbody></table></details>` : `<div class="muted" style="font-size:12px">${tr("sum.noSales")}</div>`)
+        : `<details class="orders"><summary>${tr("rd.seeComps", { n: es.comps.length })}</summary><div class="muted" style="font-size:12px;margin:6px 0">${tr("rd.stLegend")}</div><table class="ref-table"><tbody>${es.comps.map((x) => `<tr>
         <td class="price">${x.price}p</td>
         <td><div class="stats">${x.stats.map(formatStat).join("")}</div></td>
         <td class="muted">${x.rank == null ? "" : (x.rank >= 8 ? tr("sum.rankMax") : tr("sum.rank", { k: x.rank })) + " · "}${esc(x.rolls ?? "?")} ${tr("rd.rolls").toLowerCase()} · ${tr("rd.similar", { p: Math.round(x.sim * 100) })}</td>
@@ -2696,9 +2703,10 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   function demoEstimate() {   // estimado de mentira para el tutorial, sin red
     $("#est-section").hidden = false;
     const st = demoRiven().stats;
-    renderEstimate({ price: 95, low: 80, high: 110, n: 5, confidence: "media", partial: false,
-      comps: [[80, 14, .92, "caiwan7"], [90, 6, .88, "syalsim"], [95, 2, .85, "Kibbleray"], [100, 0, .8, "Souza"], [110, 41, .76, "Biker27893"]]
-        .map(([price, rolls, sim, seller]) => ({ price, rolls, sim, seller, stats: st })) });
+    const at = (d) => new Date(Date.now() - d * 864e5).toISOString();
+    renderEstimate({ price: 95, low: 80, high: 110, n: 5, confidence: "media", partial: false, source: "model", comps: [],
+      sales: [[80, 14, .92, "caiwan7"], [90, 6, .88, "syalsim"], [95, 2, .85, "Kibbleray"], [100, 0, .8, "Souza"], [110, 41, .76, "Biker27893"]]
+        .map(([price, rolls, sim, seller], i) => ({ price, rolls, sim, seller, rank: 8, at: at(i + 1), stats: st })) });
   }
   $("#est-help").addEventListener("click", () => {
     const i = $("#est-info");
@@ -3134,16 +3142,23 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
     const verdict = !es ? "" : mk ? (Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">${tr("v.market")}</span>`
         : diff > 0 ? `<span class="below">${tr("v.cheap", { d: diff, p: Math.round(diff / es.price * 100) })}</span>` : `<span class="above">${tr("v.pricey", { d: -diff })}</span>`) : Math.abs(diff) <= es.price * 0.1 ? `<span class="muted">${tr("v.inline")}</span>`
       : diff > 0 ? `<span class="below">${tr("v.askMore", { d: diff })}</span>` : `<span class="above">${tr("v.over", { d: -diff })}</span>`;
-    const estCard = es ? `<div class="sum-card est-link" id="est-card" title="${tr("sum.compsTip")}"><h4>${tr("sum.estimated")}</h4>
+    const bySales = es && es.source === "model", sales = (es && es.sales) || [];   // precio del modelo: se muestran ventas, no publicaciones
+    const estCard = es ? `<div class="sum-card est-link" id="est-card" title="${tr(bySales ? "sum.salesTip" : "sum.compsTip")}"><h4>${tr("sum.estimated")}</h4>
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b class="accent" style="font-size:30px;line-height:1">${es.price}p</b>
             ${es.low !== es.high ? `<span class="muted" style="white-space:nowrap">${tr("sum.range", { a: es.low, b: es.high })}</span>` : ""}</div>
           <div style="margin-top:8px;font-size:13px">${verdict}</div>
           ${es.tier && es.source !== "model" && es.tier.level !== "mid" ? `<div class="${es.tier.level === "high" ? "below" : "above"}" style="margin-top:6px;font-size:12px"${es.tier.why.length ? ` title="${esc(tr("tier.why", { w: fmtList(es.tier.why.map((k) => { const n = statBySlug[k.slice(1)]?.name ?? k.slice(1).replace(/_/g, " "); return k[0] === "-" ? tr("tier.neg", { n }) : n; })) }))}"` : ""}>${tr("tier." + es.tier.level)}</div>` : ""}
           ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">${tr("sum.partial")}</div>` : ""}
-          <small class="muted" style="display:block;margin-top:4px">${tr("sum.compsLine", { n: es.n, c: tr("conf." + es.confidence) })}</small>
+          <small class="muted" style="display:block;margin-top:4px">${bySales ? (sales.length ? tr("sum.salesLine", { n: sales.length }) : tr("sum.noSales")) : tr("sum.compsLine", { n: es.n, c: tr("conf." + es.confidence) })}</small>
           ${(es.reasons || []).map((r) => `<div class="${["negMain", "posUnused", "listedLong", "cheaperCap"].includes(r.key) ? "above" : ["fewComps", "looseComps", "calibrado", "salesModel"].includes(r.key) ? "muted" : "below"}" style="margin-top:4px;font-size:12px">${tr("why." + r.key, { s: String(r.slug || "").replace(/_/g, " "), p: r.share ?? r.p, f: Math.round((1 - (r.f ?? 1)) * 100), pct: (r.f >= 1 ? "+" : "−") + Math.abs(Math.round(((r.f ?? 1) - 1) * 100)) + "%", d: r.d, n: r.n })}</div>`).join("")}</div>`
       : `<div class="sum-card"><h4>${tr("sum.estimated")}</h4><small class="muted">${tr("sum.noComps")}</small></div>`;
-    const comps = es ? `<div class="comp-legend">${tr("sum.legend")}</div><div class="comps">${
+    const comps = bySales ? (sales.length ? `<div class="comp-legend">${tr("sum.salesLegend")}</div><div class="comps">${
+      sales.map((x) => `<div class="comp"><div class="comp-price"><b>${x.price}p</b><span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
+        <div><div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
+        <div class="comp-meta">${rankTxt(x.rank)}${x.at ? `<span class="pub" title="${esc(fullDate(x.at))}">${tr("sum.sold", { t: esc(ago(x.at)) })}</span>` : ""}</div></div>
+        <div class="comp-side"><span class="pres">${x.seller ? `<span class="seller-nm" title="${esc(x.seller)}">${esc(x.seller)}</span>` : ""}</span><div class="comp-sim" title="${tr("sum.simTip")}"><b>${Math.round(x.sim * 100)}%</b><i><u style="width:${Math.round(x.sim * 100)}%"></u></i></div></div></div>`).join("")}</div>`
+      : `<div class="state">${tr("sum.noSales")}</div>`)
+      : es ? `<div class="comp-legend">${tr("sum.legend")}</div><div class="comps">${
       es.comps.map((x) => `<div class="comp ord" data-id="${esc(x.id)}" title="${tr("sum.openTip")}"><div class="comp-price"><b>${x.price}p</b><span>${tr("sum.rolls", { n: x.rolls ?? "?" })}</span></div>
         <div><div class="stats">${x.stats.map((st) => formatStat(st).replace('class="stat ', `class="stat ${st.positive && mineSlugs.has(st.slug) ? "shared " : ""}`)).join("")}</div>
         <div class="comp-meta">${rankTxt(x.rank)}${pubTxt(x.created)}</div></div>
@@ -3175,7 +3190,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         </div><small class="muted">${tr("sum.ovHint")}</small></div>
         <div class="sum-card" id="sum-hist-card"><h4>${tr("sum.histTitle")}</h4><div class="hist">${hist}</div></div>`}
       </div>
-      <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">${tr("sum.tabOrders")}</button>${es ? `<button data-tab="comps">${tr("sum.tabComps", { n: es.n })}</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">${tr("sum.dataAge", { n: Math.max(0, Math.round(o.age_s / 60)) })}</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
+      <div class="sum-main"><div class="sum-tabs"><button data-tab="orders" class="on">${tr("sum.tabOrders")}</button>${es ? `<button data-tab="comps">${bySales ? tr("sum.tabSales", { n: sales.length }) : tr("sum.tabComps", { n: es.n })}</button>` : ""}</div><div id="tab-orders">${o.age_s != null ? `<small class="muted" style="display:block;margin-bottom:8px">${tr("sum.dataAge", { n: Math.max(0, Math.round(o.age_s / 60)) })}</small>` : ""}${orders}</div><div id="tab-comps" hidden>${comps}</div></div></div>`;
     growFrom(fromLoaded);
     document.querySelectorAll(".ord:not(.current)").forEach((el) => el.addEventListener("click", () => openSummary(el.dataset.id, true)));
     $("#sum-reroll")?.remove();   // «¿Conviene rolear?» oculto hasta tener el análisis de datos (tarea 014f934c)
@@ -3188,42 +3203,45 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         const l = new Set(settings.tracked_weapons || []); l.has(a.weapon) ? l.delete(a.weapon) : l.add(a.weapon);
         saveCfg("tracked_weapons", [...l]); $("#trk").outerHTML = star(); bindStar();
       });
-      const all = (t.points || []).filter((x) => x.median != null);
-      // Desde el 23/10/2026 la búsqueda de warframe.market corta en 100 resultados: antes la mediana era de todas
-      // las publicaciones y no se compara con la de ahora (daba caídas falsas de -80%).
-      const cmp = all.filter((x) => x.day >= "2026-10-23"), pts = cmp.length >= 2 ? cmp : all;
-      if (pts.length < 2) { c.innerHTML = `<h4>${star()}${tr("trend.title")}</h4><small class="muted">${tr(pts.length ? "trend.one" : "trend.none")}</small>`; bindStar(); return; }
+      // Solo ventas: las publicaciones se pueden spamear (cualquiera publica a 1p y arrastra la mediana).
+      // Cada punto es la mediana móvil de 7 días con un precio por vendedor; se prefieren los días con 3+ vendedores.
+      const all = (t.sales || []).filter((x) => x.median != null), solid = all.filter((x) => x.sellers >= 3);
+      const pts = solid.length >= 2 ? solid : all;
+      if (pts.length < 2) { c.innerHTML = `<h4>${star()}${tr("trend.title")}</h4><small class="muted">${tr("trend.noSales")}</small>`; bindStar(); return; }
       const mine = es && es.price > 0 ? es.price : null;
-      const W = 260, H = 90, vals = pts.flatMap((x) => [x.median, x.min_price]).concat(mine ? [mine] : []);
+      const W = 260, H = 90, vals = pts.flatMap((x) => [x.q1, x.q3, x.median]).concat(mine ? [mine] : []);
       const lo = Math.max(0, Math.min(...vals) - (Math.max(...vals) - Math.min(...vals)) * 0.08), hi = Math.max(...vals) * 1.04, span = hi - lo || 1;
-      const X = (i) => i / (pts.length - 1) * W, Y = (v) => H - (v - lo) / span * H;
-      const path = (k) => pts.map((x, i) => `${X(i).toFixed(1)},${Y(x[k]).toFixed(1)}`).join(" ");
-      const line = (k, col) => `<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="${path(k)}"/>`;
+      const ms = (d) => Date.parse(d + "T00:00:00Z"), t0 = ms(pts[0].day), days = Math.round((ms(pts[pts.length - 1].day) - t0) / 864e5) || 1;
+      const X = (i) => (ms(pts[i].day) - t0) / 864e5 / days * W, Y = (v) => H - (v - lo) / span * H;
+      const path = (k, rev) => (rev ? [...pts.keys()].reverse() : [...pts.keys()]).map((i) => `${X(i).toFixed(1)},${Y(pts[i][k]).toFixed(1)}`).join(" ");
       const fmtDay = (d) => String(d || "").slice(8, 10) + "/" + String(d || "").slice(5, 7);
       const first = pts[0].median, last = pts[pts.length - 1].median, pct = first ? Math.round((last - first) / first * 100) : 0;
-      const read = (x) => `${fmtDay(x.day)} · ${tr("trend.median")} <b>${x.median}p</b> · ${tr("trend.min")} <b>${x.min_price}p</b> · ${tr("trend.onlineN", { n: x.n_online })}`;
+      const read = (x) => `${fmtDay(x.day)} · ${tr("trend.median")} <b>${x.median}p</b> · ${tr("trend.band")} <b>${x.q1}–${x.q3}p</b> · ${tr("trend.salesN", { n: x.n, s: x.sellers })}`;
       const key = (col, dash) => `<i style="display:inline-block;width:14px;height:0;border-top:${dash ? "2px dashed" : "3px solid"} ${col};vertical-align:middle;margin-right:4px"></i>`;
-      c.innerHTML = `<h4>${star()}${tr("trend.title")}</h4><div style="display:flex;align-items:baseline;gap:10px"><b class="accent" style="font-size:24px">${last}p</b><span class="${pct > 0 ? "below" : pct < 0 ? "above" : "muted"}">${pct > 0 ? "+" : ""}${tr("trend.pct", { p: pct, n: pts.length })}</span></div>
+      const box = `<i style="display:inline-block;width:14px;height:9px;background:var(--accent);opacity:.25;vertical-align:middle;margin-right:4px"></i>`;
+      const mid = pts.reduce((b, x) => Math.abs(ms(x.day) - t0 - days * 432e5) < Math.abs(ms(b.day) - t0 - days * 432e5) ? x : b, pts[0]);
+      c.innerHTML = `<h4>${star()}${tr("trend.title")}</h4><div style="display:flex;align-items:baseline;gap:10px"><b class="accent" style="font-size:24px">${last}p</b><span class="${pct > 0 ? "below" : pct < 0 ? "above" : "muted"}">${pct > 0 ? "+" : ""}${tr("trend.pct", { p: pct, n: days })}</span></div>
         <div style="position:relative;margin-top:8px;padding-left:34px">
           <span class="muted" style="position:absolute;left:0;top:0;font-size:10px">${Math.round(hi)}p</span>
           <span class="muted" style="position:absolute;left:0;bottom:0;font-size:10px">${Math.round(lo)}p</span>
           <svg id="trend-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;cursor:crosshair;border-left:1px solid var(--border,#ffffff22);border-bottom:1px solid var(--border,#ffffff22)">
-            <polygon fill="var(--accent)" fill-opacity="0.14" points="0,${H} ${path("median")} ${W},${H}"/>
+            <polygon fill="var(--accent)" fill-opacity="0.2" points="${path("q3")} ${path("q1", true)}"/>
             <line x1="0" x2="${W}" y1="${H / 2}" y2="${H / 2}" stroke="var(--border,#ffffff22)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
             ${mine ? `<line x1="0" x2="${W}" y1="${Y(mine).toFixed(1)}" y2="${Y(mine).toFixed(1)}" stroke="var(--text,#ddd)" stroke-opacity="0.6" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/>` : ""}
-            ${line("min_price", "var(--accent-2)")}${line("median", "var(--accent)")}
+            <polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="${path("median")}"/>
             <line id="trend-guide" x1="0" x2="0" y1="0" y2="${H}" stroke="var(--muted,#888)" vector-effect="non-scaling-stroke" visibility="hidden"/>
           </svg>
         </div>
-        <div class="muted" style="display:flex;justify-content:space-between;font-size:10px;padding-left:34px;margin-top:2px"><span>${fmtDay(pts[0].day)}</span><span>${fmtDay(pts[Math.floor((pts.length - 1) / 2)].day)}</span><span>${fmtDay(pts[pts.length - 1].day)}</span></div>
+        <div class="muted" style="display:flex;justify-content:space-between;font-size:10px;padding-left:34px;margin-top:2px"><span>${fmtDay(pts[0].day)}</span><span>${fmtDay(mid.day)}</span><span>${fmtDay(pts[pts.length - 1].day)}</span></div>
         <div class="muted" style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;margin-top:6px">
-          <span>${key("var(--accent)")}${tr("trend.median")}</span><span>${key("var(--accent-2)")}${tr("trend.min")}</span>${mine ? `<span>${key("var(--text,#ddd)", true)}${tr("trend.mine", { p: mine })}</span>` : ""}
+          <span>${key("var(--accent)")}${tr("trend.median")}</span><span>${box}${tr("trend.band")}</span>${mine ? `<span>${key("var(--text,#ddd)", true)}${tr("trend.mine", { p: mine })}</span>` : ""}
         </div>
         <div id="trend-read" class="muted" style="font-size:11px;margin-top:4px;min-height:14px">${read(pts[pts.length - 1])}</div>
-        <small class="muted" style="display:block;margin-top:4px">${tr("trend.src", { b: pts[pts.length - 1].n_orders })}</small>`;
+        <small class="muted" style="display:block;margin-top:4px">${tr("trend.srcSales", { w: t.sales_window || 7 })}</small>`;
       const svg = $("#trend-svg"), guide = $("#trend-guide"), out = $("#trend-read");
       svg.addEventListener("mousemove", (ev) => {
-        const r = svg.getBoundingClientRect(), i = Math.max(0, Math.min(pts.length - 1, Math.round((ev.clientX - r.left) / r.width * (pts.length - 1))));
+        const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * W;
+        const i = pts.reduce((b, _, j) => Math.abs(X(j) - x) < Math.abs(X(b) - x) ? j : b, 0);
         guide.setAttribute("x1", X(i)); guide.setAttribute("x2", X(i)); guide.setAttribute("visibility", "visible"); out.innerHTML = read(pts[i]);
       });
       svg.addEventListener("mouseleave", () => { guide.setAttribute("visibility", "hidden"); out.innerHTML = read(pts[pts.length - 1]); });
@@ -3685,11 +3703,13 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         market: { seller: o.seller, status: o.status, last_seen: o.last_seen }, history: [] };
     }
     return { auction: { ...d, updated: iso(30) }, hours: { hours: 12.4, autodrop_on: true, hours_override: null, amount_override: null, floor_override: null },
-      orders: { orders, age_s: 120 }, estimate: { price: 95, low: 80, high: 110, n: 5, confidence: "media", partial: false, comps }, market: null,
+      orders: { orders, age_s: 120 }, estimate: { price: 95, low: 80, high: 110, n: 5, confidence: "media", partial: false, comps, source: "model", reasons: [{ key: "salesModel" }],
+        sales: [80, 90, 95, 100, 110].map((p, i) => ({ id: "demo-s" + i, price: p, rolls: [3, 9, 1, 20, 12][i], rank: 8, seller: nm[(i + 2) % 5], at: iso(60 * 24 * (i + 1)), sim: 0.9 - i * 0.05,
+          stats: d.stats.map((x, j) => ({ ...x, value: Math.round(x.value * (0.8 + 0.05 * ((i + j) % 5)) * 10) / 10 })) })) }, market: null,
       history: [{ at: iso(60 * 24 * 3), price: 130, source: "manual" }, { at: iso(60 * 24), price: 115, source: "auto" }, { at: iso(60 * 5), price: 100, source: "auto" }] };
   }
   function demoTrend() {
-    return { points: [92, 95, 90, 98, 104, 101, 108, 110].map((m, i) => ({ day: new Date(Date.now() - (7 - i) * 864e5).toISOString().slice(0, 10), median: m, min_price: Math.round(m * 0.6), n_online: 20 + i, n_orders: 60 + i })) };
+    return { sales_window: 7, sales: [92, 95, 90, 98, 104, 101, 108, 110].map((m, i) => ({ day: new Date(Date.now() - (7 - i) * 864e5).toISOString().slice(0, 10), median: m, q1: Math.round(m * 0.8), q3: Math.round(m * 1.2), n: 6 + i, sellers: 4 + i })) };
   }
   function uiLog(m) { try { api().log_ui(m); } catch (e) {} }
   $("#riven-dialog").addEventListener("close", () => uiLog("riven-dialog cerrado\n" + (new Error().stack || "").split("\n").slice(1, 6).join(" | ")));

@@ -218,7 +218,7 @@ def _apply_model(est, view, weapon, rtype, close):
             return
         listings = est["price"]
         ratio = pred / listings
-        reasons = [{"key": "salesModel", "p": listings}]
+        reasons = [{"key": "salesModel"}]
         low = max(1, min(pred, round(est["low"] * ratio)))
         high = max(pred, round(est["high"] * ratio))
         price, low, high = _caps(view, close, pred, low, high, reasons)
@@ -310,6 +310,30 @@ def _estimate(view, market, exclude_id, rtype, weapon, min_sim):
                    "stats": [{"slug": x, "value": v, "positive": p} for x, v, p in o["s"]]}
                   for s, o in top],
     }
+
+
+def sales_comps(view, sales, rtype=None, limit=MAX_COMPS, min_sim=MIN_SIM):
+    """Ventas reales más parecidas al riven (las que se muestran cuando el precio sale del modelo de ventas).
+    `sales` viene de la nube: [{id, price, attrs: [[slug, valor, positivo]], rolls, rank, seller, at}]."""
+    pos, neg = _split(view["stats"])
+    if not pos:
+        return []
+    scored = []
+    for x in sales or []:
+        try:
+            o = {"s": [[a[0], float(a[1]), bool(a[2])] for a in x.get("attrs") or []], "k": x.get("rank"), "r": x.get("rolls") or 0}
+            if not x.get("price") or not o["s"]:
+                continue
+            sim = similarity(pos, neg, view.get("rolls") or 0, o, rtype, view.get("rank"))
+        except (TypeError, ValueError, IndexError, KeyError):
+            continue
+        if sim >= min_sim:
+            scored.append((sim, x, o))
+    scored.sort(key=lambda t: (-t[0], str(t[1].get("at") or "")))
+    return [{"id": x.get("id"), "price": x["price"], "sim": round(sim, 2), "rolls": x.get("rolls"), "rank": x.get("rank"),
+             "seller": x.get("seller"), "at": x.get("at"),
+             "stats": [{"slug": a, "value": v, "positive": p} for a, v, p in o["s"]]}
+            for sim, x, o in scored[:limit]]
 
 
 # --- Datos de armas y modelo caro/barato (la nube los regenera, tools/weapon_data_job.py) -----

@@ -6,25 +6,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 #### Español
 ### Agregado
-- El precio estimado ahora puede salir de un modelo entrenado cada día con ventas reales de rivens. Cuando el modelo cubre el riven, las razones del precio lo indican y muestran también el estimado por publicaciones. Si el modelo no está disponible o está vencido, se usa el estimado de siempre.
+- El precio estimado ahora puede salir de un modelo entrenado cada día con ventas reales de rivens. Cuando el modelo cubre el riven, en vez de publicaciones comparables te muestra las ventas de rivens parecidos que respaldan el precio. Si el modelo no está disponible o está vencido, se usa el estimado de siempre.
 
 ### Cambiado
 - El recuadro del precio estimado muestra menos texto: el rango solo aparece si lo hay, y el porqué del veredicto barato o caro queda al pasar el mouse.
-- La tarjeta de tendencia del arma tiene un gráfico más claro: área bajo la mediana, tu estimado como línea punteada, el valor de cada día al pasar el mouse y de dónde salen los datos.
-
-### Corregido
-- La tendencia del arma ya no muestra caídas falsas, de hasta -80%, por el cambio de warframe.market del 23/10, que ahora devuelve solo las 100 publicaciones más baratas.
+- La tendencia del arma ahora sale de las ventas reales y no de las publicaciones, que cualquiera puede inflar con avisos baratos: cada día es la mediana de los últimos 7, con un solo precio por vendedor, y el gráfico muestra la franja donde cae la mitad de las ventas, tu estimado punteado y el valor de cada día al pasar el mouse.
 
 #### English
 ### Added
-- The estimated price can now come from a model trained daily on real riven sales. When the model covers the riven, the price reasons say so and also show the listings estimate. If the model is unavailable or outdated, the usual estimate is used.
+- The estimated price can now come from a model trained daily on real riven sales. When the model covers the riven, instead of comparable listings it shows the sales of similar rivens that back the price up. If the model is unavailable or outdated, the usual estimate is used.
 
 ### Changed
 - The estimated price box shows less text: the range only appears when there is one, and why it looks cheap or pricey shows on hover.
-- The weapon trend card has a clearer chart: shaded median, your estimate as a dashed line, each day's values on hover, and where the data comes from.
-
-### Fixed
-- The weapon trend no longer shows fake drops, of up to -80%, caused by the warframe.market change of 10/23, which now returns only the 100 cheapest listings.
+- The weapon trend now comes from real sales instead of listings, which anyone can drag down with cheap posts: each day is the median of the last 7, with a single price per seller, and the chart shows the band where half of the sales fall, your estimate dashed, and each day's values on hover.
 
 ## [0.16.5] - 2026-11-03
 

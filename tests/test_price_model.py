@@ -216,7 +216,7 @@ class EnPricing(unittest.TestCase):
         with mock.patch.object(pm, "predict", return_value=100):
             pricing._apply_model(est, dict(VIEW), "Soma", "rifle", [])
         self.assertEqual((est["price"], est["source"], est["listings_price"]), (100, "model", 200))
-        self.assertEqual(est["reasons"][0], {"key": "salesModel", "p": 200})
+        self.assertEqual(est["reasons"][0], {"key": "salesModel"})
         self.assertLessEqual(est["low"], 100)
         self.assertGreaterEqual(est["high"], 100)
 
@@ -293,6 +293,32 @@ class Nube(unittest.TestCase):
             with mock.patch.object(cloudapi.requests, "get", return_value=r):
                 api._price_model_download()
             self.assertIsNotNone(pm.current())
+
+
+class VentasParecidas(unittest.TestCase):
+    """Con el precio del modelo se muestran ventas reales parecidas, no publicaciones."""
+    VIEW = {"stats": [{"slug": "critical_chance", "value": 150, "positive": True},
+                      {"slug": "multishot", "value": 90, "positive": True}], "rolls": 3, "rank": 8}
+
+    def sale(self, i, attrs, price=100, at="2026-11-01T00:00:00Z"):
+        return {"id": str(i), "price": price, "attrs": attrs, "rolls": 2, "rank": 8, "seller": "v%d" % i, "at": at}
+
+    def test_ordena_por_parecido_y_descarta_lo_distinto(self):
+        sales = [self.sale(1, [["critical_chance", 120, True], ["multishot", 70, True]]),
+                 self.sale(2, [["critical_chance", 150, True], ["multishot", 90, True]]),
+                 self.sale(3, [["toxin_damage", 60, True], ["zoom", 30, False]]),
+                 self.sale(4, [["critical_chance", 150, True]], price=0),
+                 {"id": "5", "price": 50, "attrs": "roto"}]
+        got = pricing.sales_comps(self.VIEW, sales)
+        self.assertEqual([x["id"] for x in got][:2], ["2", "1"])
+        self.assertNotIn("3", [x["id"] for x in got])
+        self.assertNotIn("4", [x["id"] for x in got])
+        self.assertEqual(got[0]["seller"], "v2")
+        self.assertEqual(got[0]["stats"][0], {"slug": "critical_chance", "value": 150.0, "positive": True})
+
+    def test_sin_positivos_o_sin_ventas(self):
+        self.assertEqual(pricing.sales_comps({"stats": [], "rolls": 0}, [self.sale(1, [["multishot", 90, True]])]), [])
+        self.assertEqual(pricing.sales_comps(self.VIEW, None), [])
 
 
 try:

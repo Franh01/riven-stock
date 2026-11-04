@@ -1,6 +1,12 @@
-// API de lectura (Function URL pública). GET /trend?weapon=<slug>&days=<n> y GET /top (lo más movido en 24 h).
+// API de lectura (Function URL pública). GET /trend?weapon=<slug>&days=<n>, GET /sales?weapon=<slug>&days=<n>
+// (ventas recientes, para los comparables del estimado) y GET /top (lo más movido en 24 h).
 const { snapshots, collection } = require("./db");
 const history = require("./history");
+const { salesSeries, DAY } = require("./series");
+
+// Ventas que cuentan: sin las falsas del corte en 100 y con confianza alta o media (igual que el modelo de precio).
+const REAL = { suspect: { $exists: false }, price: { $gt: 0 }, confidence: { $in: ["alta", "media"] } };
+const SALES_WINDOW = 7;
 
 const json = (status, body, cache = "public, max-age=300") => ({
   statusCode: status,
@@ -45,11 +51,27 @@ exports.handler = async (event) => {
   const weapon = String(q.weapon || "");
   if (!/^[a-z0-9_]{2,60}$/.test(weapon)) return json(400, { error: "weapon inválida" }, "no-store");
   const days = Math.min(Math.max(parseInt(q.days, 10) || 90, 1), 730);
-  const from = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+  const now = Date.now();
+  const from = new Date(now - days * DAY).toISOString().slice(0, 10);
+  const { sales } = await history.ensure();
+  if ((event.rawPath || "").replace(/\/+$/, "") === "/sales") {
+    const rows = await sales
+      .find({ weapon, detected_at: { $gte: new Date(now - days * DAY) }, ...REAL },
+        { projection: { price: 1, attrs: 1, rolls: 1, mr: 1, rank: 1, seller: 1, detected_at: 1 } })
+      .sort({ detected_at: -1 })
+      .limit(400)
+      .toArray();
+    return json(200, { sales: rows.map((d) => ({ id: d._id, price: d.price, attrs: d.attrs || [], rolls: d.rolls, mr: d.mr, rank: d.rank, seller: d.seller, at: d.detected_at })) });
+  }
   const col = await snapshots();
   const points = await col
     .find({ weapon, day: { $gte: from } }, { projection: { _id: 0, day: 1, n_orders: 1, n_online: 1, min_price: 1, median: 1 } })
     .sort({ day: 1 })
     .toArray();
-  return json(200, { points });
+  const sold = await sales
+    .find({ weapon, detected_at: { $gte: new Date(Date.parse(from + "T00:00:00Z") - (SALES_WINDOW - 1) * DAY) }, ...REAL },
+      { projection: { _id: 0, price: 1, seller: 1, detected_at: 1 } })
+    .toArray();
+  const series = salesSeries(sold.map((d) => ({ price: d.price, seller: d.seller, at: d.detected_at })), from, new Date(now).toISOString().slice(0, 10), SALES_WINDOW);
+  return json(200, { points, sales: series, sales_window: SALES_WINDOW });
 };

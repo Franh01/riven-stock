@@ -435,13 +435,33 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         with store.connect() as conn:
             local = store.market_trend(conn, weapon, days)
         by_day = {p["day"]: p for p in local}
+        sales, window = [], None
         try:
             r = requests.get(CLOUD_API_URL, params={"weapon": weapon, "days": days}, timeout=6)
             r.raise_for_status()
-            by_day.update({p["day"]: p for p in r.json().get("points", [])})
-        except (requests.RequestException, ValueError):
+            d = r.json()
+            by_day.update({p["day"]: p for p in d.get("points", [])})
+            sales, window = d.get("sales") or [], d.get("sales_window")   # mediana móvil de ventas reales (una por vendedor)
+        except (requests.RequestException, ValueError, AttributeError):
             pass
-        return {"points": [by_day[d] for d in sorted(by_day)]}
+        return {"points": [by_day[d] for d in sorted(by_day)], "sales": sales, "sales_window": window}
+
+    SALES_TTL_S = 3600
+    _sales_cache = {}
+
+    def weapon_sales(self, weapon, days=90):
+        """Ventas reales recientes del arma, desde la nube (una hora en memoria). Si la nube no responde, lista vacía."""
+        hit = self._sales_cache.get(weapon)
+        if hit and time.time() - hit[0] < self.SALES_TTL_S:
+            return hit[1]
+        try:
+            r = requests.get(CLOUD_API_URL.rstrip("/") + "/sales", params={"weapon": weapon, "days": days}, timeout=6)
+            r.raise_for_status()
+            sales = r.json().get("sales") or []
+        except (requests.RequestException, ValueError, AttributeError):
+            return hit[1] if hit else []
+        self._sales_cache[weapon] = (time.time(), sales)
+        return sales
 
     def market_top(self, limit=10):
         """Lo más movido en las últimas 24 h según la nube: armas con más ventas inferidas y con más órdenes."""
@@ -581,6 +601,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
                     self._book.put_other(slim_to_raw(o, weapon), replace=False)
         if est and failed:
             est["partial"] = True
+        if est and est.get("source") == "model":   # el precio sale de ventas: se muestran ventas, no publicaciones
+            est["sales"] = pricing.sales_comps(view, self.weapon_sales(weapon), rtype)
         return view, orders, est
 
     def estimate_draft(self, item, exclude_id=None):
