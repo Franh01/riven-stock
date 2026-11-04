@@ -458,7 +458,8 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             r = requests.get(CLOUD_API_URL.rstrip("/") + "/sales", params={"weapon": weapon, "days": days}, timeout=6)
             r.raise_for_status()
             sales = r.json().get("sales") or []
-        except (requests.RequestException, ValueError, AttributeError):
+        except (requests.RequestException, ValueError, AttributeError) as e:
+            logging.warning("Ventas del arma %s: la nube no respondió (%s)", weapon, e)
             return hit[1] if hit else []
         self._sales_cache[weapon] = (time.time(), sales)
         return sales
@@ -605,6 +606,9 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
             sales = self.weapon_sales(weapon)
             est["sales"] = pricing.sales_comps(view, sales, rtype)
             est["why"] = {"drivers": price_model.explain(weapon, rtype, view), **pricing.weapon_typical(sales)}
+        if est:
+            logging.info("Estimado %s: %sp (%s-%sp) por %s%s", weapon, est.get("price"), est.get("low"), est.get("high"),
+                         "ventas" if est.get("source") == "model" else "publicaciones", ", parcial" if est.get("partial") else "")
         return view, orders, est
 
     def estimate_draft(self, item, exclude_id=None):

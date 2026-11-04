@@ -3272,7 +3272,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         </div>
         <div class="muted" style="display:flex;justify-content:space-between;font-size:10px;padding-left:34px;margin-top:2px"><span>${fmtDay(pts[0].day)}</span><span>${fmtDay(mid.day)}</span><span>${fmtDay(pts[pts.length - 1].day)}</span></div>
         <div class="muted" style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;margin-top:6px">
-          <span>${key("var(--accent)")}${tr("trend.median")}</span><span>${box}${tr("trend.band")}</span>${mine ? `<span>${key("var(--text,#ddd)", true)}${tr("trend.mine", { p: mine })}</span>` : ""}
+          <span>${key("var(--accent)")}${tr("trend.median")}</span><span title="${esc(tr("trend.bandTip"))}">${box}${tr("trend.band")}</span>${mine ? `<span>${key("var(--text,#ddd)", true)}${tr("trend.mine", { p: mine })}</span>` : ""}
         </div>
         <div id="trend-read" class="muted" style="font-size:11px;margin-top:4px;min-height:14px">${read(pts[pts.length - 1])}</div>
         <small class="muted" style="display:block;margin-top:4px">${tr("trend.srcSales", { w: t.sales_window || 7 })}</small>`;

@@ -11,7 +11,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ### Cambiado
 - El recuadro del precio estimado muestra menos texto: el rango solo aparece si lo hay, y el porqué del veredicto barato o caro queda al pasar el mouse.
-- La tendencia del arma ahora sale de las ventas reales y no de las publicaciones, que cualquiera puede inflar con avisos baratos: cada día es la mediana de los últimos 7, con un solo precio por vendedor, y el gráfico muestra la franja donde cae la mitad de las ventas, tu estimado punteado y el valor de cada día al pasar el mouse.
+- La tendencia del arma ahora sale de las ventas reales y no de las publicaciones, que cualquiera puede inflar con avisos baratos: cada día es la mediana de los últimos 7, con un solo precio por vendedor, y el gráfico muestra el rango habitual (la franja donde cae la mitad de las ventas, explicada al pasar el mouse), tu estimado punteado y el valor de cada día al pasar el mouse.
 
 #### English
 ### Added
@@ -20,7 +20,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ### Changed
 - The estimated price box shows less text: the range only appears when there is one, and why it looks cheap or pricey shows on hover.
-- The weapon trend now comes from real sales instead of listings, which anyone can drag down with cheap posts: each day is the median of the last 7, with a single price per seller, and the chart shows the band where half of the sales fall, your estimate dashed, and each day's values on hover.
+- The weapon trend now comes from real sales instead of listings, which anyone can drag down with cheap posts: each day is the median of the last 7, with a single price per seller, and the chart shows the typical range (the band where half of the sales fall, explained on hover), your estimate dashed, and each day's values on hover.
 
 ## [0.16.5] - 2026-11-03
 

@@ -50,6 +50,7 @@ class CloudMixin:
             r.raise_for_status()
             d = r.json()
             if not isinstance(d, dict) or not isinstance(d.get("factors"), dict) or not d.get("updated"):
+                logging.warning("Calibración: factors.json no valida, queda el anterior")
                 return   # respuesta rara: mejor no pisar lo que ya hay
             p = pricing.factors_path()
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -76,6 +77,7 @@ class CloudMixin:
             r.raise_for_status()
             d = r.json()
             if not pricing.check_weapon_data(d):
+                logging.warning("Datos de armas: weapon_data.json no valida, queda el anterior")
                 return   # no valida: queda lo que había (o el bundle)
             p = pricing.weapon_data_path()
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -102,6 +104,7 @@ class CloudMixin:
             r.raise_for_status()
             d = r.json()
             if not price_model.check(d):
+                logging.warning("Modelo de ventas: price_model.json no valida, queda el anterior")
                 return   # no valida: queda lo que había (o el estimado por publicaciones)
             p = price_model.path()
             p.parent.mkdir(parents=True, exist_ok=True)
@@ -109,6 +112,7 @@ class CloudMixin:
             tmp.write_text(json.dumps(d, separators=(",", ":")), encoding="utf-8")
             tmp.replace(p)
             price_model.reload()
+            logging.info("Modelo de ventas: actualizado (entrenado %s)", d.get("updated"))
         except (requests.RequestException, ValueError, OSError) as e:
             logging.info("Modelo de ventas: no se pudo bajar price_model.json (%s)", e)
 
