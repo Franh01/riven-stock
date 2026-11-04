@@ -336,6 +336,28 @@ def sales_comps(view, sales, rtype=None, limit=MAX_COMPS, min_sim=MIN_SIM):
             for sim, x, o in scored[:limit]]
 
 
+
+def weapon_typical(sales, days=30, now=None):
+    """Precio típico del arma según ventas: mediana de lo vendido en los últimos `days` días.
+    {"median": int, "n": int, "days": int}, o {} si no hay ventas."""
+    now = now or _dt.datetime.now(_dt.timezone.utc)
+    prices = []
+    for x in sales or []:
+        try:
+            at = _dt.datetime.fromisoformat(str(x.get("at")).replace("Z", "+00:00"))
+            if at.tzinfo is None:
+                at = at.replace(tzinfo=_dt.timezone.utc)
+            if (now - at).days < days and x.get("price"):
+                prices.append(float(x["price"]))
+        except (TypeError, ValueError):
+            continue
+    if not prices:
+        return {}
+    prices.sort()
+    m = len(prices) // 2
+    med = prices[m] if len(prices) % 2 else (prices[m - 1] + prices[m]) / 2
+    return {"median": round(med), "n": len(prices), "days": days}
+
 # --- Datos de armas y modelo caro/barato (la nube los regenera, tools/weapon_data_job.py) -----
 # Un arma nueva o un cambio de balance llegan sin sacar versión: la app baja weapon_data.json
 # una vez por día. Si falta, no valida o venció, se usan los data/*.json que vienen con la app.

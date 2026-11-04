@@ -602,7 +602,9 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         if est and failed:
             est["partial"] = True
         if est and est.get("source") == "model":   # el precio sale de ventas: se muestran ventas, no publicaciones
-            est["sales"] = pricing.sales_comps(view, self.weapon_sales(weapon), rtype)
+            sales = self.weapon_sales(weapon)
+            est["sales"] = pricing.sales_comps(view, sales, rtype)
+            est["why"] = {"drivers": price_model.explain(weapon, rtype, view), **pricing.weapon_typical(sales)}
         return view, orders, est
 
     def estimate_draft(self, item, exclude_id=None):

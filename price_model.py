@@ -161,6 +161,39 @@ def predict(weapon, rtype, view, model=None):
     return memo[key]
 
 
+
+def explain(weapon, rtype, view, model=None, top=5, min_pct=3):
+    """Qué empuja el precio que predice el modelo: cuánto cambia la predicción (en %) sin cada
+    stat, sin los rolls o con el otro rango (máximo <-> sin subir). Es una aproximación por
+    ablación (los árboles exportados solo traen hojas), no un reparto exacto que sume el total.
+    [{"kind": "stat"|"rolls"|"rank", "slug", "positive", "pct"}], de mayor a menor efecto."""
+    model = model or current()
+    if not model or not weapon:
+        return []
+    stats = [(s["slug"], s["value"], s["positive"]) for s in view.get("stats") or []]
+    if not any(p for _, _, p in stats):
+        return []
+    rolls, rank = view.get("rolls") or 0, view.get("rank")
+    d = features(weapon, rtype, stats, rolls, rank, model["enc"])
+    base = predict_log(model, d)
+    out = []
+
+    def add(alt, **kw):
+        pct = round((_math.exp(base - predict_log(model, alt)) - 1) * 100)
+        if abs(pct) >= min_pct:
+            out.append({**kw, "pct": pct})
+
+    for slug, _v, pos in stats:
+        alt = dict(d)
+        alt[("+" if pos else "-") + slug] = 0.0
+        add(alt, kind="stat", slug=slug, positive=pos)
+    if rolls:
+        add({**d, "rolls": 0.0}, kind="rolls")
+    if rank is not None:
+        add(features(weapon, rtype, stats, rolls, 0 if rank >= 8 else 8, model["enc"]), kind="rank", rank8=rank >= 8)
+    out.sort(key=lambda x: -abs(x["pct"]))
+    return out[:top]
+
 # --- Archivo publicado ------------------------------------------------------------------
 
 def _num(v):

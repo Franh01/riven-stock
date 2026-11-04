@@ -6,6 +6,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 #### Español
 ### Agregado
+- Nuevo botón "Estimar precio", al lado de "+ Nuevo riven": cargás el arma y los stats de cualquier riven y te dice cuánto vale sin publicarlo. Debajo del estimado aparece "Por qué este precio": a cuánto se viene vendiendo el arma y cuánto suma o resta cada stat, el negativo, los rolls y el rango.
 - El precio estimado ahora puede salir de un modelo entrenado cada día con ventas reales de rivens. Cuando el modelo cubre el riven, en vez de publicaciones comparables te muestra las ventas de rivens parecidos que respaldan el precio. Si el modelo no está disponible o está vencido, se usa el estimado de siempre.
 
 ### Cambiado
@@ -14,6 +15,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 #### English
 ### Added
+- New "Estimate price" button next to "+ New riven": enter the weapon and stats of any riven and see what it's worth without listing it. Below the estimate, "Why this price" shows what the weapon has been selling for and how much each stat, the negative, the rolls and the rank add or take away.
 - The estimated price can now come from a model trained daily on real riven sales. When the model covers the riven, instead of comparable listings it shows the sales of similar rivens that back the price up. If the model is unavailable or outdated, the usual estimate is used.
 
 ### Changed

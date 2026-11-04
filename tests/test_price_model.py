@@ -210,6 +210,29 @@ class Prediccion(unittest.TestCase):
         self.assertGreater(pm.predict("Soma", "rifle", VIEW, m), 1)
 
 
+
+class Explicacion(unittest.TestCase):
+    def test_el_stat_que_corta_es_el_que_pesa(self):
+        m = pm.check(doc())
+        out = pm.explain("Soma", "rifle", VIEW, m)
+        self.assertEqual(out[0]["kind"], "stat")
+        self.assertEqual(out[0]["slug"], "critical_chance")
+        self.assertGreater(out[0]["pct"], 100)
+        # multishot y los rolls no entran en el árbol: no aparecen
+        self.assertNotIn("multishot", [x.get("slug") for x in out])
+        self.assertNotIn("rolls", [x["kind"] for x in out])
+
+    def test_sin_modelo_o_sin_positivos(self):
+        m = pm.check(doc())
+        self.assertEqual(pm.explain("Soma", "rifle", {"stats": [{"slug": "zoom", "value": -5, "positive": False}]}, m), [])
+        self.assertEqual(pm.explain(None, "rifle", VIEW, m), [])
+
+    def test_precio_tipico_del_arma(self):
+        sales = [{"price": p, "at": stamp(d)} for p, d in ((50, 1), (70, 2), (90, 3), (400, 45), (None, 1))]
+        self.assertEqual(pricing.weapon_typical(sales), {"median": 70, "n": 3, "days": 30})
+        self.assertEqual(pricing.weapon_typical([]), {})
+        self.assertEqual(pricing.weapon_typical([{"price": 10, "at": "roto"}]), {})
+
 class EnPricing(unittest.TestCase):
     def test_reemplaza_el_precio_y_lo_explica(self):
         est = {"price": 200, "low": 150, "high": 260, "reasons": [], "adj": 1.1}

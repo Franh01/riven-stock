@@ -225,13 +225,24 @@
   .remaining { font-weight: 700; color: var(--accent-2); }
 
   /* Botón flotante */
+  .fabs { position: fixed; right: 28px; bottom: 28px; z-index: 5; display: flex; align-items: center; gap: 12px; }
   .fab {
-    position: fixed; right: 28px; bottom: 28px; z-index: 5;
     display: flex; align-items: center; gap: 10px;
     padding: 14px 22px 14px 18px; border-radius: 99px; font-size: 15px;
     box-shadow: 0 10px 34px #7b3fe488, 0 0 0 1px #c99bff44 inset;
   }
   .fab svg { display: block; flex: none; }
+  .fab.alt { background: var(--panel-2); border: 1px solid var(--line); box-shadow: 0 10px 34px #0008; font-weight: 500; }
+  .fab.alt:hover { border-color: var(--accent); }
+  /* Por qué este precio (estimado del modelo de ventas) */
+  .why { flex-basis: 100%; margin: 2px 0 4px; }
+  .why-head { font-size: 13px; margin-bottom: 6px; }
+  .why-head b { color: var(--accent-2); }
+  .why-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .why-d { background: var(--panel-2); border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; font-size: 12.5px; }
+  .why-d b { font-weight: 600; margin-left: 4px; }
+  .why-d.up b { color: var(--pos); }
+  .why-d.down b { color: var(--neg); }
 
   .qbar { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); z-index: 60; width: min(420px, 90vw);
     background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px;
@@ -790,10 +801,16 @@
   </section>
 </main>
 
+<div class="fabs">
+<button class="fab alt" id="fab-est" title="Calcula cuánto vale un riven según las ventas reales, sin publicarlo" data-i18n-title="est.tip">
+  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.4 10.4 14 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+  <span data-i18n="est.btn">Estimar precio</span>
+</button>
 <button class="fab" id="fab" title="Precio de referencia y nuevo contrato" data-i18n-title="fab.tip">
   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
   <span data-i18n="rd.new">Nuevo riven</span>
 </button>
+</div>
 
 <div class="menu" id="row-menu" hidden></div>
 
@@ -2489,9 +2506,9 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
 
   // Borrador del alta nueva: solo en memoria (no sobrevive a un reinicio); se recupera si se reabre en menos de 10 s.
   const DRAFT_MS = 10000;
-  let draft = null, skipDraft = false;
+  let draft = null, skipDraft = false, estOnly = false;
   $("#riven-dialog").addEventListener("close", () => {
-    const keep = !editing && !skipDraft;
+    const keep = !editing && !skipDraft && !estOnly;
     skipDraft = false; draft = null;
     const w = weaponCombo.value, stats = statCombos.map((c, i) => [c.value, slotEls[i].querySelector(".slot-value").value]);
     if (!keep || !(w || $("#f-price").value || stats.some(([s]) => s))) return;
@@ -2510,7 +2527,14 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   }
 
   // openRiven({}) = nuevo · openRiven({lotId}) = nuevo desde un lote · openRiven({existing}) = editar
-  function openRiven({ existing = null, lotId = "" } = {}) {
+  // openRiven({estimateOnly: true}) = solo estimar el precio (sin publicar; usar un precio pasa al alta)
+  function setEstOnly(on) {
+    estOnly = on;
+    $("#publish-section").hidden = on; $("#origin-row").hidden = on;
+    $("#rd-title").textContent = tr(on ? "est.title" : "rd.new");
+  }
+  function openRiven({ existing = null, lotId = "", estimateOnly = false } = {}) {
+    estOnly = false; $("#publish-section").hidden = false;
     editing = existing; if (!existing) editFromSum = null; $("#publish-cancel").hidden = !existing;
     $("#rd-title").innerHTML = existing ? `${tr("rd.edit")} · ${rivenLabel(existing)}${existing.id === "demo" ? ` <span class="muted" style="font-weight:400;font-size:12px">· ${tr("rd.demoNote")}</span>` : ""}` : tr("rd.new");
     $("#publish-title").textContent = tr(existing ? "rd.editContract" : "rd.publishDirect");
@@ -2544,7 +2568,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       $("#f-cost").value = Math.round(lot.unit_cost * 100) / 100;
     }
     refreshSlots();
-    const restored = !existing && draft && Date.now() - draft.t < DRAFT_MS && draft.lotId === (lotId || "");
+    const restored = !existing && !estimateOnly && draft && Date.now() - draft.t < DRAFT_MS && draft.lotId === (lotId || "");
     if (restored) restoreDraft(draft);
     draft = null;
     $("#rd-auto").hidden = !existing;
@@ -2557,10 +2581,11 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       $("#rd-ov-h").placeholder = cfgVal("autodrop_hours"); $("#rd-ov-a").placeholder = cfgVal("autodrop_amount"); $("#rd-ov-f").placeholder = cfgVal("autodrop_floor");
     }
     $("#est-go").hidden = false; $("#est-section").hidden = true;
+    if (estimateOnly) setEstOnly(true);
     $("#pub-more").open = false;
     syncMore();
     $("#riven-dialog").showModal();
-    uiLog("riven-dialog abierto" + (existing ? " (editar)" : ""));
+    uiLog("riven-dialog abierto" + (existing ? " (editar)" : estimateOnly ? " (estimar)" : ""));
     if (existing && existing.id === "demo") demoReference();
     else if (existing) runEstimate();
     else if (restored) toast(tr("rd.draftBack"));   // despues de showModal para quedar por encima del dialogo; sin foco, que no abra la lista de armas
@@ -2686,7 +2711,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       const estH = $("#est-section h2"); estH.dataset.i18n = es.source === "model" ? "rd.estTitleSales" : "rd.estTitle"; estH.textContent = tr(estH.dataset.i18n);
       $("#est-summary").innerHTML = `<button class="chip" data-price="${es.low}" title="${tr("rd.useTip")}"><b>${es.low}p</b><span>${tr("rd.fast")} · ${tr("rd.use")}</span></button><button class="chip" data-price="${es.price}" title="${tr("rd.useTip")}"><b>${es.price}p</b><span>${tr("rd.estimated")} · ${tr("rd.use")}</span></button>` +
         `<button class="chip" data-price="${es.high}" title="${tr("rd.useTip")}"><b>${es.high}p</b><span>${tr("rd.high")} · ${tr("rd.use")}</span></button>${es.source === "model" ? `<div class="chip"><b>${(es.sales || []).length}</b><span>${tr("rd.sales")}</span></div>` : `<div class="chip"><b>${es.n}</b><span>${tr("rd.comps")} · ${tr("conf." + es.confidence)}</span></div>`}` +
-        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + sellSpeedHtml(es);
+        (es.partial ? `<div class="state error">${tr("rd.partial")}</div>` : "") + whyHtml(es.why) + sellSpeedHtml(es);
       const sales = es.sales || [];
       $("#est-results").innerHTML = es.source === "model" ? (sales.length ? `<details class="orders"><summary>${tr("rd.seeSales", { n: sales.length })}</summary><div class="muted" style="font-size:12px;margin:6px 0">${tr("rd.salesLegend")}</div><table class="ref-table"><tbody>${sales.map((x) => `<tr>
         <td class="price">${x.price}p</td>
@@ -2700,11 +2725,22 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         <td>${stBadge(x.status)} ${esc(x.seller)}</td></tr>`).join("")}</tbody></table></details>`;
     }
   }
+  function whyHtml(why) {   // por qué este precio: lo típico del arma y qué stats lo suben o bajan (modelo de ventas)
+    if (!why || !(why.median || (why.drivers || []).length)) return "";
+    const pct = (p) => p >= 100 ? `×${(1 + p / 100).toFixed(1)}` : `${p > 0 ? "+" : "−"}${Math.abs(p)}%`;
+    const label = (d) => d.kind === "rolls" ? tr("why.rolls") : d.kind === "rank" ? tr(d.rank8 ? "why.rank8" : "why.rank0")
+      : `${d.positive ? "" : tr("why.neg") + " "}${esc(statBySlug[d.slug]?.name || d.slug)}`;
+    const w = currentWeapon()?.name || "";
+    return `<div class="why"><div class="why-head">${tr("why.title")}${why.median ? ` · ${tr("why.weapon", { w: esc(w), p: `<b>${why.median}p</b>`, n: why.n, d: why.days })}` : ""}</div>` +
+      ((why.drivers || []).length ? `<div class="why-list">${why.drivers.map((d) => `<span class="why-d ${d.pct > 0 ? "up" : "down"}">${label(d)}<b>${pct(d.pct)}</b></span>`).join("")}</div><div class="muted" style="font-size:12px;margin-top:6px">${tr("why.legend")}</div>` : "") + `</div>`;
+  }
   function demoEstimate() {   // estimado de mentira para el tutorial, sin red
     $("#est-section").hidden = false;
     const st = demoRiven().stats;
     const at = (d) => new Date(Date.now() - d * 864e5).toISOString();
+    const dr = [[st[0], 45], [st[2], 18], [st[3], -6]].filter(([x]) => x).map(([x, pct]) => ({ kind: "stat", slug: x.slug, positive: x.positive, pct }));
     renderEstimate({ price: 95, low: 80, high: 110, n: 5, confidence: "media", partial: false, source: "model", comps: [],
+      why: { median: 60, n: 23, days: 30, drivers: [...dr, { kind: "rank", rank8: true, pct: 12 }] },
       sales: [[80, 14, .92, "caiwan7"], [90, 6, .88, "syalsim"], [95, 2, .85, "Kibbleray"], [100, 0, .8, "Souza"], [110, 41, .76, "Biker27893"]]
         .map(([price, rolls, sim, seller], i) => ({ price, rolls, sim, seller, rank: 8, at: at(i + 1), stats: st })) });
   }
@@ -2717,6 +2753,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   $("#est-summary").addEventListener("click", (e) => {
     const chip = e.target.closest("[data-price]");
     if (!chip) return;
+    if (estOnly) setEstOnly(false);   // estimando: usar un precio pasa al alta con ese precio
     usePrice(chip.dataset.price); $("#confirm").hidden = true;
   });
 
@@ -2854,6 +2891,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
   });
 
   $("#fab").addEventListener("click", () => openRiven());
+  $("#fab-est").addEventListener("click", () => openRiven({ estimateOnly: true }));
   $("#rd-x").addEventListener("click", () => $("#riven-dialog").close());
 
   // ---- Arranque ---------------------------------------------------------
@@ -3649,6 +3687,7 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       { el: "#views", t: "tour.inicio.4.t", x: "tour.inicio.4.x" },
       { el: "#mine", t: "tour.inicio.5.t", x: "tour.inicio.5.x" },
       { el: "#mine", t: "tour.inicio.pos.t", x: "tour.inicio.pos.x" },
+      { el: "#fab-est", t: "tour.inicio.est.t", x: "tour.inicio.est.x" },
       { el: "#fab", click: true, t: "tour.inicio.6.t", x: "tour.inicio.6.x" },
       { el: ".grid-riven", demo: "new", t: "tour.inicio.7.t", x: "tour.inicio.7.x" },
       { el: "#stat-slots", demo: "new", t: "tour.inicio.8.t", x: "tour.inicio.8.x" },
@@ -4022,7 +4061,7 @@ ${e.error && e.error.stack || ""}`); } catch (_) {} });
     const s = await api().token_status(); tokHelpUrl = s.help_url;
     if (!s.has) openToken();
   }
-  const HELP_N = 20;
+  const HELP_N = 21;
   document.addEventListener("DOMContentLoaded", () => {
     const renderHelp = () => {
       let h = `<h4>${tr("help.tours")}</h4><p>${tr("help.toursSub")}</p><div class="tour-pick"><select id="tour-sel">${["inicio", "stock", "reporte", "backup", "opp"].map((k) => `<option value="${k}">${tr("tour.name." + k)}</option>`).join("")}</select><button class="ghost tour-btn" id="tour-go">${tr("help.tourGo")}</button></div>`;
