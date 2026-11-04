@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.16.6] - 2026-11-04
+
 #### Español
 ### Agregado
 - Nuevo botón "Estimar precio", al lado de "+ Nuevo riven": cargás el arma y los stats de cualquier riven y te dice cuánto vale sin publicarlo. Debajo del estimado aparece "Por qué este precio": a cuánto se viene vendiendo el arma y cuánto suma o resta cada stat, el negativo, los rolls y el rango.
