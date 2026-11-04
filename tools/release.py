@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT))
 
 import calibration  # noqa: E402
 
-INCLUIR = ["app.py", "calibration.py", "cloud_backup.py", "cloudapi.py", "crashes.py", "loops.py", "feedback.py", "feedbackapi.py", "loophealth.py", "netdiag.py", "opportunities.py", "ratelimit.py", "stockcheck.py", "orders.py", "pricing.py", "reroll.py", "state.py", "store.py", "wfm_client.py", "updater.py", "requirements.txt",
+INCLUIR = ["app.py", "calibration.py", "cloud_backup.py", "cloudapi.py", "crashes.py", "loops.py", "feedback.py", "feedbackapi.py", "loophealth.py", "netdiag.py", "opportunities.py", "ratelimit.py", "stockcheck.py", "orders.py", "pricing.py", "price_model.py", "reroll.py", "state.py", "store.py", "wfm_client.py", "updater.py", "requirements.txt",
            "VERSION", "CHANGELOG.md", "README.md", "instalar.bat", "assets", "data", "tools", "ui", "installer"]
 
 

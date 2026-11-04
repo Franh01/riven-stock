@@ -61,6 +61,7 @@ from feedbackapi import FeedbackMixin
 from orders import OrderCache
 from state import Book, slim_to_raw
 import pricing
+import price_model
 from pricing import estimate
 from ratelimit import QUEUE
 from wfm_client import SEARCH_CAP, AuthError, CloudflareError, WFMClient, WFMError, cheapest_ingame
@@ -104,6 +105,10 @@ class Api(CloudMixin, LoopsMixin, FeedbackMixin):
         # un arma nueva no obliga a sacar versión. Sin archivo válido se usa data/ del bundle.
         pricing.set_weapon_data_path(store.DB_PATH.parent / "weapon_data.json")
         pricing.set_weapon_data_refresh_hook(self.weapon_data_refresh)
+        # Modelo de precio entrenado con las ventas (price_model.json): también lo publica la
+        # nube cada día. Sin archivo vigente, el estimado sale de las publicaciones.
+        price_model.set_path(store.DB_PATH.parent / "price_model.json")
+        price_model.set_refresh_hook(self.price_model_refresh)
         self.client = WFMClient()
         self._online = False   # lo mantiene el hilo contador
         self._cache = OrderCache(self.client, self._wanted_weapons, str(store.DB_PATH.parent / "cache" / "order_cache.json"))

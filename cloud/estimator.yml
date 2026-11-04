@@ -6,6 +6,7 @@ Description: >
   en un archivo público de S3 que baja la app.
   Una segunda Lambda (2026-11-02) regenera los datos de armas y el modelo
   caro/barato (weapon_data.json), para que un arma nueva no obligue a sacar versión.
+  Una tercera (2026-11-04) entrena el modelo de precio con las ventas (price_model.json).
 
 Parameters:
   MongoUri:
@@ -20,6 +21,10 @@ Parameters:
     Type: String
     Default: "cron(30 6 * * ? *)"
     Description: Media hora antes de la calibración, que mide con estos datos.
+  PriceModelSchedule:
+    Type: String
+    Default: "cron(30 7 * * ? *)"
+    Description: Después de los datos de armas y de la calibración, para no competir por Mongo.
   CodeBucket:
     Type: String
     Description: Bucket donde vive el zip (lo sube tools/build_estimator_lambda.py).
@@ -28,7 +33,7 @@ Parameters:
     Default: estimator.zip
 
 Resources:
-  # Sólo factors.json y weapon_data.json son públicos: sin listado y sin poder escribir. La app no tiene
+  # Sólo factors.json, weapon_data.json y price_model.json son públicos: sin listado y sin poder escribir. La app no tiene
   # credenciales y lo que se sirve son números, así que una URL pública alcanza.
   Publico:
     Type: AWS::S3::Bucket
@@ -53,6 +58,7 @@ Resources:
             Resource:
               - !Sub ${Publico.Arn}/factors.json
               - !Sub ${Publico.Arn}/weapon_data.json
+              - !Sub ${Publico.Arn}/price_model.json
 
   LogGroup:
     Type: AWS::Logs::LogGroup
@@ -82,6 +88,7 @@ Resources:
                 Resource:
                   - !Sub ${Publico.Arn}/factors.json
                   - !Sub ${Publico.Arn}/weapon_data.json
+                  - !Sub ${Publico.Arn}/price_model.json
 
   Function:
     Type: AWS::Lambda::Function
@@ -166,6 +173,52 @@ Resources:
       Principal: events.amazonaws.com
       SourceArn: !GetAtt ArmasCadaDia.Arn
 
+  ModeloLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/riven-stock-price-model
+      RetentionInDays: 14
+
+  # Mismo zip y mismo rol (tools/price_model_job.py). Entrenar con ~60 días de ventas pide
+  # memoria y CPU: con 3008 MB Lambda da dos núcleos.
+  ModeloFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: ModeloLogGroup
+    Properties:
+      FunctionName: riven-stock-price-model
+      Runtime: python3.12
+      Handler: handler.handler_modelo
+      Role: !GetAtt Role.Arn
+      Timeout: 900
+      MemorySize: 3008
+      EphemeralStorage:
+        Size: 1024
+      Environment:
+        Variables:
+          MONGODB_URI: !Ref MongoUri
+          ESTIMATOR_BUCKET: !Ref Publico
+      Code:
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeKey
+
+  ModeloCadaDia:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: riven-stock-price-model-diario
+      ScheduleExpression: !Ref PriceModelSchedule
+      State: ENABLED
+      Targets:
+        - Id: modelo
+          Arn: !GetAtt ModeloFunction.Arn
+
+  ModeloPermisoEventos:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ModeloFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ModeloCadaDia.Arn
+
 Outputs:
   EstimatorUrl:
     Description: URL pública de los factores (la usa la app)
@@ -177,3 +230,8 @@ Outputs:
     Value: !Sub https://${Publico}.s3.${AWS::Region}.amazonaws.com/weapon_data.json
   WeaponDataFunctionName:
     Value: !Ref ArmasFunction
+  PriceModelUrl:
+    Description: URL pública del modelo de precio (la usa la app)
+    Value: !Sub https://${Publico}.s3.${AWS::Region}.amazonaws.com/price_model.json
+  PriceModelFunctionName:
+    Value: !Ref ModeloFunction

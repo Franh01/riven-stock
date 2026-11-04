@@ -4,6 +4,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+#### Español
+### Agregado
+- El precio estimado ahora puede salir de un modelo entrenado cada día con ventas reales de rivens. Cuando el modelo cubre el riven, las razones del precio lo indican y muestran también el estimado por publicaciones. Si el modelo no está disponible o está vencido, se usa el estimado de siempre.
+
+#### English
+### Added
+- The estimated price can now come from a model trained daily on real riven sales. When the model covers the riven, the price reasons say so and also show the listings estimate. If the model is unavailable or outdated, the usual estimate is used.
+
 ## [0.16.5] - 2026-11-03
 
 #### Español

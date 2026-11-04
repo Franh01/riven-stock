@@ -25,6 +25,8 @@ class CloudMixin:
     _estimator_last = 0.0
     _weapon_data_lock = threading.Lock()
     _weapon_data_last = 0.0
+    _price_model_lock = threading.Lock()
+    _price_model_last = 0.0
 
     def _cloud_set(self, **kv):
         with store.connect() as conn:
@@ -82,6 +84,32 @@ class CloudMixin:
             tmp.replace(p)
         except (requests.RequestException, ValueError, OSError) as e:
             logging.info("Datos de armas: no se pudo bajar weapon_data.json (%s)", e)
+
+    def price_model_refresh(self):
+        """Lo llama price_model cuando price_model.json (modelo de ventas) está viejo o falta.
+        Mismo trato que los factores: en un hilo, a lo sumo un intento por hora."""
+        with self._price_model_lock:
+            now = time.time()
+            if now - self._price_model_last < self.ESTIMATOR_RETRY_S:
+                return
+            self._price_model_last = now
+        threading.Thread(target=self._price_model_download, daemon=True).start()
+
+    def _price_model_download(self):
+        import price_model
+        try:
+            r = requests.get(price_model.URL, timeout=30)
+            r.raise_for_status()
+            d = r.json()
+            if not price_model.check(d):
+                return   # no valida: queda lo que había (o el estimado por publicaciones)
+            p = price_model.path()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            tmp = p.with_suffix(".tmp")
+            tmp.write_text(json.dumps(d, separators=(",", ":")), encoding="utf-8")
+            tmp.replace(p)
+        except (requests.RequestException, ValueError, OSError) as e:
+            logging.info("Modelo de ventas: no se pudo bajar price_model.json (%s)", e)
 
     def cloud_info(self):
         with store.connect() as conn:

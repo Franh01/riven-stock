@@ -356,6 +356,7 @@ window.LANGS.en = {
   "why.fewComps": "Only {n} close comparable(s): the price is blended with less similar rivens of the weapon.",
   "why.looseComps": "No similar rivens are listed: the estimate uses every riven of the weapon and is unreliable.",
   "why.calibrado": "Adjusted {pct} based on {n} real sales.",
+  "why.salesModel": "Estimated with the model trained on real sales of similar rivens (listings alone gave {p}p).",
   "tier.high": "Likely pricey: similar rivens usually sell for over 80p",
   "tier.mid": "Hard to call: similar rivens sell both above and below 80p",
   "tier.low": "Likely cheap: almost always sells at 80p or less",
@@ -833,4 +834,6 @@ window.LANGS.en = {
   "help.18.x": "The closed table keeps what you closed from the app. Click the price in the Sold column to mark it sold or fix the price, or leave it empty if it didn't sell (for example, if you pulled it from the market to change its disposition). The trash can removes it from the history without touching warframe.market. Unsold closed rivens can also be used in Transmute. If you close or delete a contract on the website, the app drops it from the list when you come back to the window or try to change it.",
   "help.19.t": "Adjustment from real sales",
   "help.19.x": "Once a day the app downloads a correction computed from the real sales of the last 14 days. If a weapon keeps selling below or above what the app estimates, the estimated price is adjusted and the price reasons say so. The correction is only published if it improves accuracy on sales that were not used to compute it, and once it is more than 7 days old the app stops using it and goes back to the unadjusted estimate.",
+  "help.20.t": "Model trained on sales",
+  "help.20.x": "Besides the daily adjustment, the cloud trains a model once a day on real riven sales (weapon, stats, rank and re-rolls) and the app downloads it automatically. When the model has data for a riven, the estimated price comes from the model and the price reasons also show what listings alone gave. If the model is unavailable or more than 14 days old, the app goes back to the listings estimate.",
 };

@@ -128,7 +128,7 @@ def cases_from_cache(path):
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     out = []
     for s, view, market, rtype in backtest_cases(data):
-        est = pricing.estimate(view, market, rtype=rtype, weapon=s["weapon"])
+        est = pricing.estimate(view, market, rtype=rtype, weapon=s["weapon"], model=False)
         if est and est.get("price"):
             out.append((s["weapon"], rtype, s["t"], math.log(est["price"] / s["price"])))
     return out

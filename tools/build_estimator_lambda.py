@@ -1,8 +1,8 @@
 """Arma y (si se pide) despliega las Lambdas del estimador y de los datos de armas.
 
 Copia la lógica tal cual está en el repo -- sin duplicar archivos -- junto con
-pymongo, numpy y los datos que usa pricing, arma el zip y lo sube con CloudFormation.
-Las dos funciones comparten el zip y cambian sólo el handler.
+pymongo, numpy, lightgbm y los datos que usa pricing, arma el zip y lo sube con CloudFormation.
+Las tres funciones comparten el zip y cambian sólo el handler.
 
   python tools/build_estimator_lambda.py            # sólo arma dist/estimator.zip
   python tools/build_estimator_lambda.py --deploy    # sube el zip y actualiza el stack
@@ -22,7 +22,10 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "dist" / "estimator"
 ZIP = ROOT / "dist" / "estimator.zip"
 FILES = {"pricing.py": "", "calibration.py": "", "estimator_mongo.py": "", "estimator_job.py": "tools",
-         "weapon_data_job.py": "tools", "train_tier.py": "tools", "build_weapon_data.py": "tools"}
+         "weapon_data_job.py": "tools", "train_tier.py": "tools", "build_weapon_data.py": "tools",
+         "price_model.py": "", "price_model_job.py": "tools"}
+# Lambda descomprime el código en 250 MB como mucho.
+MAX_UNZIPPED = 250 * 1024 * 1024
 BUCKET = "riven-stock-estimator-099572291636"
 STACK = "riven-stock-estimator"
 PROFILE = "cuenta_personal"
@@ -49,7 +52,11 @@ def build(python=None):
     subprocess.run([python, "-m", "pip", "install", "-q", "--target", str(OUT), "--upgrade",
                     "--no-compile", "--platform", "manylinux2014_x86_64", "--only-binary=:all:",
                     "--python-version", "3.12", "--implementation", "cp",
-                    "pymongo", "dnspython", "numpy"], check=True)
+                    "pymongo", "dnspython", "numpy", "scipy", "lightgbm"], check=True)
+    _libgomp(python)
+    size = sum(p.stat().st_size for p in OUT.rglob("*") if p.is_file())
+    if size > MAX_UNZIPPED:
+        raise SystemExit(f"el código descomprimido pesa {size // 2**20} MB, más que el límite de Lambda")
     ZIP.parent.mkdir(exist_ok=True)
     if ZIP.exists():
         ZIP.unlink()
@@ -59,6 +66,21 @@ def build(python=None):
                 z.write(p, p.relative_to(OUT))
     print(f"{ZIP} ({ZIP.stat().st_size // 1024} KB, {len(zipfile.ZipFile(ZIP).namelist())} archivos)")
     return ZIP
+
+
+def _libgomp(python):
+    """lib_lightgbm.so necesita libgomp.so.1, que no viene en el runtime de Lambda ni en su
+    rueda. Se toma la que trae la rueda manylinux de scikit-learn y queda en lib/, que
+    Lambda pone en LD_LIBRARY_PATH."""
+    with tempfile.TemporaryDirectory() as d:
+        subprocess.run([python, "-m", "pip", "download", "-q", "--no-deps", "--dest", d,
+                        "--platform", "manylinux_2_28_x86_64", "--only-binary=:all:",
+                        "--python-version", "3.12", "--implementation", "cp", "scikit-learn"], check=True)
+        whl = next(Path(d).glob("scikit_learn-*.whl"))
+        with zipfile.ZipFile(whl) as z:
+            name = next(n for n in z.namelist() if "/libgomp" in n)
+            (OUT / "lib").mkdir(exist_ok=True)
+            (OUT / "lib" / "libgomp.so.1").write_bytes(z.read(name))
 
 
 def deploy(uri):

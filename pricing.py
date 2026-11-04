@@ -10,6 +10,7 @@ import time as _time
 from pathlib import Path as _Path
 
 import calibration
+import price_model
 
 # Stats que el mercado paga más; el resto pesa 1.
 WEIGHTS = {
@@ -161,8 +162,12 @@ def _wquantile(pairs, q):
     return pairs[-1][0]
 
 
-def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
-    """view: auction_view de mi riven. Devuelve {price, low, high, n, confidence, comps} o None."""
+def estimate(view, market, exclude_id=None, rtype=None, weapon=None, model=True):
+    """view: auction_view de mi riven. Devuelve {price, low, high, n, confidence, comps} o None.
+
+    Con model=True y un modelo de ventas vigente (price_model.py), el precio sale del modelo y
+    el de las publicaciones queda en listings_price. La calibración y los backtests piden
+    model=False: miden el estimado por publicaciones."""
     est = _estimate(view, market, exclude_id, rtype, weapon, MIN_SIM)
     if est is None:
         # Ningún comparable cercano: mejor un estimado flojo con todos los del arma que ninguno
@@ -177,7 +182,50 @@ def estimate(view, market, exclude_id=None, rtype=None, weapon=None):
             for k in ("price", "low", "high"):
                 est[k] = round(_math.exp(FEW_WEIGHT * _math.log(est[k]) + (1 - FEW_WEIGHT) * _math.log(wide[k])))
             est["reasons"].append({"key": "fewComps", "n": est["n"]})
-    return calibration.apply(est, _factors(), weapon, rtype)
+    if est is None:
+        return None
+    close = est.pop("_close")
+    est = calibration.apply(est, _factors(), weapon, rtype)
+    if model:
+        _apply_model(est, view, weapon, rtype, close)
+    return est
+
+
+def _caps(view, close, price, low, high, reasons):
+    """Techos del precio que valen para cualquier estimado. Devuelve (price, low, high)."""
+    # Techo 1: lo que ya lleva publicado sin venderse a mi precio
+    days = _age_days(view.get("created")) if view.get("created") and view.get("price") else None
+    if days is not None and days >= 3:
+        cap = round(view["price"] * max(1.3, 3.0 - days / 7))
+        if price > cap:
+            price, low, high = cap, min(low, cap), min(high, cap)
+            reasons.append({"key": "listedLong", "d": int(days), "p": view["price"]})
+    # Techo 2: si los comparables más parecidos están todos mucho más baratos
+    if len(close) >= 3:
+        cap = round(close[len(close) // 2] * 2.5)
+        if price > cap:
+            price, low, high = cap, min(low, cap), min(high, cap)
+            reasons.append({"key": "cheaperCap", "n": len(close)})
+    return price, low, high
+
+
+def _apply_model(est, view, weapon, rtype, close):
+    """Reemplaza el precio por el del modelo de ventas, si hay uno vigente. Si algo falla,
+    queda el estimado por publicaciones."""
+    try:
+        pred = price_model.predict(weapon, rtype, view)
+        if not pred:
+            return
+        listings = est["price"]
+        ratio = pred / listings
+        reasons = [{"key": "salesModel", "p": listings}]
+        low = max(1, min(pred, round(est["low"] * ratio)))
+        high = max(pred, round(est["high"] * ratio))
+        price, low, high = _caps(view, close, pred, low, high, reasons)
+        est.update(price=price, low=low, high=high, listings_price=listings, source="model",
+                   reasons=reasons, adj=1.0)
+    except Exception:  # noqa: BLE001 -- el modelo nunca puede dejar a la app sin estimado
+        pass
 
 
 # --- Calibración por arma (calibration.py, la ajusta la nube una vez por día) -----
@@ -249,24 +297,12 @@ def _estimate(view, market, exclude_id, rtype, weapon, min_sim):
     conf = "alta" if len(top) >= 6 and avg_sim >= 0.7 else "media" if len(top) >= 3 and avg_sim >= 0.5 else "baja"
     adj, reasons = weapon_adjust(weapon, view["stats"]) if weapon else (1.0, [])
     low, price, high = (max(1, round(_wquantile(pairs, q) * adj)) for q in QUANTILES)
-    # Techo 1: lo que ya lleva publicado sin venderse a mi precio
-    days = _age_days(view.get("created")) if view.get("created") and view.get("price") else None
-    if days is not None and days >= 3:
-        cap = round(view["price"] * max(1.3, 3.0 - days / 7))
-        if price > cap:
-            price, low, high = cap, min(low, cap), min(high, cap)
-            reasons.append({"key": "listedLong", "d": int(days), "p": view["price"]})
-    # Techo 2: si los comparables más parecidos están todos mucho más baratos
     close = sorted(o["p"] for s, o in top if s >= 0.6)
-    if len(close) >= 3:
-        cap = round(close[len(close) // 2] * 2.5)
-        if price > cap:
-            price, low, high = cap, min(low, cap), min(high, cap)
-            reasons.append({"key": "cheaperCap", "n": len(close)})
+    price, low, high = _caps(view, close, price, low, high, reasons)
     if any(_stale(o) < 1 for _, o in top):
         reasons.append({"key": "staleComps"})
     return {
-        "adj": round(adj, 2), "reasons": reasons, "tier": tier(weapon, view) if weapon else None,
+        "adj": round(adj, 2), "reasons": reasons, "tier": tier(weapon, view) if weapon else None, "_close": close,
         "price": price, "low": low, "high": high,
         "n": len(top), "confidence": conf, "avg_sim": round(avg_sim, 2),
         "comps": [{"id": o["id"], "price": o["p"], "sim": round(s, 2), "status": o["st"], "rolls": o["r"], "rank": o.get("k"),

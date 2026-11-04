@@ -19,6 +19,9 @@ SINCE_DAYS = 14
 WINDOW_H = 6            # horas de tolerancia para considerar viva una publicación
 MAX_SALES = 20000
 COL = "estimator"
+# Ventas que valen como dato: con precio, sin sospecha y con confianza alta o media.
+SALES_Q = {"suspect": {"$exists": False}, "price": {"$gt": 0}, "confidence": {"$in": ["alta", "media"]},
+           "attrs.0": {"$exists": True}}
 
 
 def uri():
@@ -76,12 +79,32 @@ def stored_rtypes(collection):
     return (collection.find_one({"_id": "rtypes"}) or {}).get("data") or {}
 
 
+def listings_for(database, weapons, since):
+    """Publicaciones de esas armas vistas desde `since`, en el formato de mercado de pricing."""
+    lproj = {"weapon": 1, "attrs": 1, "rolls": 1, "rank": 1, "seller": 1, "price_last": 1,
+             "status_last": 1, "created": 1, "first_seen": 1, "last_seen": 1}
+    out = {}
+    q = {"weapon": {"$in": weapons}, "last_seen": {"$gte": since.replace(tzinfo=None)}}
+    for d in database.listings.find(q, lproj):
+        out.setdefault(d["weapon"], []).append({
+            "id": str(d["_id"]), "p": d.get("price_last"), "st": d.get("status_last"), "s": d["attrs"],
+            "r": d.get("rolls") or 0, "k": d.get("rank"), "nm": d.get("seller"),
+            "c": _iso(d.get("created")), "fs": _ts(d["first_seen"]), "ls": _ts(d["last_seen"])})
+    return out
+
+
+def market_at(listings, weapon, t, seller):
+    """El mercado que había cuando se detectó una venta: publicaciones vivas de esa arma, sin
+    las del vendedor."""
+    return [o for o in listings.get(weapon, []) if o["p"] and o["fs"] <= t
+            and o["ls"] >= t - WINDOW_H * 3600 and o["nm"] != seller]
+
+
 def cases_from_mongo(limit=MAX_SALES, since_days=SINCE_DAYS, client=None):
     """[(arma, tipo, t, error_log)] con las ventas inferidas de los últimos días."""
     database = db(client)
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=since_days)
-    q = {"suspect": {"$exists": False}, "price": {"$gt": 0},
-         "detected_at": {"$gte": since.replace(tzinfo=None)}, "confidence": {"$in": ["alta", "media"]}}
+    q = {**SALES_Q, "detected_at": {"$gte": since.replace(tzinfo=None)}}
     proj = {"_id": 0, "weapon": 1, "price": 1, "attrs": 1, "rolls": 1, "rank": 1, "seller": 1, "detected_at": 1}
     # Muestra al azar de toda la ventana, no las más nuevas: con las últimas 20 mil
     # quedaban 4 días y el corte de entrenamiento/prueba caía sobre poquísimo tiempo.
@@ -90,27 +113,18 @@ def cases_from_mongo(limit=MAX_SALES, since_days=SINCE_DAYS, client=None):
     if not sales:
         return []
     tipos = fetch_rtypes() or stored_rtypes(database[COL])
-    weapons = sorted({s["weapon"] for s in sales})
-    lproj = {"weapon": 1, "attrs": 1, "rolls": 1, "rank": 1, "seller": 1, "price_last": 1,
-             "status_last": 1, "created": 1, "first_seen": 1, "last_seen": 1}
-    start = (since - dt.timedelta(days=2)).replace(tzinfo=None)
-    listings = {}
-    for d in database.listings.find({"weapon": {"$in": weapons}, "last_seen": {"$gte": start}}, lproj):
-        listings.setdefault(d["weapon"], []).append({
-            "id": str(d["_id"]), "p": d.get("price_last"), "st": d.get("status_last"), "s": d["attrs"],
-            "r": d.get("rolls") or 0, "k": d.get("rank"), "nm": d.get("seller"),
-            "c": _iso(d.get("created")), "fs": _ts(d["first_seen"]), "ls": _ts(d["last_seen"])})
+    listings = listings_for(database, sorted({s["weapon"] for s in sales}), since - dt.timedelta(days=2))
     out = []
     for s in sales:
         t = _ts(s["detected_at"])
-        market = [o for o in listings.get(s["weapon"], []) if o["p"] and o["fs"] <= t
-                  and o["ls"] >= t - WINDOW_H * 3600 and o["nm"] != s.get("seller")]
+        market = market_at(listings, s["weapon"], t, s.get("seller"))
         if not market:
             continue
         view = {"stats": [{"slug": a, "value": v, "positive": p} for a, v, p in s["attrs"]],
                 "rolls": s.get("rolls") or 0, "rank": s.get("rank")}
         rtype = tipos.get(s["weapon"])
-        est = pricing.estimate(view, market, rtype=rtype, weapon=s["weapon"])
+        # la calibración corrige el estimado por publicaciones, no el del modelo de ventas
+        est = pricing.estimate(view, market, rtype=rtype, weapon=s["weapon"], model=False)
         if not est or not est.get("price"):
             continue
         out.append((s["weapon"], rtype, t, round(math.log(est["price"] / s["price"]), 6)))
