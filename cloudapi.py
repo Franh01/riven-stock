@@ -108,6 +108,7 @@ class CloudMixin:
             tmp = p.with_suffix(".tmp")
             tmp.write_text(json.dumps(d, separators=(",", ":")), encoding="utf-8")
             tmp.replace(p)
+            price_model.reload()
         except (requests.RequestException, ValueError, OSError) as e:
             logging.info("Modelo de ventas: no se pudo bajar price_model.json (%s)", e)
 

@@ -38,6 +38,11 @@ def path():
     return _path_override or (_Path(__file__).parent / "data" / "price_model.json")
 
 
+def reload():
+    """Recién bajado: que el próximo estimado relea el archivo sin esperar el minuto del caché."""
+    _cache["checked"] = 0.0
+
+
 def set_refresh_hook(fn):
     """La app registra acá cómo bajar price_model.json (en un hilo: nunca frena el estimado)."""
     global _refresh_hook

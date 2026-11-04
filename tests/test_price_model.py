@@ -279,6 +279,21 @@ class Nube(unittest.TestCase):
                 api._price_model_download()
             self.assertEqual(pm.path().exists(), ok)
 
+    def test_recien_bajado_se_usa_sin_esperar_el_cache(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        old_path, old_cache = pm._path_override, dict(pm._cache)
+        self.addCleanup(lambda: (setattr(pm, "_path_override", old_path), pm._cache.update(old_cache)))
+        pm.set_path(Path(tmp.name) / "price_model.json")
+        pm._cache.update(mtime=None, checked=0.0, model=None)
+        with mock.patch.object(pm, "_refresh_hook", None):
+            self.assertIsNone(pm.current())   # todavía no está: queda en el caché por un minuto
+            api = object.__new__(cloudapi.CloudMixin)
+            r = mock.Mock(json=mock.Mock(return_value=doc()))
+            with mock.patch.object(cloudapi.requests, "get", return_value=r):
+                api._price_model_download()
+            self.assertIsNotNone(pm.current())
+
 
 try:
     import lightgbm
