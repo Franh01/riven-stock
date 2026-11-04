@@ -482,7 +482,10 @@
 
   #riven-dialog { width: min(1040px, 94vw); max-height: 92vh; }
   #riven-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
-  #riven-dialog .dlg-body { overflow: auto; flex: 1; min-height: 0; }
+  /* flex 1 1 auto y no flex: 1: con base 0% y el dialog sin alto fijo, WebKitGTK colapsaba el cuerpo
+     y el modal se abria aplastado (~120 px con scroll interno). En Chromium da igual. */
+  #riven-dialog .dlg-head { flex-shrink: 0; }
+  #riven-dialog .dlg-body { overflow: auto; flex: 1 1 auto; min-height: 0; }
   .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .step { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #a066f633; color: var(--accent-2); }
   .origin-row { display: grid; grid-template-columns: 150px minmax(0, 420px); gap: 10px; align-items: center; margin-bottom: 14px; }
