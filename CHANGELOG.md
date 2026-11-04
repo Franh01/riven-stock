@@ -4,6 +4,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.16.7] - 2026-11-04
+
 #### Español
 ### Corregido
 - Las ventanas "Nuevo riven" y "Estimar precio" ya no se abren aplastadas, con una franja chica y barra de scroll, en algunos sistemas.
