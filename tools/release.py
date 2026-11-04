@@ -10,10 +10,12 @@ notas; después lo publica con `gh` y el token del workflow. Así no hace falta 
 """
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 import zipfile
 from datetime import date
@@ -26,6 +28,25 @@ import calibration  # noqa: E402
 
 INCLUIR = ["app.py", "calibration.py", "cloud_backup.py", "cloudapi.py", "crashes.py", "loops.py", "feedback.py", "feedbackapi.py", "loophealth.py", "netdiag.py", "opportunities.py", "ratelimit.py", "stockcheck.py", "orders.py", "pricing.py", "price_model.py", "reroll.py", "state.py", "store.py", "wfm_client.py", "updater.py", "requirements.txt",
            "VERSION", "CHANGELOG.md", "README.md", "instalar.bat", "assets", "data", "tools", "ui", "installer"]
+
+
+def github_json(url):
+    """GET a la API de GitHub. Sin token el cupo es de 60 consultas por hora por IP: si se agota,
+    espera a que se renueve en vez de cortar la publicación. GITHUB_TOKEN (opcional) sube el cupo."""
+    headers = {"Accept": "application/vnd.github+json"}
+    if os.environ.get("GITHUB_TOKEN"):
+        headers["Authorization"] = f"Bearer {os.environ['GITHUB_TOKEN']}"
+    while True:
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 429) and e.headers.get("X-RateLimit-Remaining") == "0":
+                espera = max(int(e.headers.get("X-RateLimit-Reset", "0")) - int(time.time()), 0) + 5
+                print(f"GitHub frenó las consultas por cupo; espero {espera // 60 + 1} min y sigo...")
+                time.sleep(min(espera, 3600))
+                continue
+            raise
 
 
 def run(*cmd, capture=False):
@@ -43,8 +64,7 @@ def ci_en_verde(timeout=1800):
     fin = time.time() + timeout
     while True:
         try:
-            with urllib.request.urlopen(url, timeout=30) as r:
-                runs = [w for w in json.load(r)["workflow_runs"] if w["name"] == "CI Windows" and w["head_sha"] == sha]
+            runs = [w for w in github_json(url)["workflow_runs"] if w["name"] == "CI Windows" and w["head_sha"] == sha]
         except OSError as e:
             sys.exit(f"No pude consultar el CI de GitHub: {e}")
         if not runs and time.time() < fin - timeout + 180:   # recién pusheado: GitHub tarda unos segundos
@@ -61,7 +81,7 @@ def ci_en_verde(timeout=1800):
             print("El CI sigue corriendo y se agotó la espera.")
             return False
         print(f"CI Windows de {sha[:7]} en curso ({w['status']}), espero...")
-        time.sleep(30)
+        time.sleep(60)
 
 
 def notas_de(cl, ver):
@@ -114,8 +134,7 @@ def esperar_release(repo, ver, timeout=2700):
     fin = time.time() + timeout
     while time.time() < fin:
         try:
-            with urllib.request.urlopen(url, timeout=30) as r:
-                rel = json.load(r)
+            rel = github_json(url)
             print(f"Release v{ver} publicado: {rel['html_url']} ({len(rel.get('assets', []))} archivos)")
             return True
         except OSError:   # 404 mientras el CI no termina
