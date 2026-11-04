@@ -3136,9 +3136,9 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
       : diff > 0 ? `<span class="below">${tr("v.askMore", { d: diff })}</span>` : `<span class="above">${tr("v.over", { d: -diff })}</span>`;
     const estCard = es ? `<div class="sum-card est-link" id="est-card" title="${tr("sum.compsTip")}"><h4>${tr("sum.estimated")}</h4>
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b class="accent" style="font-size:30px;line-height:1">${es.price}p</b>
-            <span class="muted" style="white-space:nowrap">${tr("sum.range", { a: es.low, b: es.high })}</span></div>
+            ${es.low !== es.high ? `<span class="muted" style="white-space:nowrap">${tr("sum.range", { a: es.low, b: es.high })}</span>` : ""}</div>
           <div style="margin-top:8px;font-size:13px">${verdict}</div>
-          ${es.tier ? `<div class="${es.tier.level === "high" ? "below" : es.tier.level === "low" ? "above" : "muted"}" style="margin-top:6px;font-size:12px">${tr("tier." + es.tier.level)}${es.tier.why.length ? `<br>${tr("tier.why", { w: fmtList(es.tier.why.map((k) => { const n = statBySlug[k.slice(1)]?.name ?? k.slice(1).replace(/_/g, " "); return k[0] === "-" ? tr("tier.neg", { n }) : n; })) })}` : ""}</div>` : ""}
+          ${es.tier && es.source !== "model" && es.tier.level !== "mid" ? `<div class="${es.tier.level === "high" ? "below" : "above"}" style="margin-top:6px;font-size:12px"${es.tier.why.length ? ` title="${esc(tr("tier.why", { w: fmtList(es.tier.why.map((k) => { const n = statBySlug[k.slice(1)]?.name ?? k.slice(1).replace(/_/g, " "); return k[0] === "-" ? tr("tier.neg", { n }) : n; })) }))}"` : ""}>${tr("tier." + es.tier.level)}</div>` : ""}
           ${es.partial ? `<div class="above" style="margin-top:6px;font-size:12px">${tr("sum.partial")}</div>` : ""}
           <small class="muted" style="display:block;margin-top:4px">${tr("sum.compsLine", { n: es.n, c: tr("conf." + es.confidence) })}</small>
           ${(es.reasons || []).map((r) => `<div class="${["negMain", "posUnused", "listedLong", "cheaperCap"].includes(r.key) ? "above" : ["fewComps", "looseComps", "calibrado", "salesModel"].includes(r.key) ? "muted" : "below"}" style="margin-top:4px;font-size:12px">${tr("why." + r.key, { s: String(r.slug || "").replace(/_/g, " "), p: r.share ?? r.p, f: Math.round((1 - (r.f ?? 1)) * 100), pct: (r.f >= 1 ? "+" : "−") + Math.abs(Math.round(((r.f ?? 1) - 1) * 100)) + "%", d: r.d, n: r.n })}</div>`).join("")}</div>`
@@ -3188,25 +3188,45 @@ ${sales.map((s) => `<tr><td>${isoDay(s.at)}</td><td>${h(weaponName(s.weapon))} $
         const l = new Set(settings.tracked_weapons || []); l.has(a.weapon) ? l.delete(a.weapon) : l.add(a.weapon);
         saveCfg("tracked_weapons", [...l]); $("#trk").outerHTML = star(); bindStar();
       });
-      const pts = (t.points || []).filter((x) => x.median != null);
+      const all = (t.points || []).filter((x) => x.median != null);
+      // Desde el 23/10/2026 la búsqueda de warframe.market corta en 100 resultados: antes la mediana era de todas
+      // las publicaciones y no se compara con la de ahora (daba caídas falsas de -80%).
+      const cmp = all.filter((x) => x.day >= "2026-10-23"), pts = cmp.length >= 2 ? cmp : all;
       if (pts.length < 2) { c.innerHTML = `<h4>${star()}${tr("trend.title")}</h4><small class="muted">${tr(pts.length ? "trend.one" : "trend.none")}</small>`; bindStar(); return; }
-      const W = 260, H = 70, vals = pts.flatMap((x) => [x.median, x.min_price]), lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
-      const xy = (i, v) => `${(i / (pts.length - 1) * W).toFixed(1)},${(H - 4 - (v - lo) / span * (H - 8)).toFixed(1)}`;
-      const line = (k, col) => `<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" points="${pts.map((x, i) => xy(i, x[k])).join(" ")}"/>`;
+      const mine = es && es.price > 0 ? es.price : null;
+      const W = 260, H = 90, vals = pts.flatMap((x) => [x.median, x.min_price]).concat(mine ? [mine] : []);
+      const lo = Math.max(0, Math.min(...vals) - (Math.max(...vals) - Math.min(...vals)) * 0.08), hi = Math.max(...vals) * 1.04, span = hi - lo || 1;
+      const X = (i) => i / (pts.length - 1) * W, Y = (v) => H - (v - lo) / span * H;
+      const path = (k) => pts.map((x, i) => `${X(i).toFixed(1)},${Y(x[k]).toFixed(1)}`).join(" ");
+      const line = (k, col) => `<polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="${path(k)}"/>`;
       const fmtDay = (d) => String(d || "").slice(8, 10) + "/" + String(d || "").slice(5, 7);
       const first = pts[0].median, last = pts[pts.length - 1].median, pct = first ? Math.round((last - first) / first * 100) : 0;
+      const read = (x) => `${fmtDay(x.day)} · ${tr("trend.median")} <b>${x.median}p</b> · ${tr("trend.min")} <b>${x.min_price}p</b> · ${tr("trend.onlineN", { n: x.n_online })}`;
+      const key = (col, dash) => `<i style="display:inline-block;width:14px;height:0;border-top:${dash ? "2px dashed" : "3px solid"} ${col};vertical-align:middle;margin-right:4px"></i>`;
       c.innerHTML = `<h4>${star()}${tr("trend.title")}</h4><div style="display:flex;align-items:baseline;gap:10px"><b class="accent" style="font-size:24px">${last}p</b><span class="${pct > 0 ? "below" : pct < 0 ? "above" : "muted"}">${pct > 0 ? "+" : ""}${tr("trend.pct", { p: pct, n: pts.length })}</span></div>
         <div style="position:relative;margin-top:8px;padding-left:34px">
-          <span class="muted" style="position:absolute;left:0;top:0;font-size:10px">${hi}p</span>
-          <span class="muted" style="position:absolute;left:0;bottom:0;font-size:10px">${lo}p</span>
-          <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;border-left:1px solid var(--border,#ffffff22);border-bottom:1px solid var(--border,#ffffff22)">${line("min_price", "var(--accent-2)")}${line("median", "var(--accent)")}</svg>
+          <span class="muted" style="position:absolute;left:0;top:0;font-size:10px">${Math.round(hi)}p</span>
+          <span class="muted" style="position:absolute;left:0;bottom:0;font-size:10px">${Math.round(lo)}p</span>
+          <svg id="trend-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;cursor:crosshair;border-left:1px solid var(--border,#ffffff22);border-bottom:1px solid var(--border,#ffffff22)">
+            <polygon fill="var(--accent)" fill-opacity="0.14" points="0,${H} ${path("median")} ${W},${H}"/>
+            <line x1="0" x2="${W}" y1="${H / 2}" y2="${H / 2}" stroke="var(--border,#ffffff22)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
+            ${mine ? `<line x1="0" x2="${W}" y1="${Y(mine).toFixed(1)}" y2="${Y(mine).toFixed(1)}" stroke="var(--text,#ddd)" stroke-opacity="0.6" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/>` : ""}
+            ${line("min_price", "var(--accent-2)")}${line("median", "var(--accent)")}
+            <line id="trend-guide" x1="0" x2="0" y1="0" y2="${H}" stroke="var(--muted,#888)" vector-effect="non-scaling-stroke" visibility="hidden"/>
+          </svg>
         </div>
-        <div class="muted" style="display:flex;justify-content:space-between;font-size:10px;padding-left:34px;margin-top:2px"><span>${fmtDay(pts[0].day)}</span><span>${fmtDay(pts[pts.length - 1].day)}</span></div>
+        <div class="muted" style="display:flex;justify-content:space-between;font-size:10px;padding-left:34px;margin-top:2px"><span>${fmtDay(pts[0].day)}</span><span>${fmtDay(pts[Math.floor((pts.length - 1) / 2)].day)}</span><span>${fmtDay(pts[pts.length - 1].day)}</span></div>
         <div class="muted" style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;margin-top:6px">
-          <span><i style="display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--accent);vertical-align:middle;margin-right:4px"></i>${tr("trend.median")} ${last}p</span>
-          <span><i style="display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--accent-2);vertical-align:middle;margin-right:4px"></i>${tr("trend.min")} ${pts[pts.length - 1].min_price}p</span>
+          <span>${key("var(--accent)")}${tr("trend.median")}</span><span>${key("var(--accent-2)")}${tr("trend.min")}</span>${mine ? `<span>${key("var(--text,#ddd)", true)}${tr("trend.mine", { p: mine })}</span>` : ""}
         </div>
-        <small class="muted">${tr("trend.online", { a: pts[pts.length - 1].n_online, b: pts[pts.length - 1].n_orders })}</small>`;
+        <div id="trend-read" class="muted" style="font-size:11px;margin-top:4px;min-height:14px">${read(pts[pts.length - 1])}</div>
+        <small class="muted" style="display:block;margin-top:4px">${tr("trend.src", { b: pts[pts.length - 1].n_orders })}</small>`;
+      const svg = $("#trend-svg"), guide = $("#trend-guide"), out = $("#trend-read");
+      svg.addEventListener("mousemove", (ev) => {
+        const r = svg.getBoundingClientRect(), i = Math.max(0, Math.min(pts.length - 1, Math.round((ev.clientX - r.left) / r.width * (pts.length - 1))));
+        guide.setAttribute("x1", X(i)); guide.setAttribute("x2", X(i)); guide.setAttribute("visibility", "visible"); out.innerHTML = read(pts[i]);
+      });
+      svg.addEventListener("mouseleave", () => { guide.setAttribute("visibility", "hidden"); out.innerHTML = read(pts[pts.length - 1]); });
       bindStar();
     }).catch(() => {});
     const resize = (fn) => {   // cambio de alto suave y corto: mide antes y después
