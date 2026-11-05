@@ -67,6 +67,12 @@ functions:
       cors: true
 
 resources:
+  # El colector se relanza a sí mismo (relevos, tope MAX_CHAIN en collector.js). Con el valor por
+  # defecto (Terminate) AWS lo toma como bucle recursivo y corta la cadena a las ~16 invocaciones.
+  extensions:
+    CollectorLambdaFunction:
+      Properties:
+        RecursiveLoop: Allow
   Resources:
     FeedbackBucket:
       Type: AWS::S3::Bucket
